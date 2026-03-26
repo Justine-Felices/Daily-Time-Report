@@ -75,7 +75,11 @@ export default function Home() {
 
   const onPastFieldChange = (field, value) => {
     setPastForm((current) => ({ ...current, [field]: value }));
-    setPastErrors((current) => ({ ...current, [field]: undefined, form: undefined }));
+    setPastErrors((current) => ({
+      ...current,
+      [field]: undefined,
+      form: undefined,
+    }));
   };
 
   const savePastRecord = () => {
@@ -92,7 +96,12 @@ export default function Home() {
       nextErrors.date = "Date cannot be in the future.";
     }
 
-    if (!nextErrors.amIn && !nextErrors.amOut && !nextErrors.pmIn && !nextErrors.pmOut) {
+    if (
+      !nextErrors.amIn &&
+      !nextErrors.amOut &&
+      !nextErrors.pmIn &&
+      !nextErrors.pmOut
+    ) {
       const amInAt = toDateTime(pastForm.date, pastForm.amIn);
       const amOutAt = toDateTime(pastForm.date, pastForm.amOut);
       const pmInAt = toDateTime(pastForm.date, pastForm.pmIn);
@@ -113,7 +122,8 @@ export default function Home() {
     const pmInAt = toDateTime(pastForm.date, pastForm.pmIn);
     const pmOutAt = toDateTime(pastForm.date, pastForm.pmOut);
 
-    const totalRecordHours = getHours(amInAt, amOutAt) + getHours(pmInAt, pmOutAt);
+    const totalRecordHours =
+      getHours(amInAt, amOutAt) + getHours(pmInAt, pmOutAt);
 
     const nextRecord = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
