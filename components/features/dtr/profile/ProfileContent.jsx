@@ -14,9 +14,9 @@ import {
   User,
 } from "lucide-react";
 import useTimedFlag from "@/hooks/useTimedFlag";
-import PageShell from "@/components/dtr/shared/PageShell";
-import GlassCard from "@/components/dtr/shared/GlassCard";
-import ProfileInputField from "@/components/dtr/profile/ProfileInputField";
+import PageShell from "@/components/layout/PageShell";
+import GlassCard from "@/components/ui/cards/GlassCard";
+import ProfileInputField from "@/components/features/dtr/profile/ProfileInputField";
 
 const PERSONAL_FIELDS = [
   { key: "name", label: "FULL NAME", icon: User, type: "text" },

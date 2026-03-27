@@ -12,9 +12,9 @@ import useTimedFlag from "@/hooks/useTimedFlag";
 import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { getTodayInputDate, toDisplayTime } from "@/lib/dtr-formatters";
 import { prependHistoryRecord } from "@/lib/dtr-storage";
-import PageShell from "@/components/dtr/shared/PageShell";
-import GlassCard from "@/components/dtr/shared/GlassCard";
-import TimeSessionCard from "@/components/dtr/encode-past/TimeSessionCard";
+import PageShell from "@/components/layout/PageShell";
+import GlassCard from "@/components/ui/cards/GlassCard";
+import TimeSessionCard from "@/components/features/dtr/encode-past/TimeSessionCard";
 
 const INITIAL_FORM = {
   date: "",

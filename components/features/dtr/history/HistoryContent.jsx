@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { PRINT_CSS } from "@/lib/dtr-constants";
 import { loadHistoryRecords } from "@/lib/dtr-storage";
-import PageShell from "@/components/dtr/shared/PageShell";
-import GlassCard from "@/components/dtr/shared/GlassCard";
-import HistoryRow from "@/components/dtr/history/HistoryRow";
-import PrintableDTR from "@/components/dtr/history/PrintableDTR";
+import PageShell from "@/components/layout/PageShell";
+import GlassCard from "@/components/ui/cards/GlassCard";
+import HistoryRow from "@/components/features/dtr/history/HistoryRow";
+import PrintableDTR from "@/components/features/dtr/history/PrintableDTR";
 
 const PAGE_SIZE = 6;
 

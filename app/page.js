@@ -1,4 +1,4 @@
-import HomeDashboard from "@/components/dtr/home/HomeDashboard";
+import HomeDashboard from "@/components/features/home/HomeDashboard";
 
 export default function HomePage() {
   return <HomeDashboard />;

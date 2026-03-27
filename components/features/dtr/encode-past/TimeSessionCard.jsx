@@ -1,5 +1,5 @@
 import { Clock } from "lucide-react";
-import GlassCard from "@/components/dtr/shared/GlassCard";
+import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 
 export default function TimeSessionCard({
