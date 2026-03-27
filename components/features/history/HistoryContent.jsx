@@ -24,7 +24,9 @@ function filterHistoryRecords(records, search, filterStatus) {
       record.status.toLowerCase().includes(searchValue) ||
       noteValue.includes(searchValue);
 
-    return matchSearch && (filterStatus === "All" || record.status === filterStatus);
+    return (
+      matchSearch && (filterStatus === "All" || record.status === filterStatus)
+    );
   });
 }
 

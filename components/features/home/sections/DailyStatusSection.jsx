@@ -26,6 +26,7 @@ export default function DailyStatusSection({
   onDailyStatusChange,
   onDailyNoteChange,
   onSave,
+  disableSave = false,
   noteSaved,
   statusOptions,
   inputStyle,
@@ -82,15 +83,21 @@ export default function DailyStatusSection({
 
         <button
           onClick={onSave}
+          disabled={disableSave}
           className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 transition-all duration-200"
           style={{
             ...BUTTON_BASE_STYLE,
-            background: noteSaved
-              ? "linear-gradient(135deg,#22C55E,#16A34A)"
-              : "linear-gradient(135deg,#069494,#0aacac)",
-            boxShadow: noteSaved
-              ? "0 4px 12px rgba(34,197,94,0.35)"
-              : "0 4px 14px rgba(6,148,148,0.32)",
+            background: disableSave
+              ? "rgba(148,163,184,0.22)"
+              : noteSaved
+                ? "linear-gradient(135deg,#22C55E,#16A34A)"
+                : "linear-gradient(135deg,#069494,#0aacac)",
+            boxShadow: disableSave
+              ? "none"
+              : noteSaved
+                ? "0 4px 12px rgba(34,197,94,0.35)"
+                : "0 4px 14px rgba(6,148,148,0.32)",
+            cursor: disableSave ? "not-allowed" : "pointer",
           }}
         >
           {noteSaved ? (

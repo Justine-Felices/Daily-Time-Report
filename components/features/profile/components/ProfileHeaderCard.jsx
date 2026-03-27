@@ -25,7 +25,12 @@ const DEPARTMENT_STYLE = {
   fontFamily: "'Inter',sans-serif",
 };
 
-export default function ProfileHeaderCard({ name, position, department, initials }) {
+export default function ProfileHeaderCard({
+  name,
+  position,
+  department,
+  initials,
+}) {
   return (
     <GlassCard padding={0} style={{ overflow: "hidden" }}>
       <div

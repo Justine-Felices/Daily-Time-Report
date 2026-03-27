@@ -18,11 +18,20 @@ export default function SessionSection({
   now,
   amSession,
   pmSession,
+  sessionsLocked,
   onAmTimeIn,
   onAmTimeOut,
   onPmTimeIn,
   onPmTimeOut,
+  onAmTimeInChange,
+  onAmTimeOutChange,
+  onPmTimeInChange,
+  onPmTimeOutChange,
+  onAmValidationChange,
+  onPmValidationChange,
 }) {
+  const pmEarliestTime = amSession.timeOut || amSession.timeIn || null;
+
   return (
     <div>
       <div className="mb-3 flex items-center gap-2 px-1">
@@ -43,8 +52,12 @@ export default function SessionSection({
           icon={Sun}
           iconColor="#FF69B4"
           session={amSession}
+          onValidationChange={onAmValidationChange}
           onTimeIn={onAmTimeIn}
           onTimeOut={onAmTimeOut}
+          onTimeInChange={onAmTimeInChange}
+          onTimeOutChange={onAmTimeOutChange}
+          disabled={sessionsLocked}
           inLabel="AM IN"
           outLabel="AM OUT"
           inGrad="linear-gradient(135deg,#FF69B4,#ff8fca)"
@@ -56,8 +69,14 @@ export default function SessionSection({
           icon={Sunset}
           iconColor="#069494"
           session={pmSession}
+          onValidationChange={onPmValidationChange}
+          earliestTime={pmEarliestTime}
+          earliestLabel="AM session"
           onTimeIn={onPmTimeIn}
           onTimeOut={onPmTimeOut}
+          onTimeInChange={onPmTimeInChange}
+          onTimeOutChange={onPmTimeOutChange}
+          disabled={sessionsLocked}
           inLabel="PM IN"
           outLabel="PM OUT"
           inGrad="linear-gradient(135deg,#069494,#0aacac)"

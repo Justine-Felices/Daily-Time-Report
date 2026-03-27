@@ -24,7 +24,9 @@ const INITIAL_FORM = {
 };
 
 function calculateTotalHours({ amIn, amOut, pmIn, pmOut }) {
-  return (amIn && amOut ? 4 : amIn ? 2 : 0) + (pmIn && pmOut ? 4 : pmIn ? 2 : 0);
+  return (
+    (amIn && amOut ? 4 : amIn ? 2 : 0) + (pmIn && pmOut ? 4 : pmIn ? 2 : 0)
+  );
 }
 
 export default function EncodePastContent() {

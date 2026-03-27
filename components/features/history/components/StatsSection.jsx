@@ -17,7 +17,11 @@ const VALUE_STYLE = {
   letterSpacing: "-0.02em",
 };
 
-export default function StatsSection({ totalRecords, presentDays, hoursLogged }) {
+export default function StatsSection({
+  totalRecords,
+  presentDays,
+  hoursLogged,
+}) {
   const cards = [
     {
       label: "TOTAL RECORDS",

@@ -60,7 +60,11 @@ export default function FiltersSection({
             value={filterStatus}
             onChange={(event) => onFilterStatusChange(event.target.value)}
             className="w-full appearance-none outline-none"
-            style={{ ...FIELD_STYLE, padding: "9px 36px 9px 32px", cursor: "pointer" }}
+            style={{
+              ...FIELD_STYLE,
+              padding: "9px 36px 9px 32px",
+              cursor: "pointer",
+            }}
           >
             {statuses.map((statusValue) => (
               <option key={statusValue} value={statusValue}>

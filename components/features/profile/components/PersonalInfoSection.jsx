@@ -1,4 +1,11 @@
-import { Building, GraduationCap, Mail, Phone, Shield, User } from "lucide-react";
+import {
+  Building,
+  GraduationCap,
+  Mail,
+  Phone,
+  Shield,
+  User,
+} from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import ProfileInputField from "@/components/features/profile/components/ProfileInputField";
 
@@ -24,7 +31,11 @@ const PERSONAL_FIELDS = [
   { key: "supervisor", label: "SUPERVISOR", icon: User, type: "text" },
 ];
 
-export default function PersonalInfoSection({ profile, onFieldChange, saveButton }) {
+export default function PersonalInfoSection({
+  profile,
+  onFieldChange,
+  saveButton,
+}) {
   return (
     <GlassCard padding="20px">
       <div className="mb-5 flex items-center gap-2">

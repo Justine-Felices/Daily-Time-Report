@@ -1,17 +1,155 @@
+import { useEffect, useState } from "react";
+
+function toEditorClock(value) {
+  if (!value) return "";
+  if (/^\d{2}:\d{2}$/.test(value)) return value;
+
+  const match = value.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
+  if (!match) return "";
+
+  const hour12 = Number.parseInt(match[1], 10);
+  const minute = match[2];
+  const period = match[3].toUpperCase();
+  const hour24 =
+    period === "AM" ? hour12 % 12 : hour12 === 12 ? 12 : hour12 + 12;
+
+  return `${hour24.toString().padStart(2, "0")}:${minute}`;
+}
+
+function isValidClock(value) {
+  const match = value.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return false;
+
+  const hour = Number.parseInt(match[1], 10);
+  const minute = Number.parseInt(match[2], 10);
+  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+}
+
+function toMinutes(value) {
+  const [hour, minute] = value.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
 export default function SessionCard({
   title,
   icon: Icon,
   iconColor,
   session,
+  disabled = false,
+  earliestTime,
+  earliestLabel = "previous session",
+  onValidationChange,
   onTimeIn,
   onTimeOut,
+  onTimeInChange,
+  onTimeOutChange,
   inLabel,
   outLabel,
   inGrad,
   inShadow,
 }) {
+  const [timeInDraft, setTimeInDraft] = useState(() =>
+    toEditorClock(session.timeIn),
+  );
+  const [timeOutDraft, setTimeOutDraft] = useState(() =>
+    toEditorClock(session.timeOut),
+  );
+  const [fieldErrors, setFieldErrors] = useState({ timeIn: "", timeOut: "" });
+  const hasFieldError = Boolean(fieldErrors.timeIn || fieldErrors.timeOut);
+
+  useEffect(() => {
+    onValidationChange?.(hasFieldError);
+  }, [hasFieldError, onValidationChange]);
+
+  useEffect(() => {
+    setTimeInDraft(toEditorClock(session.timeIn));
+  }, [session.timeIn]);
+
+  useEffect(() => {
+    setTimeOutDraft(toEditorClock(session.timeOut));
+  }, [session.timeOut]);
+
   const done = session.timeIn && session.timeOut;
   const inProgress = session.timeIn && !session.timeOut;
+
+  const commitTimeInput = (field, value, relatedValue, onChange) => {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      onChange?.(null);
+      setFieldErrors((current) => ({ ...current, [field]: "" }));
+      return;
+    }
+
+    if (!isValidClock(trimmed)) {
+      setFieldErrors((current) => ({
+        ...current,
+        [field]: "Use a valid time",
+      }));
+      return;
+    }
+
+    if (earliestTime && isValidClock(earliestTime)) {
+      if (toMinutes(trimmed) < toMinutes(earliestTime)) {
+        setFieldErrors((current) => ({
+          ...current,
+          [field]: `${field === "timeIn" ? "Time in" : "Time out"} must be after ${earliestLabel}`,
+        }));
+        return;
+      }
+    }
+
+    if (relatedValue && isValidClock(relatedValue)) {
+      if (
+        field === "timeOut" &&
+        toMinutes(trimmed) <= toMinutes(relatedValue)
+      ) {
+        setFieldErrors((current) => ({
+          ...current,
+          [field]: "Time out must be after time in",
+        }));
+        return;
+      }
+
+      if (field === "timeIn" && toMinutes(trimmed) >= toMinutes(relatedValue)) {
+        setFieldErrors((current) => ({
+          ...current,
+          [field]: "Time in must be before time out",
+        }));
+        return;
+      }
+    }
+
+    setFieldErrors((current) => ({ ...current, [field]: "" }));
+    onChange?.(trimmed);
+  };
+
+  const handleTimeChange = (field, nextValue, setDraft) => {
+    if (fieldErrors[field]) {
+      setFieldErrors((current) => ({ ...current, [field]: "" }));
+    }
+
+    setDraft(nextValue);
+  };
+
+  const fields = [
+    {
+      label: "TIME IN",
+      field: "timeIn",
+      value: timeInDraft,
+      setValue: setTimeInDraft,
+      relatedValue: timeOutDraft,
+      onChange: onTimeInChange,
+    },
+    {
+      label: "TIME OUT",
+      field: "timeOut",
+      value: timeOutDraft,
+      setValue: setTimeOutDraft,
+      relatedValue: timeInDraft,
+      onChange: onTimeOutChange,
+    },
+  ];
 
   return (
     <div
@@ -74,59 +212,104 @@ export default function SessionCard({
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-2">
-        {[
-          { label: "TIME IN", value: session.timeIn },
-          { label: "TIME OUT", value: session.timeOut },
-        ].map(({ label, value }) => (
-          <div
-            key={label}
-            className="rounded-xl p-3"
-            style={{
-              background: "rgba(240,253,253,0.6)",
-              border: "1px solid rgba(6,148,148,0.12)",
-            }}
-          >
+        {fields.map(
+          ({ label, field, value, setValue, relatedValue, onChange }) => (
             <div
+              key={label}
+              className="rounded-xl p-3"
               style={{
-                color: "#069494",
-                fontSize: "8px",
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                fontFamily: "'Inter',sans-serif",
-                marginBottom: "4px",
+                background: "rgba(240,253,253,0.6)",
+                border: fieldErrors[field]
+                  ? "1px solid rgba(244,63,94,0.45)"
+                  : "1px solid rgba(6,148,148,0.12)",
               }}
             >
-              {label}
+              <div
+                style={{
+                  color: "#069494",
+                  fontSize: "8px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  fontFamily: "'Inter',sans-serif",
+                  marginBottom: "4px",
+                }}
+              >
+                {label}
+              </div>
+
+              <input
+                type="time"
+                step={60}
+                disabled={disabled}
+                value={value}
+                onChange={(event) => {
+                  handleTimeChange(field, event.target.value, setValue);
+                }}
+                onBlur={() =>
+                  commitTimeInput(field, value, relatedValue, onChange)
+                }
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  padding: 0,
+                  color: disabled
+                    ? "#94A3B8"
+                    : fieldErrors[field]
+                      ? "#E11D48"
+                      : "#1E293B",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  fontFamily: "'Inter',sans-serif",
+                  cursor: disabled ? "not-allowed" : "text",
+                }}
+              />
+
+              {fieldErrors[field] && (
+                <div
+                  style={{
+                    marginTop: "4px",
+                    color: "#E11D48",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    fontFamily: "'Inter',sans-serif",
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {fieldErrors[field]}
+                </div>
+              )}
             </div>
-            <div
-              style={{
-                color: value ? "#1E293B" : "#CBD5E1",
-                fontSize: "15px",
-                fontWeight: 700,
-                fontFamily: "'Inter',sans-serif",
-              }}
-            >
-              {value || "--:-- --"}
-            </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={onTimeIn}
-          disabled={Boolean(session.timeIn)}
+          disabled={disabled || hasFieldError || Boolean(session.timeIn)}
           style={{
             padding: "9px 0",
             borderRadius: "10px",
-            background: session.timeIn ? "rgba(148,163,184,0.15)" : inGrad,
-            color: session.timeIn ? "#CBD5E1" : "#fff",
+            background:
+              disabled || hasFieldError || session.timeIn
+                ? "rgba(148,163,184,0.15)"
+                : inGrad,
+            color:
+              disabled || hasFieldError || session.timeIn ? "#CBD5E1" : "#fff",
             border: "none",
             fontFamily: "'Inter',sans-serif",
             fontSize: "12px",
             fontWeight: 700,
-            cursor: session.timeIn ? "not-allowed" : "pointer",
-            boxShadow: session.timeIn ? "none" : `0 3px 12px ${inShadow}`,
+            cursor:
+              disabled || hasFieldError || session.timeIn
+                ? "not-allowed"
+                : "pointer",
+            boxShadow:
+              disabled || hasFieldError || session.timeIn
+                ? "none"
+                : `0 3px 12px ${inShadow}`,
             letterSpacing: "0.03em",
             transition: "all 0.15s",
           }}
@@ -136,23 +319,33 @@ export default function SessionCard({
 
         <button
           onClick={onTimeOut}
-          disabled={!session.timeIn || Boolean(session.timeOut)}
+          disabled={
+            disabled ||
+            hasFieldError ||
+            !session.timeIn ||
+            Boolean(session.timeOut)
+          }
           style={{
             padding: "9px 0",
             borderRadius: "10px",
             background:
-              !session.timeIn || session.timeOut
+              disabled || hasFieldError || !session.timeIn || session.timeOut
                 ? "rgba(148,163,184,0.15)"
                 : "linear-gradient(135deg,#1E293B,#334155)",
-            color: !session.timeIn || session.timeOut ? "#CBD5E1" : "#fff",
+            color:
+              disabled || hasFieldError || !session.timeIn || session.timeOut
+                ? "#CBD5E1"
+                : "#fff",
             border: "none",
             fontFamily: "'Inter',sans-serif",
             fontSize: "12px",
             fontWeight: 700,
             cursor:
-              !session.timeIn || session.timeOut ? "not-allowed" : "pointer",
+              disabled || hasFieldError || !session.timeIn || session.timeOut
+                ? "not-allowed"
+                : "pointer",
             boxShadow:
-              !session.timeIn || session.timeOut
+              disabled || hasFieldError || !session.timeIn || session.timeOut
                 ? "none"
                 : "0 3px 10px rgba(30,41,59,0.3)",
             letterSpacing: "0.03em",
