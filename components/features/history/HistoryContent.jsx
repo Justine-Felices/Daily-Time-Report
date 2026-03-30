@@ -37,6 +37,70 @@ function sortHistoryRecords(records, sortDir) {
   });
 }
 
+async function buildDtrPdf(records, totalHours) {
+  const [{ jsPDF }, autoTableModule] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
+  const autoTable = autoTableModule.default;
+  const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(16);
+  pdf.text("Daily Time Record", 40, 44);
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  pdf.text(`Generated: ${new Date().toLocaleString("en-US")}`, 40, 62);
+
+  autoTable(pdf, {
+    startY: 80,
+    margin: { left: 40, right: 40 },
+    head: [["Date", "AM In", "AM Out", "PM In", "PM Out", "Status", "Hours"]],
+    body: records.map((record) => [
+      record.date,
+      record.amIn || "",
+      record.amOut || "",
+      record.pmIn || "",
+      record.pmOut || "",
+      record.status || "",
+      Number(record.totalHours || 0).toFixed(1),
+    ]),
+    theme: "grid",
+    styles: {
+      font: "helvetica",
+      fontSize: 8,
+      cellPadding: 4,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      textColor: [0, 0, 0],
+    },
+    headStyles: {
+      fillColor: [245, 247, 250],
+      textColor: [0, 0, 0],
+      fontStyle: "bold",
+    },
+    columnStyles: {
+      0: { cellWidth: 70 },
+      1: { cellWidth: 52 },
+      2: { cellWidth: 52 },
+      3: { cellWidth: 52 },
+      4: { cellWidth: 52 },
+      5: { cellWidth: 110 },
+      6: { cellWidth: 45, halign: "right" },
+    },
+  });
+
+  const footerY = (pdf.lastAutoTable?.finalY || 80) + 18;
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(10);
+  pdf.text(`Total Hours: ${totalHours.toFixed(1)}`, 555, footerY, {
+    align: "right",
+  });
+
+  return pdf;
+}
+
 export default function HistoryContent() {
   const [history] = useState(() => loadHistoryRecords());
   const [search, setSearch] = useState("");
@@ -45,21 +109,22 @@ export default function HistoryContent() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    const styleElement = document.createElement("style");
-    styleElement.id = "dtr-print-styles";
-    styleElement.textContent = PRINT_CSS;
-    document.head.appendChild(styleElement);
+    const styleId = "dtr-print-styles";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = PRINT_CSS;
+      document.head.appendChild(style);
+    }
 
     return () => {
-      document.getElementById("dtr-print-styles")?.remove();
+      document.getElementById(styleId)?.remove();
     };
   }, []);
 
   const statuses = useMemo(() => {
-    return [
-      "All",
-      ...Array.from(new Set(history.map((record) => record.status))),
-    ];
+    const uniqueStatuses = Array.from(new Set(history.map((row) => row.status)));
+    return ["All", ...uniqueStatuses];
   }, [history]);
 
   const filtered = useMemo(() => {
@@ -77,6 +142,7 @@ export default function HistoryContent() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
+
   const totalHoursFiltered = filtered.reduce(
     (sum, record) => sum + (Number(record.totalHours) || 0),
     0,
@@ -87,6 +153,16 @@ export default function HistoryContent() {
     0,
   );
 
+  const handlePrint = async () => {
+    const pdf = await buildDtrPdf(allSorted, totalAllHours);
+    const blob = pdf.output("blob");
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank", "noopener,noreferrer");
+    setTimeout(() => {
+      URL.revokeObjectURL(blobUrl);
+    }, 60_000);
+  };
+
   return (
     <PageShell width="wide">
       <div className="screen-content space-y-5">
@@ -95,7 +171,7 @@ export default function HistoryContent() {
             title="Attendance History"
             subtitle="View and review all your attendance records"
           />
-          <ActionsSection onPrint={() => window.print()} />
+          <ActionsSection onPrint={handlePrint} />
         </div>
 
         <StatsSection
