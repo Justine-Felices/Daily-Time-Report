@@ -63,7 +63,7 @@ function validateForm(mode, values) {
 
 export default function LoginContent() {
   const router = useRouter();
-  const { login } = useLocalAuth();
+  const { login, signup } = useLocalAuth();
 
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
@@ -77,6 +77,7 @@ export default function LoginContent() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
@@ -89,9 +90,10 @@ export default function LoginContent() {
     setAgree(false);
     setShowPassword(false);
     setShowConfirm(false);
+    setInfoMessage("");
   };
 
-  const submit = () => {
+  const submit = async () => {
     const nextErrors = validateForm(mode, {
       name,
       email,
@@ -106,17 +108,41 @@ export default function LoginContent() {
       return;
     }
 
+    setInfoMessage("");
     setSubmitting(true);
 
-    setTimeout(() => {
+    if (mode === "login") {
+      const result = await login(email, password);
       setSubmitting(false);
-      setSuccess(true);
 
-      setTimeout(() => {
-        login(email, mode === "signup" ? name : email.split("@")[0]);
-        router.push("/");
-      }, 900);
-    }, 1200);
+      if (result.error) {
+        setErrors((current) => ({ ...current, form: result.error }));
+        return;
+      }
+
+      setSuccess(true);
+      router.push("/");
+      return;
+    }
+
+    const result = await signup(email, password, name);
+    setSubmitting(false);
+
+    if (result.error) {
+      setErrors((current) => ({ ...current, form: result.error }));
+      return;
+    }
+
+    setSuccess(true);
+
+    if (result.needsEmailConfirmation) {
+      setInfoMessage(
+        "Check your email to confirm your account before signing in.",
+      );
+      return;
+    }
+
+    router.push("/");
   };
 
   const EyeButton = ({ show, onToggle }) => (
@@ -518,7 +544,7 @@ export default function LoginContent() {
             {success ? (
               <>
                 <CheckCircle2 size={16} />{" "}
-                {mode === "login" ? "Signing in..." : "Account created!"}
+                {mode === "login" ? "Signed in" : "Account created!"}
               </>
             ) : submitting ? (
               <>
@@ -572,8 +598,10 @@ export default function LoginContent() {
 
           <button
             onClick={() => {
-              login("guest@timetrack.app", "Guest User");
-              router.push("/");
+              setErrors((current) => ({
+                ...current,
+                form: "Guest mode has been disabled for Supabase authentication.",
+              }));
             }}
             style={BTN_SECONDARY}
             onMouseEnter={(event) => {
@@ -587,6 +615,22 @@ export default function LoginContent() {
           >
             Continue as Guest
           </button>
+
+          {errors.form && <FieldError msg={errors.form} />}
+
+          {infoMessage && (
+            <div
+              style={{
+                color: "#069494",
+                fontSize: "12px",
+                fontWeight: 600,
+                fontFamily: "'Inter',sans-serif",
+                textAlign: "center",
+              }}
+            >
+              {infoMessage}
+            </div>
+          )}
         </div>
 
         <div

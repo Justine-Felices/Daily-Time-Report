@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import PageShell from "@/components/layout/PageShell";
+import useLocalAuth from "@/components/features/login/hooks/useLocalAuth";
 import HeaderSection from "@/components/features/profile/components/HeaderSection";
 import LogoutButton from "@/components/features/profile/components/LogoutButton";
 import OJTDetailsSection from "@/components/features/profile/components/OJTDetailsSection";
@@ -19,6 +21,8 @@ const OJT_DETAILS = [
 ];
 
 export default function ProfileContent() {
+  const router = useRouter();
+  const { logout } = useLocalAuth();
   const [profile, setProfile] = useState({
     name: "Alex Rivera",
     email: "alex.rivera@company.com",
@@ -36,6 +40,14 @@ export default function ProfileContent() {
 
   const handleSave = () => {
     triggerSaved();
+  };
+
+  const handleLogout = async () => {
+    const result = await logout();
+
+    if (!result.error) {
+      router.push("/login");
+    }
   };
 
   return (
@@ -65,7 +77,7 @@ export default function ProfileContent() {
 
       <OJTDetailsSection details={OJT_DETAILS} />
 
-      <LogoutButton onClick={() => {}} />
+      <LogoutButton onClick={handleLogout} />
     </PageShell>
   );
 }
