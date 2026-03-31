@@ -7,8 +7,7 @@ import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
-import SessionSection from "@/components/features/home/sections/SessionSection";
-import DailyStatusSection from "@/components/features/home/sections/DailyStatusSection";
+import SessionAndStatusSection from "@/components/features/home/sections/SessionAndStatusSection";
 import SummarySection from "@/components/features/home/sections/SummarySection";
 
 function formatNowClock(date) {
@@ -222,7 +221,7 @@ export default function HomeDashboard() {
         estimatedFinishText={estimatedFinishText}
       />
 
-      <SessionSection
+      <SessionAndStatusSection
         now={now}
         amSession={amSession}
         pmSession={pmSession}
@@ -237,9 +236,6 @@ export default function HomeDashboard() {
         onAmValidationChange={setAmHasTimeError}
         onPmValidationChange={setPmHasTimeError}
         sessionsLocked={isSessionLocked}
-      />
-
-      <DailyStatusSection
         dailyStatus={dailyStatus}
         dailyNote={dailyNote}
         onDailyStatusChange={handleDailyStatusChange}
