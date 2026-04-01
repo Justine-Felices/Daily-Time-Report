@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { getTodayInputDate, toDisplayTime } from "@/lib/dtr-formatters";
 import { prependHistoryRecord } from "@/lib/dtr-storage";
+import { isResetStatus } from "@/lib/dtr-time-validation";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
 import DateSection from "@/components/features/encode-past/components/DateSection";
@@ -33,10 +34,36 @@ export default function EncodePastContent() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [saved, triggerSaved] = useTimedFlag(2500);
+  const [fieldErrors, setFieldErrors] = useState({ am: false, pm: false });
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
+
+  const handleTimeValidation = useCallback((errors) => {
+    setFieldErrors(errors);
+  }, []);
+
+  const handleStatusChange = useCallback((nextStatus) => {
+    if (!isResetStatus(nextStatus)) {
+      setForm((current) => ({ ...current, status: nextStatus }));
+      return;
+    }
+
+    // If status is a non-working status, reset time fields and errors
+    setForm((current) => ({
+      ...current,
+      status: nextStatus,
+      amIn: "",
+      amOut: "",
+      pmIn: "",
+      pmOut: "",
+    }));
+    setFieldErrors({ am: false, pm: false });
+  }, []);
+
+  const hasTimeValidationErrors = fieldErrors.am || fieldErrors.pm;
+  const disableSave = hasTimeValidationErrors;
 
   const handleSave = () => {
     if (!form.date) {
@@ -46,6 +73,11 @@ export default function EncodePastContent() {
 
     if (!form.amIn && !form.pmIn) {
       setError("Please fill in at least one time entry.");
+      return;
+    }
+
+    if (hasTimeValidationErrors) {
+      setError("Please fix validation errors before saving.");
       return;
     }
 
@@ -92,19 +124,20 @@ export default function EncodePastContent() {
         onAmOutChange={(value) => updateField("amOut", value)}
         onPmInChange={(value) => updateField("pmIn", value)}
         onPmOutChange={(value) => updateField("pmOut", value)}
+        onValidationChange={handleTimeValidation}
       />
 
       <StatusNoteSection
         status={form.status}
         note={form.note}
         statusOptions={STATUS_OPTIONS}
-        onStatusChange={(value) => updateField("status", value)}
+        onStatusChange={handleStatusChange}
         onNoteChange={(value) => updateField("note", value)}
       />
 
       <ErrorMessage error={error} />
 
-      <SaveButton saved={saved} onSave={handleSave} />
+      <SaveButton saved={saved} onSave={handleSave} disabled={disableSave} />
     </PageShell>
   );
 }

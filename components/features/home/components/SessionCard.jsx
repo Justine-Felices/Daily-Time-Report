@@ -1,34 +1,10 @@
 import { useEffect, useState } from "react";
-
-function toEditorClock(value) {
-  if (!value) return "";
-  if (/^\d{2}:\d{2}$/.test(value)) return value;
-
-  const match = value.match(/^(\d{1,2}):(\d{2})\s(AM|PM)$/i);
-  if (!match) return "";
-
-  const hour12 = Number.parseInt(match[1], 10);
-  const minute = match[2];
-  const period = match[3].toUpperCase();
-  const hour24 =
-    period === "AM" ? hour12 % 12 : hour12 === 12 ? 12 : hour12 + 12;
-
-  return `${hour24.toString().padStart(2, "0")}:${minute}`;
-}
-
-function isValidClock(value) {
-  const match = value.match(/^(\d{2}):(\d{2})$/);
-  if (!match) return false;
-
-  const hour = Number.parseInt(match[1], 10);
-  const minute = Number.parseInt(match[2], 10);
-  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
-}
-
-function toMinutes(value) {
-  const [hour, minute] = value.split(":").map(Number);
-  return hour * 60 + minute;
-}
+import {
+  toEditorClock,
+  isValidClock,
+  toMinutes,
+  validateTimeInput,
+} from "@/lib/dtr-time-validation";
 
 export default function SessionCard({
   title,
@@ -81,43 +57,19 @@ export default function SessionCard({
       return;
     }
 
-    if (!isValidClock(trimmed)) {
-      setFieldErrors((current) => ({
-        ...current,
-        [field]: "Use a valid time",
-      }));
+    const error = validateTimeInput(
+      field,
+      trimmed,
+      relatedValue,
+      earliestTime,
+      {
+        earliestLabel,
+      },
+    );
+
+    if (error) {
+      setFieldErrors((current) => ({ ...current, [field]: error }));
       return;
-    }
-
-    if (earliestTime && isValidClock(earliestTime)) {
-      if (toMinutes(trimmed) < toMinutes(earliestTime)) {
-        setFieldErrors((current) => ({
-          ...current,
-          [field]: `${field === "timeIn" ? "Time in" : "Time out"} must be after ${earliestLabel}`,
-        }));
-        return;
-      }
-    }
-
-    if (relatedValue && isValidClock(relatedValue)) {
-      if (
-        field === "timeOut" &&
-        toMinutes(trimmed) <= toMinutes(relatedValue)
-      ) {
-        setFieldErrors((current) => ({
-          ...current,
-          [field]: "Time out must be after time in",
-        }));
-        return;
-      }
-
-      if (field === "timeIn" && toMinutes(trimmed) >= toMinutes(relatedValue)) {
-        setFieldErrors((current) => ({
-          ...current,
-          [field]: "Time in must be before time out",
-        }));
-        return;
-      }
     }
 
     setFieldErrors((current) => ({ ...current, [field]: "" }));

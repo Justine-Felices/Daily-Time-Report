@@ -1,3 +1,4 @@
+import { useState, useCallback, useEffect } from "react";
 import TimeSessionCard from "@/components/features/encode-past/components/TimeSessionCard";
 
 export default function TimeSessionsSection({
@@ -9,7 +10,29 @@ export default function TimeSessionsSection({
   onAmOutChange,
   onPmInChange,
   onPmOutChange,
+  onValidationChange,
 }) {
+  const [amHasError, setAmHasError] = useState(false);
+  const [pmHasError, setPmHasError] = useState(false);
+
+  // Notify parent of validation state changes
+  useEffect(() => {
+    onValidationChange?.({
+      am: amHasError,
+      pm: pmHasError,
+    });
+  }, [amHasError, pmHasError, onValidationChange]);
+
+  const handleAmValidation = useCallback((hasError) => {
+    setAmHasError(hasError);
+  }, []);
+
+  const handlePmValidation = useCallback((hasError) => {
+    setPmHasError(hasError);
+  }, []);
+
+  const pmEarliestTime = amOut || amIn;
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <TimeSessionCard
@@ -19,6 +42,7 @@ export default function TimeSessionsSection({
         outValue={amOut}
         onInChange={onAmInChange}
         onOutChange={onAmOutChange}
+        onValidationChange={handleAmValidation}
       />
 
       <TimeSessionCard
@@ -28,6 +52,9 @@ export default function TimeSessionsSection({
         outValue={pmOut}
         onInChange={onPmInChange}
         onOutChange={onPmOutChange}
+        onValidationChange={handlePmValidation}
+        earliestTime={pmEarliestTime}
+        earliestLabel="AM session"
       />
     </div>
   );

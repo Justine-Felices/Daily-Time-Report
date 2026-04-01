@@ -1,6 +1,12 @@
+import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
+import {
+  isValidClock,
+  toMinutes,
+  validateTimeInput,
+} from "@/lib/dtr-time-validation";
 
 export default function TimeSessionCard({
   title,
@@ -9,7 +15,49 @@ export default function TimeSessionCard({
   outValue,
   onInChange,
   onOutChange,
+  onValidationChange,
+  earliestTime,
+  earliestLabel = "previous session",
 }) {
+  const [fieldErrors, setFieldErrors] = useState({ in: "", out: "" });
+  const hasFieldError = Boolean(fieldErrors.in || fieldErrors.out);
+
+  useEffect(() => {
+    onValidationChange?.(hasFieldError);
+  }, [hasFieldError, onValidationChange]);
+
+  const commitTimeInput = (field, value, relatedValue, onChange) => {
+    if (!value) {
+      onChange("");
+      setFieldErrors((current) => ({ ...current, [field]: "" }));
+      return;
+    }
+
+    const error = validateTimeInput(
+      field === "in" ? "timeIn" : "timeOut",
+      value,
+      relatedValue,
+      earliestTime,
+      {
+        earliestLabel,
+      },
+    );
+
+    if (error) {
+      setFieldErrors((current) => ({ ...current, [field]: error }));
+      return;
+    }
+
+    setFieldErrors((current) => ({ ...current, [field]: "" }));
+    onChange(value);
+  };
+
+  const handleFieldChange = (field, value) => {
+    if (fieldErrors[field]) {
+      setFieldErrors((current) => ({ ...current, [field]: "" }));
+    }
+  };
+
   return (
     <GlassCard padding="20px">
       <div className="mb-4 flex items-center gap-2">
@@ -37,19 +85,23 @@ export default function TimeSessionCard({
         {[
           {
             label: "TIME IN",
+            field: "in",
             value: inValue,
+            relatedValue: outValue,
             setter: onInChange,
           },
           {
             label: "TIME OUT",
+            field: "out",
             value: outValue,
+            relatedValue: inValue,
             setter: onOutChange,
           },
-        ].map(({ label, value, setter }) => (
+        ].map(({ label, field, value, relatedValue, setter }) => (
           <div key={label}>
             <div
               style={{
-                color: "#069494",
+                color: fieldErrors[field] ? "#DC2626" : "#069494",
                 fontSize: "9px",
                 fontWeight: 700,
                 letterSpacing: "0.1em",
@@ -60,15 +112,32 @@ export default function TimeSessionCard({
                 gap: "4px",
               }}
             >
-              <Clock size={9} color="#069494" /> {label}
+              <Clock
+                size={9}
+                color={fieldErrors[field] ? "#DC2626" : "#069494"}
+              />{" "}
+              {label}
+              {fieldErrors[field] && (
+                <span style={{ color: "#DC2626" }}>— {fieldErrors[field]}</span>
+              )}
             </div>
 
             <input
               type="time"
               value={value}
-              onChange={(event) => setter(event.target.value)}
+              onChange={(event) => {
+                handleFieldChange(field, event.target.value);
+                setter(event.target.value);
+              }}
+              onBlur={() => {
+                commitTimeInput(field, value, relatedValue, setter);
+              }}
               className="w-full"
-              style={{ ...GLASS_INPUT_STYLE, padding: "9px 14px" }}
+              style={{
+                ...GLASS_INPUT_STYLE,
+                padding: "9px 14px",
+                borderColor: fieldErrors[field] ? "#DC2626" : undefined,
+              }}
             />
           </div>
         ))}

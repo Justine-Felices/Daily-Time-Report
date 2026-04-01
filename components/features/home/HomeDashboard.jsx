@@ -4,6 +4,7 @@ import { useState } from "react";
 import useLiveClock from "@/hooks/useLiveClock";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
+import { isResetStatus, NON_WORKING_STATUSES } from "@/lib/dtr-time-validation";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
@@ -26,12 +27,6 @@ function toMinutes(clock) {
 const TARGET_HOURS = 500;
 const BASE_MONTH_HOURS = 126;
 const BASE_TOTAL_HOURS = 274;
-const NON_WORKING_STATUSES = [
-  "Sick Leave",
-  "Vacation Leave",
-  "Absent",
-  "Holiday",
-];
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 
 const HOME_INPUT_STYLE = {
@@ -152,18 +147,6 @@ export default function HomeDashboard() {
 
   const handlePmTimeOutChange = (value) => {
     setPmSession((prev) => ({ ...prev, timeOut: value }));
-  };
-
-  const isResetStatus = (status) => {
-    const normalizedStatus = status.toLowerCase();
-
-    return (
-      NON_WORKING_STATUSES.includes(status) ||
-      normalizedStatus.includes("sick") ||
-      normalizedStatus.includes("vacation") ||
-      normalizedStatus.includes("absent") ||
-      normalizedStatus.includes("holiday")
-    );
   };
 
   const resetSessionLogs = () => {
