@@ -11,7 +11,7 @@ import OJTDetailsSection from "@/components/features/profile/components/OJTDetai
 import PersonalInfoSection from "@/components/features/profile/components/PersonalInfoSection";
 import PreferencesSection from "@/components/features/profile/components/PreferencesSection";
 import ProfileHeaderCard from "@/components/features/profile/components/ProfileHeaderCard";
-import SaveButton from "@/components/features/profile/components/SaveButton";
+import EditPersonalInfoModal from "@/components/features/profile/components/EditPersonalInfoModal";
 
 const OJT_DETAILS = [
   { label: "Start Date", value: "Jan 15, 2026" },
@@ -32,13 +32,11 @@ export default function ProfileContent() {
     supervisor: "Ms. Maria Santos",
   });
   const [notif, setNotif] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [saved, triggerSaved] = useTimedFlag(2500);
 
-  const updateField = (field, value) => {
-    setProfile((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleSave = () => {
+  const handleSaveProfile = (updatedProfile) => {
+    setProfile(updatedProfile);
     triggerSaved();
   };
 
@@ -66,8 +64,7 @@ export default function ProfileContent() {
 
       <PersonalInfoSection
         profile={profile}
-        onFieldChange={updateField}
-        saveButton={<SaveButton saved={saved} onSave={handleSave} />}
+        onEditClick={() => setIsEditModalOpen(true)}
       />
 
       <PreferencesSection
@@ -78,6 +75,13 @@ export default function ProfileContent() {
       <OJTDetailsSection details={OJT_DETAILS} />
 
       <LogoutButton onClick={handleLogout} />
+
+      <EditPersonalInfoModal
+        isOpen={isEditModalOpen}
+        profile={profile}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleSaveProfile}
+      />
     </PageShell>
   );
 }
