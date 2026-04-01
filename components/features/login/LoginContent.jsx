@@ -25,8 +25,6 @@ import FieldLabel from "@/components/features/login/components/FieldLabel";
 import PasswordStrength from "@/components/features/login/components/PasswordStrength";
 import Spinner from "@/components/features/login/components/Spinner";
 
-const MODES = ["login", "signup"];
-
 function validateForm(mode, values) {
   const errors = {};
 
@@ -285,44 +283,6 @@ export default function LoginContent() {
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            background: "rgba(240,253,253,0.65)",
-            border: "1.5px solid rgba(6,148,148,0.14)",
-            borderRadius: "14px",
-            padding: "4px",
-            marginBottom: "28px",
-          }}
-        >
-          {MODES.map((value) => (
-            <button
-              key={value}
-              onClick={() => switchMode(value)}
-              style={{
-                flex: 1,
-                padding: "9px 0",
-                borderRadius: "10px",
-                border: "none",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "13px",
-                fontWeight: mode === value ? 700 : 500,
-                cursor: "pointer",
-                transition: "all 0.2s",
-                background:
-                  mode === value
-                    ? "linear-gradient(135deg, #069494 0%, #0aacac 100%)"
-                    : "transparent",
-                color: mode === value ? "#fff" : "#64748B",
-                boxShadow:
-                  mode === value ? "0 3px 10px rgba(6,148,148,0.30)" : "none",
-              }}
-            >
-              {value === "login" ? "Log In" : "Sign Up"}
-            </button>
-          ))}
-        </div>
-
         <div style={{ marginBottom: "22px" }}>
           <div
             style={{
@@ -333,7 +293,7 @@ export default function LoginContent() {
               lineHeight: 1.2,
             }}
           >
-            {mode === "login" ? "Welcome back 👋" : "Create your account ✨"}
+            {mode === "login" ? "Welcome back" : "Create your account"}
           </div>
           <div style={{ color: "#64748B", fontSize: "13px", marginTop: "4px" }}>
             {mode === "login"
