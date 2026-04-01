@@ -1,4 +1,5 @@
 import { formatLongDate, formatTime } from "@/lib/dtr-formatters";
+import { memo } from "react";
 
 const HEADER_WRAPPER_STYLE = {
   background: "linear-gradient(135deg, #046060 0%, #069494 50%, #FF69B4 100%)",
@@ -37,7 +38,7 @@ const STATUS_TEXT_STYLE = {
   letterSpacing: "0.06em",
 };
 
-export default function HeaderSection({ now, isClockIn, statusLabel }) {
+export default memo(function HeaderSection({ now, isClockIn, statusLabel }) {
   return (
     <div
       className="flex flex-col gap-3 rounded-2xl px-6 py-5 sm:flex-row sm:items-center sm:justify-between"
@@ -65,4 +66,4 @@ export default function HeaderSection({ now, isClockIn, statusLabel }) {
       </div>
     </div>
   );
-}
+});

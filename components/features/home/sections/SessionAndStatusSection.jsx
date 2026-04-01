@@ -7,6 +7,7 @@ import {
   Sunset,
   Zap,
 } from "lucide-react";
+import { memo } from "react";
 import SessionCard from "@/components/features/home/components/SessionCard";
 import GlassCard from "@/components/ui/cards/GlassCard";
 
@@ -42,7 +43,7 @@ const BUTTON_BASE_STYLE = {
   borderRadius: "12px",
 };
 
-export default function SessionAndStatusSection({
+export default memo(function SessionAndStatusSection({
   now,
   amSession,
   pmSession,
@@ -207,4 +208,4 @@ export default function SessionAndStatusSection({
       </GlassCard>
     </div>
   );
-}
+});

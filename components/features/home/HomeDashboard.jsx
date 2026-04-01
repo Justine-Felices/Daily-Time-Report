@@ -50,7 +50,7 @@ export default function HomeDashboard() {
   const [amHasTimeError, setAmHasTimeError] = useState(false);
   const [pmHasTimeError, setPmHasTimeError] = useState(false);
   const [noteSaved, triggerNoteSaved] = useTimedFlag(2500);
-  const now = useLiveClock();
+  const now = useLiveClock(60000); // Updates every minute
 
   const todayHours =
     (amSession.timeIn && amSession.timeOut ? 4 : amSession.timeIn ? 2 : 0) +

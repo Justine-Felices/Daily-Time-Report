@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export default function useLiveClock(tickMs = 1000) {
   const [now, setNow] = useState(() => new Date());
@@ -8,5 +8,6 @@ export default function useLiveClock(tickMs = 1000) {
     return () => clearInterval(timer);
   }, [tickMs]);
 
+  // Only return immutable string to prevent object reference changes
   return now;
 }
