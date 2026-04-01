@@ -18,6 +18,7 @@ export default function TimeSessionCard({
   onValidationChange,
   earliestTime,
   earliestLabel = "previous session",
+  disabled = false,
 }) {
   const [fieldErrors, setFieldErrors] = useState({ in: "", out: "" });
   const hasFieldError = Boolean(fieldErrors.in || fieldErrors.out);
@@ -59,89 +60,98 @@ export default function TimeSessionCard({
   };
 
   return (
-    <GlassCard padding="20px">
-      <div className="mb-4 flex items-center gap-2">
-        <div
-          className="h-2.5 w-2.5 rounded-full"
-          style={{
-            background: color,
-            boxShadow: `0 0 8px ${color}55`,
-          }}
-        />
-        <span
-          style={{
-            color: "#1E293B",
-            fontSize: "12px",
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            fontFamily: "'Inter',sans-serif",
-          }}
-        >
-          {title.toUpperCase()}
-        </span>
-      </div>
+    <div
+      style={{
+        opacity: disabled ? 0.5 : 1,
+        pointerEvents: disabled ? "none" : "auto",
+      }}
+    >
+      <GlassCard padding="20px">
+        <div className="mb-4 flex items-center gap-2">
+          <div
+            className="h-2.5 w-2.5 rounded-full"
+            style={{
+              background: color,
+              boxShadow: `0 0 8px ${color}55`,
+            }}
+          />
+          <span
+            style={{
+              color: "#1E293B",
+              fontSize: "12px",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              fontFamily: "'Inter',sans-serif",
+            }}
+          >
+            {title.toUpperCase()}
+          </span>
+        </div>
 
-      <div className="space-y-3">
-        {[
-          {
-            label: "TIME IN",
-            field: "in",
-            value: inValue,
-            relatedValue: outValue,
-            setter: onInChange,
-          },
-          {
-            label: "TIME OUT",
-            field: "out",
-            value: outValue,
-            relatedValue: inValue,
-            setter: onOutChange,
-          },
-        ].map(({ label, field, value, relatedValue, setter }) => (
-          <div key={label}>
-            <div
-              style={{
-                color: fieldErrors[field] ? "#DC2626" : "#069494",
-                fontSize: "9px",
-                fontWeight: 700,
-                letterSpacing: "0.1em",
-                fontFamily: "'Inter',sans-serif",
-                marginBottom: "4px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <Clock
-                size={9}
-                color={fieldErrors[field] ? "#DC2626" : "#069494"}
-              />{" "}
-              {label}
-              {fieldErrors[field] && (
-                <span style={{ color: "#DC2626" }}>— {fieldErrors[field]}</span>
-              )}
+        <div className="space-y-3">
+          {[
+            {
+              label: "TIME IN",
+              field: "in",
+              value: inValue,
+              relatedValue: outValue,
+              setter: onInChange,
+            },
+            {
+              label: "TIME OUT",
+              field: "out",
+              value: outValue,
+              relatedValue: inValue,
+              setter: onOutChange,
+            },
+          ].map(({ label, field, value, relatedValue, setter }) => (
+            <div key={label}>
+              <div
+                style={{
+                  color: fieldErrors[field] ? "#DC2626" : "#069494",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                  fontFamily: "'Inter',sans-serif",
+                  marginBottom: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Clock
+                  size={9}
+                  color={fieldErrors[field] ? "#DC2626" : "#069494"}
+                />{" "}
+                {label}
+                {fieldErrors[field] && (
+                  <span style={{ color: "#DC2626" }}>
+                    — {fieldErrors[field]}
+                  </span>
+                )}
+              </div>
+
+              <input
+                type="time"
+                value={value}
+                onChange={(event) => {
+                  handleFieldChange(field, event.target.value);
+                  setter(event.target.value);
+                }}
+                onBlur={() => {
+                  commitTimeInput(field, value, relatedValue, setter);
+                }}
+                className="w-full"
+                style={{
+                  ...GLASS_INPUT_STYLE,
+                  padding: "9px 14px",
+                  borderColor: fieldErrors[field] ? "#DC2626" : undefined,
+                }}
+              />
             </div>
-
-            <input
-              type="time"
-              value={value}
-              onChange={(event) => {
-                handleFieldChange(field, event.target.value);
-                setter(event.target.value);
-              }}
-              onBlur={() => {
-                commitTimeInput(field, value, relatedValue, setter);
-              }}
-              className="w-full"
-              style={{
-                ...GLASS_INPUT_STYLE,
-                padding: "9px 14px",
-                borderColor: fieldErrors[field] ? "#DC2626" : undefined,
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </GlassCard>
+          ))}
+        </div>
+      </GlassCard>
+    </div>
   );
 }

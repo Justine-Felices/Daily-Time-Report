@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import TimeSessionCard from "@/components/features/encode-past/components/TimeSessionCard";
+import { isHalfDayStatus, isResetStatus } from "@/lib/dtr-time-validation";
 
 export default function TimeSessionsSection({
   amIn,
@@ -11,6 +12,8 @@ export default function TimeSessionsSection({
   onPmInChange,
   onPmOutChange,
   onValidationChange,
+  status = "Regular Duty Day",
+  sessionsLocked = false,
 }) {
   const [amHasError, setAmHasError] = useState(false);
   const [pmHasError, setPmHasError] = useState(false);
@@ -32,6 +35,8 @@ export default function TimeSessionsSection({
   }, []);
 
   const pmEarliestTime = amOut || amIn;
+  const amDisabled = sessionsLocked;
+  const pmDisabled = sessionsLocked || isHalfDayStatus(status);
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -43,6 +48,7 @@ export default function TimeSessionsSection({
         onInChange={onAmInChange}
         onOutChange={onAmOutChange}
         onValidationChange={handleAmValidation}
+        disabled={amDisabled}
       />
 
       <TimeSessionCard
@@ -55,6 +61,7 @@ export default function TimeSessionsSection({
         onValidationChange={handlePmValidation}
         earliestTime={pmEarliestTime}
         earliestLabel="AM session"
+        disabled={pmDisabled}
       />
     </div>
   );

@@ -5,7 +5,7 @@ import useTimedFlag from "@/hooks/useTimedFlag";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { getTodayInputDate, toDisplayTime } from "@/lib/dtr-formatters";
 import { prependHistoryRecord } from "@/lib/dtr-storage";
-import { isResetStatus } from "@/lib/dtr-time-validation";
+import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
 import DateSection from "@/components/features/encode-past/components/DateSection";
@@ -45,25 +45,39 @@ export default function EncodePastContent() {
   }, []);
 
   const handleStatusChange = useCallback((nextStatus) => {
-    if (!isResetStatus(nextStatus)) {
-      setForm((current) => ({ ...current, status: nextStatus }));
+    if (isResetStatus(nextStatus)) {
+      // If status is a non-working status, reset ALL time fields and errors
+      setForm((current) => ({
+        ...current,
+        status: nextStatus,
+        amIn: "",
+        amOut: "",
+        pmIn: "",
+        pmOut: "",
+      }));
+      setFieldErrors({ am: false, pm: false });
       return;
     }
 
-    // If status is a non-working status, reset time fields and errors
-    setForm((current) => ({
-      ...current,
-      status: nextStatus,
-      amIn: "",
-      amOut: "",
-      pmIn: "",
-      pmOut: "",
-    }));
-    setFieldErrors({ am: false, pm: false });
+    if (isHalfDayStatus(nextStatus)) {
+      // If status is half day, clear only PM times
+      setForm((current) => ({
+        ...current,
+        status: nextStatus,
+        pmIn: "",
+        pmOut: "",
+      }));
+      setFieldErrors((current) => ({ ...current, pm: false }));
+      return;
+    }
+
+    // Otherwise just update status
+    setForm((current) => ({ ...current, status: nextStatus }));
   }, []);
 
   const hasTimeValidationErrors = fieldErrors.am || fieldErrors.pm;
   const disableSave = hasTimeValidationErrors;
+  const sessionsLocked = isResetStatus(form.status);
 
   const handleSave = () => {
     if (!form.date) {
@@ -125,6 +139,8 @@ export default function EncodePastContent() {
         onPmInChange={(value) => updateField("pmIn", value)}
         onPmOutChange={(value) => updateField("pmOut", value)}
         onValidationChange={handleTimeValidation}
+        status={form.status}
+        sessionsLocked={sessionsLocked}
       />
 
       <StatusNoteSection

@@ -10,6 +10,7 @@ import {
 import { memo } from "react";
 import SessionCard from "@/components/features/home/components/SessionCard";
 import GlassCard from "@/components/ui/cards/GlassCard";
+import { isHalfDayStatus } from "@/lib/dtr-time-validation";
 
 const TITLE_STYLE = {
   color: "#1E293B",
@@ -69,6 +70,7 @@ export default memo(function SessionAndStatusSection({
   inputStyle,
 }) {
   const pmEarliestTime = amSession.timeOut || amSession.timeIn || null;
+  const pmDisabled = sessionsLocked || isHalfDayStatus(dailyStatus);
 
   return (
     <div className="space-y-4">
@@ -116,7 +118,7 @@ export default memo(function SessionAndStatusSection({
             onTimeOut={onPmTimeOut}
             onTimeInChange={onPmTimeInChange}
             onTimeOutChange={onPmTimeOutChange}
-            disabled={sessionsLocked}
+            disabled={pmDisabled}
             inLabel="PM IN"
             outLabel="PM OUT"
             inGrad="linear-gradient(135deg,#069494,#0aacac)"

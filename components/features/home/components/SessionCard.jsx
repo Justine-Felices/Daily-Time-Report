@@ -107,6 +107,8 @@ export default function SessionCard({
     <div
       className="rounded-2xl p-5"
       style={{
+        opacity: disabled ? 0.5 : 1,
+        pointerEvents: disabled ? "none" : "auto",
         background: "rgba(255,255,255,0.75)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",

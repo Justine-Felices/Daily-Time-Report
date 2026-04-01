@@ -4,7 +4,11 @@ import { useState } from "react";
 import useLiveClock from "@/hooks/useLiveClock";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
-import { isResetStatus, NON_WORKING_STATUSES } from "@/lib/dtr-time-validation";
+import {
+  isResetStatus,
+  isHalfDayStatus,
+  NON_WORKING_STATUSES,
+} from "@/lib/dtr-time-validation";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
@@ -158,6 +162,14 @@ export default function HomeDashboard() {
 
   const handleDailyStatusChange = (event) => {
     const nextStatus = event.target.value;
+
+    // Handle half day status - clear PM session only
+    if (isHalfDayStatus(nextStatus)) {
+      setDailyStatus(nextStatus);
+      setPmSession(EMPTY_SESSION);
+      setPmHasTimeError(false);
+      return;
+    }
 
     if (!isResetStatus(nextStatus)) {
       setDailyStatus(nextStatus);
