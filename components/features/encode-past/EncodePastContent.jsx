@@ -6,6 +6,7 @@ import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { getTodayInputDate, toDisplayTime } from "@/lib/dtr-formatters";
 import { prependHistoryRecord } from "@/lib/dtr-storage";
 import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
+import { createAttendanceRecord } from "@/lib/supabase-operations";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
 import DateSection from "@/components/features/encode-past/components/DateSection";
@@ -35,6 +36,7 @@ export default function EncodePastContent() {
   const [error, setError] = useState("");
   const [saved, triggerSaved] = useTimedFlag(2500);
   const [fieldErrors, setFieldErrors] = useState({ am: false, pm: false });
+  const [isLoading, setIsLoading] = useState(false);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -76,10 +78,10 @@ export default function EncodePastContent() {
   }, []);
 
   const hasTimeValidationErrors = fieldErrors.am || fieldErrors.pm;
-  const disableSave = hasTimeValidationErrors;
+  const disableSave = hasTimeValidationErrors || isLoading;
   const sessionsLocked = isResetStatus(form.status);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.date) {
       setError("Please select a date.");
       return;
@@ -96,24 +98,49 @@ export default function EncodePastContent() {
     }
 
     setError("");
+    setIsLoading(true);
 
-    const totalHours = calculateTotalHours(form);
+    try {
+      const totalHours = calculateTotalHours(form);
 
-    prependHistoryRecord({
-      id: Date.now().toString(),
-      date: form.date,
-      amIn: toDisplayTime(form.amIn),
-      amOut: toDisplayTime(form.amOut),
-      pmIn: toDisplayTime(form.pmIn),
-      pmOut: toDisplayTime(form.pmOut),
-      status: form.status,
-      note: form.note,
-      totalHours,
-    });
+      // Save to Supabase
+      await createAttendanceRecord({
+        date: form.date,
+        am_in: form.amIn || null,
+        am_out: form.amOut || null,
+        pm_in: form.pmIn || null,
+        pm_out: form.pmOut || null,
+        status: form.status,
+        note: form.note || null,
+        total_hours: totalHours,
+      });
 
-    triggerSaved(() => {
-      setForm(INITIAL_FORM);
-    });
+      // Also save to localStorage for backup/history
+      prependHistoryRecord({
+        id: Date.now().toString(),
+        date: form.date,
+        amIn: toDisplayTime(form.amIn),
+        amOut: toDisplayTime(form.amOut),
+        pmIn: toDisplayTime(form.pmIn),
+        pmOut: toDisplayTime(form.pmOut),
+        status: form.status,
+        note: form.note,
+        totalHours,
+      });
+
+      triggerSaved(() => {
+        setForm(INITIAL_FORM);
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save attendance. Please try again.";
+      setError(errorMessage);
+      console.error("Save error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -153,7 +180,12 @@ export default function EncodePastContent() {
 
       <ErrorMessage error={error} />
 
-      <SaveButton saved={saved} onSave={handleSave} disabled={disableSave} />
+      <SaveButton
+        saved={saved}
+        onSave={handleSave}
+        disabled={disableSave}
+        isLoading={isLoading}
+      />
     </PageShell>
   );
 }

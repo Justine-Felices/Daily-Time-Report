@@ -1,6 +1,11 @@
-import { CheckCircle2, Save } from "lucide-react";
+import { CheckCircle2, Save, Loader } from "lucide-react";
 
-export default function SaveButton({ saved, onSave, disabled = false }) {
+export default function SaveButton({
+  saved,
+  onSave,
+  disabled = false,
+  isLoading = false,
+}) {
   return (
     <button
       onClick={onSave}
@@ -26,7 +31,11 @@ export default function SaveButton({ saved, onSave, disabled = false }) {
         letterSpacing: "0.02em",
       }}
     >
-      {saved ? (
+      {isLoading ? (
+        <>
+          <Loader size={16} className="animate-spin" /> Saving...
+        </>
+      ) : saved ? (
         <>
           <CheckCircle2 size={16} /> Record Saved!
         </>
