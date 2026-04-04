@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useLiveClock from "@/hooks/useLiveClock";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
-import {
-  isResetStatus,
-  isHalfDayStatus,
-} from "@/lib/dtr-time-validation";
+import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
@@ -31,6 +28,14 @@ const TARGET_HOURS = 500;
 const BASE_MONTH_HOURS = 126;
 const BASE_TOTAL_HOURS = 274;
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
+const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
+
+function toLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 const HOME_INPUT_STYLE = {
   ...GLASS_INPUT_STYLE,
@@ -48,7 +53,27 @@ export default function HomeDashboard() {
   const [amHasTimeError, setAmHasTimeError] = useState(false);
   const [pmHasTimeError, setPmHasTimeError] = useState(false);
   const [noteSaved, triggerNoteSaved] = useTimedFlag(2500);
+  const [hasSavedToday, setHasSavedToday] = useState(false);
   const now = useLiveClock(60000); // Updates every minute
+  const todayKey = useMemo(() => toLocalDateKey(now), [now]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(HOME_STATUS_SAVE_LOCK_KEY);
+
+      if (!raw) {
+        setHasSavedToday(false);
+        return;
+      }
+
+      const parsed = JSON.parse(raw);
+      setHasSavedToday(parsed?.date === todayKey);
+    } catch {
+      setHasSavedToday(false);
+    }
+  }, [todayKey]);
 
   const todayHours =
     (amSession.timeIn && amSession.timeOut ? 4 : amSession.timeIn ? 2 : 0) +
@@ -200,6 +225,29 @@ export default function HomeDashboard() {
     setShowResetConfirm(false);
   };
 
+  const handleSaveTodayStatus = () => {
+    if (hasSavedToday) {
+      return;
+    }
+
+    triggerNoteSaved();
+    setHasSavedToday(true);
+
+    if (typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(
+        HOME_STATUS_SAVE_LOCK_KEY,
+        JSON.stringify({
+          date: todayKey,
+          savedAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      // Ignore storage issues in restricted browsing contexts.
+    }
+  };
+
   return (
     <PageShell width="wide">
       <HeaderSection
@@ -234,9 +282,10 @@ export default function HomeDashboard() {
         dailyNote={dailyNote}
         onDailyStatusChange={handleDailyStatusChange}
         onDailyNoteChange={(event) => setDailyNote(event.target.value)}
-        onSave={triggerNoteSaved}
+        onSave={handleSaveTodayStatus}
         disableSave={hasTimeLoggingError}
         noteSaved={noteSaved}
+        saveLocked={hasSavedToday}
         statusOptions={STATUS_OPTIONS}
         inputStyle={HOME_INPUT_STYLE}
       />

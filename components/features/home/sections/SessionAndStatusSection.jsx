@@ -66,11 +66,34 @@ export default memo(function SessionAndStatusSection({
   onSave,
   disableSave = false,
   noteSaved,
+  saveLocked = false,
   statusOptions,
   inputStyle,
 }) {
   const pmEarliestTime = amSession.timeOut || amSession.timeIn || null;
-  const pmDisabled = sessionsLocked || isHalfDayStatus(dailyStatus);
+  const amDisabled = sessionsLocked || saveLocked;
+  const pmDisabled = sessionsLocked || isHalfDayStatus(dailyStatus) || saveLocked;
+  const saveButtonDisabled = disableSave || saveLocked;
+
+  if (saveLocked) {
+    return (
+      <GlassCard padding="20px">
+        <div
+          className="rounded-xl px-3 py-2"
+          style={{
+            background: "rgba(6,148,148,0.08)",
+            border: "1px solid rgba(6,148,148,0.22)",
+            color: "#0F766E",
+            fontSize: "12px",
+            fontWeight: 600,
+            fontFamily: "'Inter',sans-serif",
+          }}
+        >
+          You already saved today&apos;s session and status. This section will unlock tomorrow.
+        </div>
+      </GlassCard>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -99,7 +122,7 @@ export default memo(function SessionAndStatusSection({
             onTimeOut={onAmTimeOut}
             onTimeInChange={onAmTimeInChange}
             onTimeOutChange={onAmTimeOutChange}
-            disabled={sessionsLocked}
+            disabled={amDisabled}
             inLabel="AM IN"
             outLabel="AM OUT"
             inGrad="linear-gradient(135deg,#FF69B4,#ff8fca)"
@@ -147,11 +170,13 @@ export default memo(function SessionAndStatusSection({
             <select
               value={dailyStatus}
               onChange={onDailyStatusChange}
+              disabled={saveLocked}
               className="w-full appearance-none"
               style={{
                 ...inputStyle,
                 padding: "10px 40px 10px 14px",
-                cursor: "pointer",
+                cursor: saveLocked ? "not-allowed" : "pointer",
+                opacity: saveLocked ? 0.65 : 1,
               }}
             >
               {statusOptions.map((option) => (
@@ -172,31 +197,41 @@ export default memo(function SessionAndStatusSection({
             rows={2}
             value={dailyNote}
             onChange={onDailyNoteChange}
+            disabled={saveLocked}
             placeholder="Add a note (e.g. field work, running errand, etc.)"
             className="w-full resize-none"
-            style={{ ...inputStyle, padding: "10px 14px" }}
+            style={{
+              ...inputStyle,
+              padding: "10px 14px",
+              opacity: saveLocked ? 0.65 : 1,
+              cursor: saveLocked ? "not-allowed" : "text",
+            }}
           />
 
           <button
             onClick={onSave}
-            disabled={disableSave}
+            disabled={saveButtonDisabled}
             className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 transition-all duration-200"
             style={{
               ...BUTTON_BASE_STYLE,
-              background: disableSave
+              background: saveButtonDisabled
                 ? "rgba(148,163,184,0.22)"
                 : noteSaved
                   ? "linear-gradient(135deg,#22C55E,#16A34A)"
                   : "linear-gradient(135deg,#069494,#0aacac)",
-              boxShadow: disableSave
+              boxShadow: saveButtonDisabled
                 ? "none"
                 : noteSaved
                   ? "0 4px 12px rgba(34,197,94,0.35)"
                   : "0 4px 14px rgba(6,148,148,0.32)",
-              cursor: disableSave ? "not-allowed" : "pointer",
+              cursor: saveButtonDisabled ? "not-allowed" : "pointer",
             }}
           >
-            {noteSaved ? (
+            {saveLocked ? (
+              <>
+                <CheckCircle2 size={14} /> Already Saved Today
+              </>
+            ) : noteSaved ? (
               <>
                 <CheckCircle2 size={14} /> Saved!
               </>
