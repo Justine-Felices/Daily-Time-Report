@@ -7,7 +7,6 @@ import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
 import {
   isResetStatus,
   isHalfDayStatus,
-  NON_WORKING_STATUSES,
 } from "@/lib/dtr-time-validation";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
@@ -81,7 +80,7 @@ export default function HomeDashboard() {
     : hasAnyLog
       ? "CLOCKED OUT"
       : "NOT YET";
-  const isSessionLocked = NON_WORKING_STATUSES.includes(dailyStatus);
+  const isSessionLocked = isResetStatus(dailyStatus);
   const hasTimeLoggingError = amHasTimeError || pmHasTimeError;
   const pmEarliestTime = amSession.timeOut || amSession.timeIn;
 

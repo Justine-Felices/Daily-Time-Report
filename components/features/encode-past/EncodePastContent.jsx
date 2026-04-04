@@ -5,7 +5,11 @@ import useTimedFlag from "@/hooks/useTimedFlag";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { getTodayInputDate, toDisplayTime } from "@/lib/dtr-formatters";
 import { prependHistoryRecord } from "@/lib/dtr-storage";
-import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
+import {
+  isResetStatus,
+  isHalfDayStatus,
+  validateRequiredTimeEntry,
+} from "@/lib/dtr-time-validation";
 import { createAttendanceRecord } from "@/lib/supabase-operations";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
@@ -87,8 +91,13 @@ export default function EncodePastContent() {
       return;
     }
 
-    if (!form.amIn && !form.pmIn) {
-      setError("Please fill in at least one time entry.");
+    const timeEntryError = validateRequiredTimeEntry({
+      status: form.status,
+      amIn: form.amIn,
+      pmIn: form.pmIn,
+    });
+    if (timeEntryError) {
+      setError(timeEntryError);
       return;
     }
 
