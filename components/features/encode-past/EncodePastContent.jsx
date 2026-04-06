@@ -30,9 +30,51 @@ const INITIAL_FORM = {
 };
 
 function calculateTotalHours({ amIn, amOut, pmIn, pmOut }) {
-  return (
-    (amIn && amOut ? 4 : amIn ? 2 : 0) + (pmIn && pmOut ? 4 : pmIn ? 2 : 0)
-  );
+  const toMinutes = (time) => {
+    if (!time || typeof time !== "string") return null;
+    const [hourString, minuteString] = time.split(":");
+    const hour = Number.parseInt(hourString, 10);
+    const minute = Number.parseInt(minuteString, 10);
+
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+
+    return hour * 60 + minute;
+  };
+
+  const getSessionHours = (timeIn, timeOut) => {
+    const startMinutes = toMinutes(timeIn);
+    const endMinutes = toMinutes(timeOut);
+
+    if (startMinutes === null || endMinutes === null) return 0;
+
+    return Math.max(0, (endMinutes - startMinutes) / 60);
+  };
+
+  const amHours = getSessionHours(amIn, amOut);
+  const pmHours = getSessionHours(pmIn, pmOut);
+
+  const amInMinutes = toMinutes(amIn);
+  const amOutMinutes = toMinutes(amOut);
+  const pmInMinutes = toMinutes(pmIn);
+  const pmOutMinutes = toMinutes(pmOut);
+
+  const hasCompleteAM = amInMinutes !== null && amOutMinutes !== null;
+  const hasCompletePM = pmInMinutes !== null && pmOutMinutes !== null;
+
+  let rawHours = amHours + pmHours;
+
+  // Auto-deduct lunch only for a single continuous shift that spans 12:00-13:00.
+  if (!hasCompleteAM && hasCompletePM) {
+    if (pmInMinutes < 12 * 60 && pmOutMinutes > 13 * 60) {
+      rawHours = Math.max(0, rawHours - 1);
+    }
+  } else if (hasCompleteAM && !hasCompletePM) {
+    if (amInMinutes < 12 * 60 && amOutMinutes > 13 * 60) {
+      rawHours = Math.max(0, rawHours - 1);
+    }
+  }
+
+  return Number(rawHours.toFixed(2));
 }
 
 export default function EncodePastContent() {

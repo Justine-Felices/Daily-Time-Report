@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { PRINT_CSS } from "@/lib/dtr-constants";
 import { loadHistoryRecords } from "@/lib/dtr-storage";
+import { fetchAttendanceHistoryRecords } from "@/lib/supabase-history";
+import { fetchCurrentUserOverallInternHours } from "@/lib/supabase-overall-hours";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/history/components/HeaderSection";
 import ActionsSection from "@/components/features/history/components/ActionsSection";
@@ -102,11 +104,42 @@ async function buildDtrPdf(records, totalHours) {
 }
 
 export default function HistoryContent() {
-  const [history] = useState(() => loadHistoryRecords());
+  const [history, setHistory] = useState(() => loadHistoryRecords());
+  const [overallHoursLogged, setOverallHoursLogged] = useState(null);
+  const [isOverallHoursLoading, setIsOverallHoursLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [sortDir, setSortDir] = useState("desc");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSupabaseHistory = async () => {
+      const [records, totalHours] = await Promise.all([
+        fetchAttendanceHistoryRecords(),
+        fetchCurrentUserOverallInternHours(),
+      ]);
+
+      if (!mounted) return;
+
+      if (records.length > 0) {
+        setHistory(records);
+      }
+
+      if (totalHours !== null) {
+        setOverallHoursLogged(totalHours);
+      }
+
+      setIsOverallHoursLoading(false);
+    };
+
+    loadSupabaseHistory();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const styleId = "dtr-print-styles";
@@ -123,7 +156,9 @@ export default function HistoryContent() {
   }, []);
 
   const statuses = useMemo(() => {
-    const uniqueStatuses = Array.from(new Set(history.map((row) => row.status)));
+    const uniqueStatuses = Array.from(
+      new Set(history.map((row) => row.status)),
+    );
     return ["All", ...uniqueStatuses];
   }, [history]);
 
@@ -147,6 +182,9 @@ export default function HistoryContent() {
     (sum, record) => sum + (Number(record.totalHours) || 0),
     0,
   );
+  const hoursLogged = isOverallHoursLoading
+    ? null
+    : overallHoursLogged ?? totalHoursFiltered;
   const presentDays = filtered.filter((record) => record.totalHours > 0).length;
   const totalAllHours = allSorted.reduce(
     (sum, record) => sum + (Number(record.totalHours) || 0),
@@ -177,7 +215,7 @@ export default function HistoryContent() {
         <StatsSection
           totalRecords={filtered.length}
           presentDays={presentDays}
-          hoursLogged={totalHoursFiltered}
+          hoursLogged={hoursLogged}
         />
 
         <FiltersSection

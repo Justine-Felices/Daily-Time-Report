@@ -22,6 +22,9 @@ export default function StatsSection({
   presentDays,
   hoursLogged,
 }) {
+  const hoursLoggedText =
+    typeof hoursLogged === "number" ? `${hoursLogged.toFixed(1)}h` : "...";
+
   const cards = [
     {
       label: "TOTAL RECORDS",
@@ -37,7 +40,7 @@ export default function StatsSection({
     },
     {
       label: "HOURS LOGGED",
-      value: `${hoursLogged.toFixed(1)}h`,
+      value: hoursLoggedText,
       icon: Clock,
       color: "#FF69B4",
     },

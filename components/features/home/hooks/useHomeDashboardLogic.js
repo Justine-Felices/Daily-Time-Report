@@ -9,10 +9,9 @@ import {
   isUserProfileOnboarded,
   mapUserProfileToOnboardingValues,
 } from "@/lib/supabase-user-profiles";
+import { fetchOverallInternHoursByUserId } from "@/lib/supabase-overall-hours";
 
-const TARGET_HOURS = 500;
 const BASE_MONTH_HOURS = 126;
-const BASE_TOTAL_HOURS = 274;
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
 
@@ -66,6 +65,8 @@ export default function useHomeDashboardLogic() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [onboardingUserId, setOnboardingUserId] = useState("");
   const [onboardingValues, setOnboardingValues] = useState(null);
+  const [targetHours, setTargetHours] = useState(null);
+  const [persistedTotalHours, setPersistedTotalHours] = useState(0);
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
@@ -103,6 +104,24 @@ export default function useHomeDashboardLogic() {
       setOnboardingValues(
         profile ? mapUserProfileToOnboardingValues(profile) : null,
       );
+      const parsedTargetHours = Number(profile?.target_hours);
+      setTargetHours(
+        Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
+          ? parsedTargetHours
+          : null,
+      );
+
+      const overallHours = await fetchOverallInternHoursByUserId({
+        supabase,
+        userId: user.id,
+      });
+
+      if (!mounted) return;
+
+      if (overallHours !== null) {
+        setPersistedTotalHours(overallHours);
+      }
+
       setIsOnboardingOpen(!isUserProfileOnboarded(profile));
     };
 
@@ -138,20 +157,28 @@ export default function useHomeDashboardLogic() {
     (pmSession.timeIn && pmSession.timeOut ? 4 : pmSession.timeIn ? 2 : 0);
 
   const monthHours = BASE_MONTH_HOURS + todayHours;
-  const totalRenderedHours = BASE_TOTAL_HOURS + todayHours;
+  const totalRenderedHours = persistedTotalHours + todayHours;
+  const hasValidTargetHours =
+    Number.isFinite(targetHours) && Number(targetHours) > 0;
   const pct = Math.min(
     100,
-    Math.round((totalRenderedHours / TARGET_HOURS) * 100),
+    hasValidTargetHours
+      ? Math.round((totalRenderedHours / Number(targetHours)) * 100)
+      : 0,
   );
-  const remaining = Math.max(0, TARGET_HOURS - totalRenderedHours);
+  const remaining = hasValidTargetHours
+    ? Math.max(0, Number(targetHours) - totalRenderedHours)
+    : 0;
 
   const estimatedFinish = new Date();
   estimatedFinish.setDate(estimatedFinish.getDate() + Math.ceil(remaining / 8));
-  const estimatedFinishText = estimatedFinish.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const estimatedFinishText = hasValidTargetHours
+    ? estimatedFinish.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Set target hours";
 
   const hasAnyLog = amSession.timeIn || pmSession.timeIn;
   const isClockIn =
@@ -307,12 +334,18 @@ export default function useHomeDashboardLogic() {
 
   const handleOnboardingComplete = (profile) => {
     setOnboardingValues(mapUserProfileToOnboardingValues(profile));
+    const parsedTargetHours = Number(profile?.target_hours);
+    setTargetHours(
+      Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
+        ? parsedTargetHours
+        : null,
+    );
     setIsOnboardingOpen(false);
   };
 
   return {
     constants: {
-      TARGET_HOURS,
+      TARGET_HOURS: hasValidTargetHours ? Number(targetHours) : 0,
       STATUS_OPTIONS,
       HOME_INPUT_STYLE,
     },
