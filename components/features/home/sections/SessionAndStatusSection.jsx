@@ -72,7 +72,8 @@ export default memo(function SessionAndStatusSection({
 }) {
   const pmEarliestTime = amSession.timeOut || amSession.timeIn || null;
   const amDisabled = sessionsLocked || saveLocked;
-  const pmDisabled = sessionsLocked || isHalfDayStatus(dailyStatus) || saveLocked;
+  const pmDisabled =
+    sessionsLocked || isHalfDayStatus(dailyStatus) || saveLocked;
   const saveButtonDisabled = disableSave || saveLocked;
 
   if (saveLocked) {
@@ -89,7 +90,8 @@ export default memo(function SessionAndStatusSection({
             fontFamily: "'Inter',sans-serif",
           }}
         >
-          You already saved today&apos;s session and status. This section will unlock tomorrow.
+          You already saved today&apos;s session and status. This section will
+          unlock tomorrow.
         </div>
       </GlassCard>
     );

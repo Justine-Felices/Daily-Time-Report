@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import useLiveClock from "@/hooks/useLiveClock";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
+import {
+  fetchUserProfileByUserId,
+  isUserProfileOnboarded,
+  mapUserProfileToOnboardingValues,
+} from "@/lib/supabase-user-profiles";
 import PageShell from "@/components/layout/PageShell";
+import OnboardingModal from "@/components/features/home/components/OnboardingModal";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
 import SessionAndStatusSection from "@/components/features/home/sections/SessionAndStatusSection";
@@ -44,6 +51,16 @@ const HOME_INPUT_STYLE = {
 };
 
 export default function HomeDashboard() {
+  const hasSupabaseConfig =
+    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+    /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
+  const supabase = useMemo(() => {
+    if (!hasSupabaseConfig) return null;
+    return createClient();
+  }, [hasSupabaseConfig]);
+
   const [amSession, setAmSession] = useState(EMPTY_SESSION);
   const [pmSession, setPmSession] = useState(EMPTY_SESSION);
   const [dailyStatus, setDailyStatus] = useState(STATUS_OPTIONS[0]);
@@ -54,25 +71,73 @@ export default function HomeDashboard() {
   const [pmHasTimeError, setPmHasTimeError] = useState(false);
   const [noteSaved, triggerNoteSaved] = useTimedFlag(2500);
   const [hasSavedToday, setHasSavedToday] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [onboardingUserId, setOnboardingUserId] = useState("");
+  const [onboardingValues, setOnboardingValues] = useState(null);
   const now = useLiveClock(60000); // Updates every minute
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!supabase) return;
 
-    try {
-      const raw = window.localStorage.getItem(HOME_STATUS_SAVE_LOCK_KEY);
+    let mounted = true;
 
-      if (!raw) {
-        setHasSavedToday(false);
+    const loadOnboardingState = async () => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (!mounted || userError || !user) {
         return;
       }
 
-      const parsed = JSON.parse(raw);
-      setHasSavedToday(parsed?.date === todayKey);
-    } catch {
-      setHasSavedToday(false);
-    }
+      setOnboardingUserId(user.id);
+
+      const { data: profile, error: profileError } =
+        await fetchUserProfileByUserId({
+          supabase,
+          userId: user.id,
+        });
+
+      if (!mounted) return;
+
+      if (profileError) {
+        setIsOnboardingOpen(true);
+        return;
+      }
+
+      setOnboardingValues(
+        profile ? mapUserProfileToOnboardingValues(profile) : null,
+      );
+      setIsOnboardingOpen(!isUserProfileOnboarded(profile));
+    };
+
+    loadOnboardingState();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    Promise.resolve().then(() => {
+      try {
+        const raw = window.localStorage.getItem(HOME_STATUS_SAVE_LOCK_KEY);
+
+        if (!raw) {
+          setHasSavedToday(false);
+          return;
+        }
+
+        const parsed = JSON.parse(raw);
+        setHasSavedToday(parsed?.date === todayKey);
+      } catch {
+        setHasSavedToday(false);
+      }
+    });
   }, [todayKey]);
 
   const todayHours =
@@ -367,6 +432,18 @@ export default function HomeDashboard() {
         todayHours={todayHours}
         monthHours={monthHours}
         totalHours={totalRenderedHours}
+      />
+
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        supabase={supabase}
+        userId={onboardingUserId}
+        initialValues={onboardingValues}
+        allowCancel={false}
+        onComplete={(profile) => {
+          setOnboardingValues(mapUserProfileToOnboardingValues(profile));
+          setIsOnboardingOpen(false);
+        }}
       />
     </PageShell>
   );
