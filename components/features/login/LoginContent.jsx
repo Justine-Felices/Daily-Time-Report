@@ -11,7 +11,6 @@ import {
   Lock,
   Mail,
   Sparkles,
-  User,
 } from "lucide-react";
 import {
   BTN_PRIMARY,
@@ -27,10 +26,6 @@ import Spinner from "@/components/features/login/components/Spinner";
 
 function validateForm(mode, values) {
   const errors = {};
-
-  if (mode === "signup" && !values.name.trim()) {
-    errors.name = "Full name is required.";
-  }
 
   if (!values.email.trim()) {
     errors.email = "Email is required.";
@@ -59,12 +54,30 @@ function validateForm(mode, values) {
   return errors;
 }
 
+function EyeButton({ show, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+        display: "flex",
+        color: "rgba(6,148,148,0.6)",
+      }}
+    >
+      {show ? <EyeOff size={16} /> : <Eye size={16} />}
+    </button>
+  );
+}
+
 export default function LoginContent() {
   const router = useRouter();
   const { login, signup } = useLocalAuth();
 
   const [mode, setMode] = useState("login");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -81,7 +94,6 @@ export default function LoginContent() {
     setMode(nextMode);
     setErrors({});
     setSuccess(false);
-    setName("");
     setEmail("");
     setPassword("");
     setConfirmPassword("");
@@ -93,7 +105,6 @@ export default function LoginContent() {
 
   const submit = async () => {
     const nextErrors = validateForm(mode, {
-      name,
       email,
       password,
       confirmPassword,
@@ -123,7 +134,7 @@ export default function LoginContent() {
       return;
     }
 
-    const result = await signup(email, password, name);
+    const result = await signup(email, password, "");
     setSubmitting(false);
 
     if (result.error) {
@@ -142,23 +153,6 @@ export default function LoginContent() {
 
     router.push("/");
   };
-
-  const EyeButton = ({ show, onToggle }) => (
-    <button
-      type="button"
-      onClick={onToggle}
-      style={{
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        padding: 0,
-        display: "flex",
-        color: "rgba(6,148,148,0.6)",
-      }}
-    >
-      {show ? <EyeOff size={16} /> : <Eye size={16} />}
-    </button>
-  );
 
   return (
     <div
@@ -303,20 +297,6 @@ export default function LoginContent() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-          {mode === "signup" && (
-            <div>
-              <FieldLabel label="Full Name" />
-              <InputField
-                icon={User}
-                placeholder="e.g. Alex Rivera"
-                value={name}
-                onChange={setName}
-                error={Boolean(errors.name)}
-              />
-              {errors.name && <FieldError msg={errors.name} />}
-            </div>
-          )}
-
           <div>
             <FieldLabel label="Email Address" />
             <InputField
@@ -516,9 +496,7 @@ export default function LoginContent() {
                 Log In <ArrowRight size={15} />
               </>
             ) : (
-              <>
-                Create Account <Sparkles size={14} />
-              </>
+              <>Create Account</>
             )}
           </button>
 
