@@ -81,14 +81,15 @@ export default function OnboardingModal({
   onComplete,
   onCancel,
   allowCancel = true,
+  mode = "modal",
 }) {
+  const isModal = mode === "modal";
   const modalRef = useRef(null);
   const {
     values,
     errors,
     formError,
     isSubmitting,
-    requiredMissing,
     handleFieldChange,
     handleSubmit,
   } = useOnboardingModalLogic({
@@ -100,17 +101,26 @@ export default function OnboardingModal({
     onCancel,
     allowCancel,
     modalRef,
+    trapFocus: isModal,
   });
 
   if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/42 px-4 backdrop-blur-md"
-      style={{
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-      }}
+      className={
+        isModal
+          ? "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/42 px-4 backdrop-blur-md"
+          : "mx-auto w-full max-w-3xl px-4 py-8 sm:py-10"
+      }
+      style={
+        isModal
+          ? {
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+            }
+          : undefined
+      }
     >
       <GlassCard
         className="w-full max-w-2xl"
@@ -125,8 +135,8 @@ export default function OnboardingModal({
       >
         <div
           ref={modalRef}
-          role="dialog"
-          aria-modal="true"
+          role={isModal ? "dialog" : "region"}
+          aria-modal={isModal ? "true" : undefined}
           aria-labelledby="onboarding-title"
         >
           <div className="mb-5">
@@ -198,24 +208,24 @@ export default function OnboardingModal({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={requiredMissing || isSubmitting}
+              disabled={isSubmitting}
+              aria-disabled={isSubmitting}
               className="rounded-xl px-4 py-2.5"
               style={{
                 background:
-                  requiredMissing || isSubmitting
+                  isSubmitting
                     ? "rgba(148,163,184,0.22)"
                     : "linear-gradient(135deg,#069494,#0aacac)",
                 border: "none",
-                color: requiredMissing || isSubmitting ? "#94A3B8" : "#fff",
+                color: isSubmitting ? "#94A3B8" : "#fff",
                 fontSize: "12px",
                 fontWeight: 700,
                 fontFamily: "'Inter',sans-serif",
                 boxShadow:
-                  requiredMissing || isSubmitting
+                  isSubmitting
                     ? "none"
                     : "0 4px 16px rgba(6,148,148,0.38)",
-                cursor:
-                  requiredMissing || isSubmitting ? "not-allowed" : "pointer",
+                cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
               {isSubmitting ? "Saving..." : "Save & Continue"}

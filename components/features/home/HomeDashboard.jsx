@@ -1,7 +1,6 @@
 "use client";
 
 import PageShell from "@/components/layout/PageShell";
-import OnboardingModal from "@/components/features/home/components/OnboardingModal";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
 import SessionAndStatusSection from "@/components/features/home/sections/SessionAndStatusSection";
@@ -16,7 +15,6 @@ export default function HomeDashboard() {
     sessions,
     summary,
     resetDialog,
-    onboarding,
   } = useHomeDashboardLogic();
 
   return (
@@ -139,15 +137,6 @@ export default function HomeDashboard() {
         todayHours={summary.todayHours}
         monthHours={summary.monthHours}
         totalHours={summary.totalHours}
-      />
-
-      <OnboardingModal
-        isOpen={onboarding.isOnboardingOpen}
-        supabase={onboarding.supabase}
-        userId={onboarding.onboardingUserId}
-        initialValues={onboarding.onboardingValues}
-        allowCancel={false}
-        onComplete={onboarding.handleOnboardingComplete}
       />
     </PageShell>
   );

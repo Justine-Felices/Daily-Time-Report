@@ -21,10 +21,10 @@ import SaveButton from "@/components/features/encode-past/components/SaveButton"
 
 const INITIAL_FORM = {
   date: "",
-  amIn: "",
-  amOut: "",
-  pmIn: "",
-  pmOut: "",
+  amIn: "09:30",
+  amOut: "12:00",
+  pmIn: "13:00",
+  pmOut: "18:30",
   status: "Regular Duty Day",
   note: "",
 };

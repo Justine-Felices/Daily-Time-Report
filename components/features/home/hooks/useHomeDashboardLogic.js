@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import useLiveClock from "@/hooks/useLiveClock";
 import useTimedFlag from "@/hooks/useTimedFlag";
@@ -7,7 +8,6 @@ import { isHalfDayStatus, isResetStatus } from "@/lib/dtr-time-validation";
 import {
   fetchUserProfileByUserId,
   isUserProfileOnboarded,
-  mapUserProfileToOnboardingValues,
 } from "@/lib/supabase-user-profiles";
 import { fetchOverallInternHoursByUserId } from "@/lib/supabase-overall-hours";
 
@@ -42,6 +42,7 @@ function toLocalDateKey(date) {
 }
 
 export default function useHomeDashboardLogic() {
+  const router = useRouter();
   const hasSupabaseConfig =
     typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
     /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -62,9 +63,6 @@ export default function useHomeDashboardLogic() {
   const [pmHasTimeError, setPmHasTimeError] = useState(false);
   const [noteSaved, triggerNoteSaved] = useTimedFlag(2500);
   const [hasSavedToday, setHasSavedToday] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [onboardingUserId, setOnboardingUserId] = useState("");
-  const [onboardingValues, setOnboardingValues] = useState(null);
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
 
@@ -86,8 +84,6 @@ export default function useHomeDashboardLogic() {
         return;
       }
 
-      setOnboardingUserId(user.id);
-
       const { data: profile, error: profileError } =
         await fetchUserProfileByUserId({
           supabase,
@@ -97,13 +93,9 @@ export default function useHomeDashboardLogic() {
       if (!mounted) return;
 
       if (profileError) {
-        setIsOnboardingOpen(true);
+        router.replace("/onboarding");
         return;
       }
-
-      setOnboardingValues(
-        profile ? mapUserProfileToOnboardingValues(profile) : null,
-      );
       const parsedTargetHours = Number(profile?.target_hours);
       setTargetHours(
         Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
@@ -122,7 +114,9 @@ export default function useHomeDashboardLogic() {
         setPersistedTotalHours(overallHours);
       }
 
-      setIsOnboardingOpen(!isUserProfileOnboarded(profile));
+      if (!isUserProfileOnboarded(profile)) {
+        router.replace("/onboarding");
+      }
     };
 
     loadOnboardingState();
@@ -130,7 +124,7 @@ export default function useHomeDashboardLogic() {
     return () => {
       mounted = false;
     };
-  }, [supabase]);
+  }, [router, supabase]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -332,17 +326,6 @@ export default function useHomeDashboardLogic() {
     }
   };
 
-  const handleOnboardingComplete = (profile) => {
-    setOnboardingValues(mapUserProfileToOnboardingValues(profile));
-    const parsedTargetHours = Number(profile?.target_hours);
-    setTargetHours(
-      Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
-        ? parsedTargetHours
-        : null,
-    );
-    setIsOnboardingOpen(false);
-  };
-
   return {
     constants: {
       TARGET_HOURS: hasValidTargetHours ? Number(targetHours) : 0,
@@ -393,13 +376,6 @@ export default function useHomeDashboardLogic() {
       pendingStatus,
       handleCancelReset,
       handleConfirmReset,
-    },
-    onboarding: {
-      isOnboardingOpen,
-      supabase,
-      onboardingUserId,
-      onboardingValues,
-      handleOnboardingComplete,
     },
   };
 }

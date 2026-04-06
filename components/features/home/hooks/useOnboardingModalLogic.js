@@ -33,6 +33,7 @@ export default function useOnboardingModalLogic({
   onCancel,
   allowCancel,
   modalRef,
+  trapFocus = true,
 }) {
   const router = useRouter();
   const [values, setValues] = useState(() =>
@@ -53,7 +54,7 @@ export default function useOnboardingModalLogic({
   }, [isOpen, initialValues]);
 
   useEffect(() => {
-    if (!isOpen || !modalRef.current) return;
+    if (!trapFocus || !isOpen || !modalRef.current) return;
 
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -105,7 +106,7 @@ export default function useOnboardingModalLogic({
       document.body.style.overflow = prevOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [allowCancel, isOpen, isSubmitting, modalRef, onCancel]);
+  }, [allowCancel, isOpen, isSubmitting, modalRef, onCancel, trapFocus]);
 
   const requiredMissing =
     !values.full_name.trim() ||
