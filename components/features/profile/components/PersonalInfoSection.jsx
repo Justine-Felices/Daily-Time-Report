@@ -2,7 +2,6 @@ import {
   Building,
   GraduationCap,
   Mail,
-  Phone,
   Shield,
   User,
   Edit3,
@@ -20,7 +19,6 @@ const TITLE_STYLE = {
 const PERSONAL_FIELDS = [
   { key: "name", label: "FULL NAME", icon: User },
   { key: "email", label: "EMAIL ADDRESS", icon: Mail },
-  { key: "phone", label: "PHONE NUMBER", icon: Phone },
   { key: "department", label: "DEPARTMENT", icon: Building },
   {
     key: "position",
@@ -78,7 +76,7 @@ export default function PersonalInfoSection({ profile, onEditClick }) {
                   padding: "10px 14px",
                   borderRadius: "12px",
                   background: "rgba(255, 255, 255, 0.7)",
-                  border: "1px solid rgba(6, 148, 148, 0.18)",
+
                   color: "#1E293B",
                   fontSize: "14px",
                   fontFamily: "'Inter',sans-serif",

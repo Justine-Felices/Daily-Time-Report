@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import useTimedFlag from "@/hooks/useTimedFlag";
+import { createClient } from "@/lib/supabase/client";
 import PageShell from "@/components/layout/PageShell";
 import useLocalAuth from "@/components/features/login/hooks/useLocalAuth";
 import HeaderSection from "@/components/features/profile/components/HeaderSection";
@@ -13,27 +14,118 @@ import PreferencesSection from "@/components/features/profile/components/Prefere
 import ProfileHeaderCard from "@/components/features/profile/components/ProfileHeaderCard";
 import EditPersonalInfoModal from "@/components/features/profile/components/EditPersonalInfoModal";
 
-const OJT_DETAILS = [
-  { label: "Start Date", value: "Jan 15, 2026" },
-  { label: "End Date", value: "May 30, 2026" },
-  { label: "Target Hours", value: "500 hours" },
-  { label: "Company", value: "TechCorp Inc." },
-];
+const EMPTY_PROFILE = {
+  name: "",
+  email: "",
+  department: "",
+  position: "",
+  supervisor: "",
+  company: "",
+  ojt_start_date: "",
+  ojt_end_date: "",
+  target_hours: "",
+};
+
+function toDisplayDate(value) {
+  if (!value) return "Not set";
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "Not set";
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function toInitials(name) {
+  if (!name) return "--";
+
+  const tokens = name.trim().split(/\s+/).filter(Boolean);
+
+  if (tokens.length === 0) return "--";
+
+  return tokens
+    .slice(0, 2)
+    .map((token) => token.charAt(0).toUpperCase())
+    .join("");
+}
 
 export default function ProfileContent() {
   const router = useRouter();
   const { logout } = useLocalAuth();
-  const [profile, setProfile] = useState({
-    name: "Alex Rivera",
-    email: "alex.rivera@company.com",
-    department: "Information Technology",
-    position: "OJT Trainee",
-    phone: "+63 912 345 6789",
-    supervisor: "Ms. Maria Santos",
-  });
+  const hasSupabaseConfig =
+    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+    /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
+  const supabase = useMemo(() => {
+    if (!hasSupabaseConfig) return null;
+    return createClient();
+  }, [hasSupabaseConfig]);
+
+  const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [notif, setNotif] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [saved, triggerSaved] = useTimedFlag(2500);
+  const [, triggerSaved] = useTimedFlag(2500);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    let mounted = true;
+
+    const loadProfile = async () => {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (!mounted || authError || !user) return;
+
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select(
+          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours, notifications_enabled",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!mounted || error || !data) return;
+
+      setProfile((current) => ({
+        ...current,
+        name: data.full_name || "",
+        email: user.email || "",
+        department: data.department || "",
+        position: data.position || "",
+        supervisor: data.supervisor || "",
+        company: data.company || "",
+        ojt_start_date: data.ojt_start_date || "",
+        ojt_end_date: data.ojt_end_date || "",
+        target_hours:
+          data.target_hours === null || typeof data.target_hours === "undefined"
+            ? ""
+            : String(data.target_hours),
+      }));
+      setNotif(Boolean(data.notifications_enabled));
+    };
+
+    loadProfile();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
+
+  const ojtDetails = [
+    { label: "Start Date", value: toDisplayDate(profile.ojt_start_date) },
+    { label: "End Date", value: toDisplayDate(profile.ojt_end_date) },
+    {
+      label: "Target Hours",
+      value: profile.target_hours ? `${profile.target_hours} hours` : "Not set",
+    },
+    { label: "Company", value: profile.company || "Not set" },
+  ];
 
   const handleSaveProfile = (updatedProfile) => {
     setProfile(updatedProfile);
@@ -59,7 +151,7 @@ export default function ProfileContent() {
         name={profile.name}
         position={profile.position}
         department={profile.department}
-        initials="AR"
+        initials={toInitials(profile.name)}
       />
 
       <PersonalInfoSection
@@ -72,7 +164,7 @@ export default function ProfileContent() {
         onToggleNotif={() => setNotif((value) => !value)}
       />
 
-      <OJTDetailsSection details={OJT_DETAILS} />
+      <OJTDetailsSection details={ojtDetails} />
 
       <LogoutButton onClick={handleLogout} />
 

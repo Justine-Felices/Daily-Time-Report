@@ -10,11 +10,9 @@ import {
   EyeOff,
   Lock,
   Mail,
-  Sparkles,
 } from "lucide-react";
 import {
   BTN_PRIMARY,
-  BTN_SECONDARY,
   GLASS,
 } from "@/components/features/login/constants/styles";
 import useLocalAuth from "@/components/features/login/hooks/useLocalAuth";
@@ -533,26 +531,6 @@ export default function LoginContent() {
               }}
             />
           </div>
-
-          <button
-            onClick={() => {
-              setErrors((current) => ({
-                ...current,
-                form: "Guest mode has been disabled for Supabase authentication.",
-              }));
-            }}
-            style={BTN_SECONDARY}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.background = "rgba(6,148,148,0.08)";
-              event.currentTarget.style.borderColor = "rgba(6,148,148,0.45)";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.background = "rgba(240,253,253,0.60)";
-              event.currentTarget.style.borderColor = "rgba(6,148,148,0.30)";
-            }}
-          >
-            Continue as Guest
-          </button>
 
           {errors.form && <FieldError msg={errors.form} />}
 

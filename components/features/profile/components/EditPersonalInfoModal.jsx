@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Building, GraduationCap, Mail, Phone, X, User } from "lucide-react";
+import { Building, GraduationCap, Mail, X, User } from "lucide-react";
 import ProfileInputField from "@/components/features/profile/components/ProfileInputField";
 
 const PERSONAL_FIELDS = [
   { key: "name", label: "FULL NAME", icon: User, type: "text" },
   { key: "email", label: "EMAIL ADDRESS", icon: Mail, type: "email" },
-  { key: "phone", label: "PHONE NUMBER", icon: Phone, type: "tel" },
   { key: "department", label: "DEPARTMENT", icon: Building, type: "text" },
   {
     key: "position",

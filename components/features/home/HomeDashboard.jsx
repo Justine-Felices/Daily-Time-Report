@@ -9,8 +9,15 @@ import SummarySection from "@/components/features/home/sections/SummarySection";
 import useHomeDashboardLogic from "@/components/features/home/hooks/useHomeDashboardLogic";
 
 export default function HomeDashboard() {
-  const { constants, header, progress, sessions, summary, resetDialog, onboarding } =
-    useHomeDashboardLogic();
+  const {
+    constants,
+    header,
+    progress,
+    sessions,
+    summary,
+    resetDialog,
+    onboarding,
+  } = useHomeDashboardLogic();
 
   return (
     <PageShell width="wide">
@@ -89,8 +96,9 @@ export default function HomeDashboard() {
                 marginBottom: "16px",
               }}
             >
-              Changing status to {resetDialog.pendingStatus || "this option"} will delete
-              your AM and PM session logs for today. Do you want to continue?
+              Changing status to {resetDialog.pendingStatus || "this option"}{" "}
+              will delete your AM and PM session logs for today. Do you want to
+              continue?
             </p>
             <div className="flex justify-end gap-2">
               <button

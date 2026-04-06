@@ -35,7 +35,9 @@ export default function useOnboardingModalLogic({
   modalRef,
 }) {
   const router = useRouter();
-  const [values, setValues] = useState(() => normalizeInitialValues(initialValues));
+  const [values, setValues] = useState(() =>
+    normalizeInitialValues(initialValues),
+  );
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
