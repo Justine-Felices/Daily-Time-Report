@@ -1,3 +1,5 @@
+import { SkeletonBlock } from "@/components/ui/Skeleton";
+
 const BASE_CONTAINER_STYLE = {
   backdropFilter: "blur(12px)",
   WebkitBackdropFilter: "blur(12px)",
@@ -20,7 +22,7 @@ const SUBTEXT_STYLE = {
   marginTop: "4px",
 };
 
-export default function StatCard({ label, value, sub, accent }) {
+export default function StatCard({ label, value, sub, accent, isLoading = false }) {
   return (
     <div
       className="flex flex-col rounded-2xl p-4"
@@ -35,18 +37,22 @@ export default function StatCard({ label, value, sub, accent }) {
       }}
     >
       <div style={LABEL_STYLE}>{label}</div>
-      <div
-        style={{
-          color: accent ? "#069494" : "#1E293B",
-          fontSize: "22px",
-          fontWeight: 800,
-          fontFamily: "'Inter',sans-serif",
-          letterSpacing: "-0.03em",
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </div>
+      {isLoading ? (
+        <SkeletonBlock className="h-6 w-16 rounded-md" />
+      ) : (
+        <div
+          style={{
+            color: accent ? "#069494" : "#1E293B",
+            fontSize: "22px",
+            fontWeight: 800,
+            fontFamily: "'Inter',sans-serif",
+            letterSpacing: "-0.03em",
+            lineHeight: 1,
+          }}
+        >
+          {value}
+        </div>
+      )}
       <div style={SUBTEXT_STYLE}>{sub}</div>
     </div>
   );

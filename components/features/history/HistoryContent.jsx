@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PRINT_CSS } from "@/lib/dtr-constants";
-import { loadHistoryRecords } from "@/lib/dtr-storage";
 import { fetchAttendanceHistoryRecords } from "@/lib/supabase-history";
 import { fetchCurrentUserOverallInternHours } from "@/lib/supabase-overall-hours";
 import PageShell from "@/components/layout/PageShell";
@@ -104,7 +103,7 @@ async function buildDtrPdf(records, totalHours) {
 }
 
 export default function HistoryContent() {
-  const [history, setHistory] = useState(() => loadHistoryRecords());
+  const [history, setHistory] = useState([]);
   const [overallHoursLogged, setOverallHoursLogged] = useState(null);
   const [isOverallHoursLoading, setIsOverallHoursLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -123,9 +122,7 @@ export default function HistoryContent() {
 
       if (!mounted) return;
 
-      if (records.length > 0) {
-        setHistory(records);
-      }
+      setHistory(records);
 
       if (totalHours !== null) {
         setOverallHoursLogged(totalHours);

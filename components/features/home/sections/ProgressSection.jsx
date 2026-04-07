@@ -1,6 +1,7 @@
 import { CalendarCheck, Target, Timer, TrendingUp } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import CircularProgress from "@/components/features/home/components/CircularProgress";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 const TITLE_TEXT_STYLE = {
   color: "#1E293B",
@@ -36,6 +37,7 @@ const CARD_LABEL_STYLE = {
 };
 
 export default function ProgressSection({
+  isLoading = false,
   pct,
   remaining,
   targetHours,
@@ -81,22 +83,26 @@ export default function ProgressSection({
       </div>
 
       <div className="mb-5 flex flex-col items-center">
-        <CircularProgress pct={pct} />
+        <CircularProgress pct={pct} isLoading={isLoading} />
       </div>
 
       <div
         className="mb-5 w-full rounded-full"
         style={{ height: "8px", background: "rgba(6,148,148,0.1)" }}
       >
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: `${pct}%`,
-            background: "linear-gradient(90deg, #046060, #069494, #00F0FF)",
-            transition: "width 0.9s ease",
-            boxShadow: "0 2px 10px rgba(0,240,255,0.4)",
-          }}
-        />
+        {isLoading ? (
+          <SkeletonBlock className="h-full w-full rounded-full" />
+        ) : (
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${pct}%`,
+              background: "linear-gradient(90deg, #046060, #069494, #00F0FF)",
+              transition: "width 0.9s ease",
+              boxShadow: "0 2px 10px rgba(0,240,255,0.4)",
+            }}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -117,7 +123,11 @@ export default function ProgressSection({
             >
               <Icon size={13} color={color} />
             </div>
-            <div style={CARD_TITLE_STYLE}>{value}</div>
+            {isLoading ? (
+              <SkeletonBlock className="h-4 w-20 rounded-md" />
+            ) : (
+              <div style={CARD_TITLE_STYLE}>{value}</div>
+            )}
             <div style={CARD_LABEL_STYLE}>{label}</div>
           </div>
         ))}

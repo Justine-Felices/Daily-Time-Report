@@ -8,7 +8,12 @@ const TITLE_STYLE = {
   fontFamily: "'Inter',sans-serif",
 };
 
-export default function SummarySection({ todayHours, monthHours, totalHours }) {
+export default function SummarySection({
+  isLoading = false,
+  todayHours,
+  monthHours,
+  totalHours,
+}) {
   const summaryItems = [
     {
       label: "TODAY HOURS",
@@ -41,6 +46,7 @@ export default function SummarySection({ todayHours, monthHours, totalHours }) {
         {summaryItems.map((item) => (
           <StatCard
             key={item.label}
+            isLoading={isLoading}
             label={item.label}
             value={item.value}
             sub={item.sub}

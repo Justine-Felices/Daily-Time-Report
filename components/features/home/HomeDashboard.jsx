@@ -9,6 +9,7 @@ import useHomeDashboardLogic from "@/components/features/home/hooks/useHomeDashb
 
 export default function HomeDashboard() {
   const {
+    loading,
     constants,
     header,
     progress,
@@ -26,6 +27,7 @@ export default function HomeDashboard() {
       />
 
       <ProgressSection
+        isLoading={loading.isLoading}
         pct={progress.pct}
         remaining={progress.remaining}
         targetHours={constants.TARGET_HOURS}
@@ -33,6 +35,7 @@ export default function HomeDashboard() {
       />
 
       <SessionAndStatusSection
+        isLoading={loading.isLoading}
         now={sessions.now}
         amSession={sessions.amSession}
         pmSession={sessions.pmSession}
@@ -134,6 +137,7 @@ export default function HomeDashboard() {
       )}
 
       <SummarySection
+        isLoading={loading.isLoading}
         todayHours={summary.todayHours}
         monthHours={summary.monthHours}
         totalHours={summary.totalHours}

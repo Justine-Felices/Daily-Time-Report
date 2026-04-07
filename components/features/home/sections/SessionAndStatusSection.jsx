@@ -45,6 +45,7 @@ const BUTTON_BASE_STYLE = {
 };
 
 export default memo(function SessionAndStatusSection({
+  isLoading = false,
   now,
   amSession,
   pmSession,
@@ -71,9 +72,9 @@ export default memo(function SessionAndStatusSection({
   inputStyle,
 }) {
   const pmEarliestTime = amSession.timeOut || amSession.timeIn || null;
-  const amDisabled = sessionsLocked || saveLocked;
+  const amDisabled = sessionsLocked || saveLocked || isLoading;
   const pmDisabled =
-    sessionsLocked || isHalfDayStatus(dailyStatus) || saveLocked;
+    sessionsLocked || isHalfDayStatus(dailyStatus) || saveLocked || isLoading;
   const saveButtonDisabled = disableSave || saveLocked;
 
   if (saveLocked) {
@@ -118,6 +119,7 @@ export default memo(function SessionAndStatusSection({
             title="AM Session"
             icon={Sun}
             iconColor="#FF69B4"
+            isLoading={isLoading}
             draftStorageKey="dtr-home-session-draft-am"
             session={amSession}
             onValidationChange={onAmValidationChange}
@@ -136,6 +138,7 @@ export default memo(function SessionAndStatusSection({
             title="PM Session"
             icon={Sunset}
             iconColor="#069494"
+            isLoading={isLoading}
             draftStorageKey="dtr-home-session-draft-pm"
             session={pmSession}
             onValidationChange={onPmValidationChange}

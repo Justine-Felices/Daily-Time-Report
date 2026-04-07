@@ -6,6 +6,7 @@ import {
   validateTimeInput,
 } from "@/lib/dtr-time-validation";
 import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 export default function SessionCard({
   title,
@@ -13,6 +14,7 @@ export default function SessionCard({
   iconColor,
   draftStorageKey,
   session,
+  isLoading = false,
   disabled = false,
   earliestTime,
   earliestLabel = "previous session",
@@ -216,7 +218,7 @@ export default function SessionCard({
               <input
                 type="time"
                 step={60}
-                disabled={disabled}
+                disabled={disabled || isLoading}
                 value={value}
                 onChange={(event) => {
                   handleTimeChange(field, event.target.value, setValue);
@@ -239,8 +241,13 @@ export default function SessionCard({
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
                   cursor: disabled ? "not-allowed" : "text",
+                  display: isLoading ? "none" : "block",
                 }}
               />
+
+              {isLoading && (
+                <SkeletonBlock className="h-5 w-full rounded-md" />
+              )}
 
               {fieldErrors[field] && (
                 <div
@@ -264,30 +271,33 @@ export default function SessionCard({
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={onTimeIn}
-          disabled={disabled || hasFieldError || Boolean(session.timeIn)}
+          disabled={disabled || hasFieldError || Boolean(session.timeIn) || isLoading}
           style={{
             padding: "9px 0",
             borderRadius: "10px",
             background:
-              disabled || hasFieldError || session.timeIn
+              disabled || hasFieldError || session.timeIn || isLoading
                 ? "rgba(148,163,184,0.15)"
                 : inGrad,
             color:
-              disabled || hasFieldError || session.timeIn ? "#CBD5E1" : "#fff",
+              disabled || hasFieldError || session.timeIn || isLoading
+                ? "#CBD5E1"
+                : "#fff",
             border: "none",
             fontFamily: "'Inter',sans-serif",
             fontSize: "12px",
             fontWeight: 700,
             cursor:
-              disabled || hasFieldError || session.timeIn
+              disabled || hasFieldError || session.timeIn || isLoading
                 ? "not-allowed"
                 : "pointer",
             boxShadow:
-              disabled || hasFieldError || session.timeIn
+              disabled || hasFieldError || session.timeIn || isLoading
                 ? "none"
                 : `0 3px 12px ${inShadow}`,
             letterSpacing: "0.03em",
             transition: "all 0.15s",
+            opacity: isLoading ? 0.65 : 1,
           }}
         >
           {inLabel}
@@ -299,17 +309,26 @@ export default function SessionCard({
             disabled ||
             hasFieldError ||
             !session.timeIn ||
-            Boolean(session.timeOut)
+            Boolean(session.timeOut) ||
+            isLoading
           }
           style={{
             padding: "9px 0",
             borderRadius: "10px",
             background:
-              disabled || hasFieldError || !session.timeIn || session.timeOut
+              disabled ||
+              hasFieldError ||
+              !session.timeIn ||
+              session.timeOut ||
+              isLoading
                 ? "rgba(148,163,184,0.15)"
                 : "linear-gradient(135deg,#1E293B,#334155)",
             color:
-              disabled || hasFieldError || !session.timeIn || session.timeOut
+              disabled ||
+              hasFieldError ||
+              !session.timeIn ||
+              session.timeOut ||
+              isLoading
                 ? "#CBD5E1"
                 : "#fff",
             border: "none",
@@ -317,15 +336,24 @@ export default function SessionCard({
             fontSize: "12px",
             fontWeight: 700,
             cursor:
-              disabled || hasFieldError || !session.timeIn || session.timeOut
+              disabled ||
+              hasFieldError ||
+              !session.timeIn ||
+              session.timeOut ||
+              isLoading
                 ? "not-allowed"
                 : "pointer",
             boxShadow:
-              disabled || hasFieldError || !session.timeIn || session.timeOut
+              disabled ||
+              hasFieldError ||
+              !session.timeIn ||
+              session.timeOut ||
+              isLoading
                 ? "none"
                 : "0 3px 10px rgba(30,41,59,0.3)",
             letterSpacing: "0.03em",
             transition: "all 0.15s",
+            opacity: isLoading ? 0.65 : 1,
           }}
         >
           {outLabel}

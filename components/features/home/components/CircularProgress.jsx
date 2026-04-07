@@ -1,4 +1,6 @@
-export default function CircularProgress({ pct }) {
+import { SkeletonCircle } from "@/components/ui/Skeleton";
+
+export default function CircularProgress({ pct, isLoading = false }) {
   const size = 168;
   const strokeWidth = 13;
   const radius = (size - strokeWidth) / 2;
@@ -70,7 +72,15 @@ export default function CircularProgress({ pct }) {
             lineHeight: 1,
           }}
         >
-          {pct}%
+          {isLoading ? (
+            <SkeletonCircle
+              size={52}
+              className="mx-auto"
+              style={{ background: "rgba(203,213,225,0.9)" }}
+            />
+          ) : (
+            `${pct}%`
+          )}
         </span>
         <span
           style={{

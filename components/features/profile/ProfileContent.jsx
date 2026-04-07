@@ -10,7 +10,6 @@ import HeaderSection from "@/components/features/profile/components/HeaderSectio
 import LogoutButton from "@/components/features/profile/components/LogoutButton";
 import OJTDetailsSection from "@/components/features/profile/components/OJTDetailsSection";
 import PersonalInfoSection from "@/components/features/profile/components/PersonalInfoSection";
-import PreferencesSection from "@/components/features/profile/components/PreferencesSection";
 import ProfileHeaderCard from "@/components/features/profile/components/ProfileHeaderCard";
 import EditPersonalInfoModal from "@/components/features/profile/components/EditPersonalInfoModal";
 
@@ -65,7 +64,6 @@ export default function ProfileContent() {
   }, [hasSupabaseConfig]);
 
   const [profile, setProfile] = useState(EMPTY_PROFILE);
-  const [notif, setNotif] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [, triggerSaved] = useTimedFlag(2500);
 
@@ -85,7 +83,7 @@ export default function ProfileContent() {
       const { data, error } = await supabase
         .from("user_profiles")
         .select(
-          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours, notifications_enabled",
+          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours",
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -107,7 +105,6 @@ export default function ProfileContent() {
             ? ""
             : String(data.target_hours),
       }));
-      setNotif(Boolean(data.notifications_enabled));
     };
 
     loadProfile();
@@ -144,7 +141,7 @@ export default function ProfileContent() {
     <PageShell width="narrow">
       <HeaderSection
         title="My Profile"
-        subtitle="Manage your personal information and preferences"
+        subtitle="Manage your personal information"
       />
 
       <ProfileHeaderCard
@@ -157,11 +154,6 @@ export default function ProfileContent() {
       <PersonalInfoSection
         profile={profile}
         onEditClick={() => setIsEditModalOpen(true)}
-      />
-
-      <PreferencesSection
-        notif={notif}
-        onToggleNotif={() => setNotif((value) => !value)}
       />
 
       <OJTDetailsSection details={ojtDetails} />

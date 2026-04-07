@@ -65,12 +65,16 @@ export default function useHomeDashboardLogic() {
   const [hasSavedToday, setHasSavedToday] = useState(false);
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
 
     let mounted = true;
 
@@ -81,6 +85,9 @@ export default function useHomeDashboardLogic() {
       } = await supabase.auth.getUser();
 
       if (!mounted || userError || !user) {
+        if (mounted) {
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -94,6 +101,7 @@ export default function useHomeDashboardLogic() {
 
       if (profileError) {
         router.replace("/onboarding");
+        setIsLoading(false);
         return;
       }
       const parsedTargetHours = Number(profile?.target_hours);
@@ -117,6 +125,8 @@ export default function useHomeDashboardLogic() {
       if (!isUserProfileOnboarded(profile)) {
         router.replace("/onboarding");
       }
+
+      setIsLoading(false);
     };
 
     loadOnboardingState();
@@ -327,6 +337,9 @@ export default function useHomeDashboardLogic() {
   };
 
   return {
+    loading: {
+      isLoading,
+    },
     constants: {
       TARGET_HOURS: hasValidTargetHours ? Number(targetHours) : 0,
       STATUS_OPTIONS,
