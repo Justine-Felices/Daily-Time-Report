@@ -1,7 +1,5 @@
-"use client";
-
-import LoginContent from "@/components/features/login/LoginContent.jsx";
+import LoginPageClient from "@/components/features/login/LoginPageClient";
 
 export default function LoginPage() {
-  return <LoginContent />;
+  return <LoginPageClient />;
 }

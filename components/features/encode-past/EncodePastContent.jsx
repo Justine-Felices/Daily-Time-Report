@@ -20,7 +20,7 @@ import ErrorMessage from "@/components/features/encode-past/components/ErrorMess
 import SaveButton from "@/components/features/encode-past/components/SaveButton";
 
 const INITIAL_FORM = {
-  date: "",
+  date: "2026-03-02",
   amIn: "09:30",
   amOut: "12:00",
   pmIn: "13:00",

@@ -44,11 +44,13 @@ export default function AuthSubmitSection({
       >
         {success ? (
           <>
-            <CheckCircle2 size={16} /> {mode === "login" ? "Signed in" : "Account created!"}
+            <CheckCircle2 size={16} />{" "}
+            {mode === "login" ? "Signed in" : "Account created!"}
           </>
         ) : submitting ? (
           <>
-            <Spinner /> {mode === "login" ? "Signing in..." : "Creating account..."}
+            <Spinner />{" "}
+            {mode === "login" ? "Signing in..." : "Creating account..."}
           </>
         ) : mode === "login" ? (
           <>
