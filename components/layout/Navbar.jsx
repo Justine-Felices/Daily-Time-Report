@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV_LINKS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/encode-past", label: "Encode Past", icon: PenLine },
-  { to: "/history", label: "History", icon: History },
+  { to: "/history", label: "Activity", icon: History },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
@@ -105,7 +105,7 @@ export default function Navbar() {
     <nav
       className="no-print sticky top-0 z-50 w-full"
       style={{
-        background: "rgba(244,255,255,0.88)",
+        background: "transparent",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
         borderBottom: "1px solid rgba(6,148,148,0.14)",

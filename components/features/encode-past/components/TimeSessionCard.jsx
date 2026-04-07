@@ -141,11 +141,15 @@ export default function TimeSessionCard({
                 onBlur={() => {
                   commitTimeInput(field, value, relatedValue, setter);
                 }}
-                className="w-full"
+                className="w-full text-sm sm:text-[14px]"
                 style={{
                   ...GLASS_INPUT_STYLE,
-                  padding: "9px 14px",
-                  borderColor: fieldErrors[field] ? "#DC2626" : undefined,
+                  minHeight: "42px",
+                  padding: "9px 12px",
+                  border: fieldErrors[field]
+                    ? "1.5px solid #DC2626"
+                    : "1.5px solid rgba(6,148,148,0.24)",
+                  colorScheme: "light",
                 }}
               />
             </div>

@@ -39,7 +39,7 @@ export default function TimeSessionsSection({
   const pmDisabled = sessionsLocked || isHalfDayStatus(status);
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <TimeSessionCard
         title="AM Session"
         color="#FF69B4"

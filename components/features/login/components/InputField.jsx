@@ -19,7 +19,7 @@ export default function InputField({
     <div style={{ position: "relative" }}>
       <Icon
         size={16}
-        color={error ? "#CC2277" : focused ? "#069494" : "rgba(6,148,148,0.5)"}
+        color={error ? "#CC2277" : focused ? "#069494" : "rgba(6,148,148,0.78)"}
         style={{
           position: "absolute",
           left: "12px",
@@ -27,6 +27,7 @@ export default function InputField({
           transform: "translateY(-50%)",
           pointerEvents: "none",
           transition: "color 0.18s",
+          zIndex: 2,
         }}
       />
 
@@ -39,6 +40,8 @@ export default function InputField({
         onBlur={() => setFocused(false)}
         style={{
           ...GLASS_INPUT,
+          position: "relative",
+          zIndex: 1,
           ...(focused ? GLASS_INPUT_FOCUS : {}),
           ...(right ? { paddingRight: "42px" } : {}),
           ...(error
@@ -57,6 +60,7 @@ export default function InputField({
             right: "12px",
             top: "50%",
             transform: "translateY(-50%)",
+            zIndex: 2,
           }}
         >
           {right}

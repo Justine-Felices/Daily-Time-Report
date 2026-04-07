@@ -184,7 +184,7 @@ export default function HistoryContent() {
   );
   const hoursLogged = isOverallHoursLoading
     ? null
-    : overallHoursLogged ?? totalHoursFiltered;
+    : (overallHoursLogged ?? totalHoursFiltered);
   const presentDays = filtered.filter((record) => record.totalHours > 0).length;
   const totalAllHours = allSorted.reduce(
     (sum, record) => sum + (Number(record.totalHours) || 0),
@@ -206,7 +206,7 @@ export default function HistoryContent() {
       <div className="screen-content space-y-5">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <HeaderSection
-            title="Attendance History"
+            title="Activity Logs"
             subtitle="View and review all your attendance records"
           />
           <ActionsSection onPrint={handlePrint} />
