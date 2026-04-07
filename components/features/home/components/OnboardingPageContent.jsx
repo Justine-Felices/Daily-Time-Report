@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PageShell from "@/components/layout/PageShell";
 import OnboardingForm from "@/components/features/home/components/OnboardingForm";
+import OnboardingPageSkeleton from "@/components/features/home/components/OnboardingPageSkeleton";
 import { createClient } from "@/lib/supabase/client";
 import {
   fetchUserProfileByUserId,
@@ -87,10 +88,8 @@ export default function OnboardingPageContent() {
 
   if (isLoading || !userId) {
     return (
-      <PageShell width="narrow">
-        <div className="rounded-2xl border border-white/45 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm backdrop-blur-md">
-          Loading onboarding...
-        </div>
+      <PageShell width="wide">
+        <OnboardingPageSkeleton />
       </PageShell>
     );
   }

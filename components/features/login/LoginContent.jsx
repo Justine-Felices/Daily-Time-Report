@@ -47,6 +47,20 @@ export default function LoginContent() {
     setInfoMessage("");
   };
 
+  const redirectAfterAuth = () => {
+    // Route to home and let middleware enforce the final destination.
+    router.replace("/");
+
+    // Fallback for environments where client navigation may fail.
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => {
+        if (window.location.pathname !== "/") {
+          window.location.assign("/");
+        }
+      }, 800);
+    }
+  };
+
   const submit = async () => {
     const nextErrors = validateAuthForm(mode, {
       email,
@@ -74,7 +88,7 @@ export default function LoginContent() {
       }
 
       setSuccess(true);
-      router.push("/");
+      redirectAfterAuth();
       return;
     }
 
@@ -95,7 +109,7 @@ export default function LoginContent() {
       return;
     }
 
-    router.push("/");
+    redirectAfterAuth();
   };
 
   return (

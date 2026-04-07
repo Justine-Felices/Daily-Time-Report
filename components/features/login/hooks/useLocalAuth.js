@@ -1,5 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  fetchUserProfileByUserId,
+  isUserProfileOnboarded,
+} from "@/lib/supabase-user-profiles";
+
+async function resolvePostAuthRoute({ supabase, userId }) {
+  if (!supabase || !userId) return "/";
+
+  const { data: profile, error } = await fetchUserProfileByUserId({
+    supabase,
+    userId,
+  });
+
+  if (error) return "/";
+
+  return isUserProfileOnboarded(profile) ? "/" : "/onboarding";
+}
 
 export default function useLocalAuth() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -55,7 +72,7 @@ export default function useLocalAuth() {
       };
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -64,7 +81,10 @@ export default function useLocalAuth() {
       return { error: error.message };
     }
 
-    return { error: null };
+    const userId = data?.user?.id || data?.session?.user?.id || null;
+    const redirectTo = await resolvePostAuthRoute({ supabase, userId });
+
+    return { error: null, redirectTo };
   };
 
   const signup = async (email, password, name) => {
@@ -90,9 +110,18 @@ export default function useLocalAuth() {
       return { error: error.message, needsEmailConfirmation: false };
     }
 
+    const needsEmailConfirmation = !data.session;
+    let redirectTo = "/";
+
+    if (!needsEmailConfirmation) {
+      const userId = data?.user?.id || data?.session?.user?.id || null;
+      redirectTo = await resolvePostAuthRoute({ supabase, userId });
+    }
+
     return {
       error: null,
-      needsEmailConfirmation: !data.session,
+      needsEmailConfirmation,
+      redirectTo,
     };
   };
 
