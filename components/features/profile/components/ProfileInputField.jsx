@@ -7,6 +7,8 @@ export default function ProfileInputField({
   onChange,
   type,
 }) {
+  const isDateType = type === "date";
+
   return (
     <div>
       <label
@@ -32,7 +34,7 @@ export default function ProfileInputField({
         className="w-full min-w-0"
         style={{
           ...GLASS_INPUT_STYLE,
-          width: "100%",
+          width: isDateType ? "calc(100% - 1px)" : "100%",
           maxWidth: "100%",
           minWidth: 0,
           boxSizing: "border-box",
