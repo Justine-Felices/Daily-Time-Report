@@ -29,9 +29,13 @@ export default function ProfileInputField({
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full"
+        className="w-full min-w-0"
         style={{
           ...GLASS_INPUT_STYLE,
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+          boxSizing: "border-box",
           padding: "10px 14px",
           transition: "all 0.2s",
         }}
