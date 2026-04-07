@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   toEditorClock,
   isValidClock,
   toMinutes,
   validateTimeInput,
 } from "@/lib/dtr-time-validation";
+import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
 
 export default function SessionCard({
   title,
   icon: Icon,
   iconColor,
+  draftStorageKey,
   session,
   disabled = false,
   earliestTime,
@@ -32,6 +34,26 @@ export default function SessionCard({
   );
   const [fieldErrors, setFieldErrors] = useState({ timeIn: "", timeOut: "" });
   const hasFieldError = Boolean(fieldErrors.timeIn || fieldErrors.timeOut);
+  const handleRestoreDraft = useCallback(
+    (draft) => {
+      const nextTimeIn = typeof draft?.timeIn === "string" ? draft.timeIn : "";
+      const nextTimeOut =
+        typeof draft?.timeOut === "string" ? draft.timeOut : "";
+
+      setTimeInDraft(nextTimeIn);
+      setTimeOutDraft(nextTimeOut);
+      onTimeInChange?.(nextTimeIn || null);
+      onTimeOutChange?.(nextTimeOut || null);
+    },
+    [onTimeInChange, onTimeOutChange],
+  );
+
+  useLocalStorageDraft({
+    storageKey: draftStorageKey,
+    draftValue: { timeIn: timeInDraft, timeOut: timeOutDraft },
+    hasDraft: Boolean(timeInDraft || timeOutDraft),
+    onRestore: handleRestoreDraft,
+  });
 
   useEffect(() => {
     onValidationChange?.(hasFieldError);

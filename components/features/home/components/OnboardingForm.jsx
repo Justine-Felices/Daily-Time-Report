@@ -12,7 +12,7 @@ import {
 import GlassCard from "@/components/ui/cards/GlassCard";
 import FieldError from "@/components/features/login/components/FieldError";
 import ProfileInputField from "@/components/features/profile/components/ProfileInputField";
-import useOnboardingModalLogic from "@/components/features/home/hooks/useOnboardingModalLogic";
+import useOnboardingFormLogic from "@/components/features/home/hooks/useOnboardingFormLogic";
 
 const FIELD_DEFS = [
   {
@@ -73,18 +73,13 @@ const FIELD_DEFS = [
   },
 ];
 
-export default function OnboardingModal({
-  isOpen,
+export default function OnboardingForm({
   supabase,
   userId,
   initialValues,
   onComplete,
-  onCancel,
-  allowCancel = true,
-  mode = "modal",
 }) {
-  const isModal = mode === "modal";
-  const modalRef = useRef(null);
+  const formRef = useRef(null);
   const {
     values,
     errors,
@@ -92,77 +87,67 @@ export default function OnboardingModal({
     isSubmitting,
     handleFieldChange,
     handleSubmit,
-  } = useOnboardingModalLogic({
-    isOpen,
+  } = useOnboardingFormLogic({
+    isOpen: true,
     supabase,
     userId,
     initialValues,
     onComplete,
-    onCancel,
-    allowCancel,
-    modalRef,
-    trapFocus: isModal,
+    allowCancel: false,
+    modalRef: formRef,
+    trapFocus: false,
   });
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className={
-        isModal
-          ? "fixed inset-0 z-50 flex items-center justify-center bg-slate-900/42 px-4 backdrop-blur-md"
-          : "mx-auto w-full max-w-3xl px-4 py-8 sm:py-10"
-      }
-      style={
-        isModal
-          ? {
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-            }
-          : undefined
-      }
-    >
+    <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:py-10">
+      <div className="mb-6 sm:mb-8">
+        <h1
+          style={{
+            color: "#0F172A",
+            fontSize: "24px",
+            fontWeight: 800,
+            fontFamily: "'Inter',sans-serif",
+            marginBottom: "8px",
+          }}
+        >
+          Complete Your Profile
+        </h1>
+        <p
+          style={{
+            color: "#475569",
+            fontSize: "14px",
+            lineHeight: 1.55,
+            fontFamily: "'Inter',sans-serif",
+          }}
+        >
+          Set up your details to start tracking your OJT hours.
+        </p>
+      </div>
+
       <GlassCard
-        className="w-full max-w-2xl"
+        className="w-full"
         padding="24px"
         style={{
           background:
             "linear-gradient(145deg, rgba(255,255,255,0.72), rgba(240,253,253,0.58))",
           border: "1px solid rgba(255,255,255,0.45)",
           boxShadow:
-            "0 12px 34px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.72)",
+            "0 12px 34px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.72)",
         }}
       >
-        <div
-          ref={modalRef}
-          role={isModal ? "dialog" : "region"}
-          aria-modal={isModal ? "true" : undefined}
-          aria-labelledby="onboarding-title"
-        >
-          <div className="mb-5">
-            <h2
-              id="onboarding-title"
-              style={{
-                color: "#0F172A",
-                fontSize: "18px",
-                fontWeight: 800,
-                fontFamily: "'Inter',sans-serif",
-                marginBottom: "6px",
-              }}
-            >
-              Complete Your Profile
-            </h2>
-            <p
-              style={{
-                color: "#475569",
-                fontSize: "13px",
-                lineHeight: 1.5,
-                fontFamily: "'Inter',sans-serif",
-              }}
-            >
-              Set up your details to start tracking your OJT hours
-            </p>
-          </div>
+        <section ref={formRef} aria-labelledby="onboarding-title">
+          <h2
+            id="onboarding-title"
+            style={{
+              color: "#0F172A",
+              fontSize: "16px",
+              fontWeight: 800,
+              fontFamily: "'Inter',sans-serif",
+              marginBottom: "14px",
+            }}
+          >
+            Onboarding Details
+          </h2>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {FIELD_DEFS.map((field) => (
@@ -184,27 +169,7 @@ export default function OnboardingModal({
 
           {formError && <FieldError msg={formError} />}
 
-          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            {allowCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                disabled={isSubmitting}
-                className="rounded-xl px-4 py-2.5"
-                style={{
-                  background: "rgba(148,163,184,0.16)",
-                  border: "1px solid rgba(148,163,184,0.28)",
-                  color: "#334155",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                  opacity: isSubmitting ? 0.7 : 1,
-                }}
-              >
-                Cancel
-              </button>
-            )}
+          <div className="mt-6 flex justify-end">
             <button
               type="button"
               onClick={handleSubmit}
@@ -212,26 +177,24 @@ export default function OnboardingModal({
               aria-disabled={isSubmitting}
               className="rounded-xl px-4 py-2.5"
               style={{
-                background:
-                  isSubmitting
-                    ? "rgba(148,163,184,0.22)"
-                    : "linear-gradient(135deg,#069494,#0aacac)",
+                background: isSubmitting
+                  ? "rgba(148,163,184,0.22)"
+                  : "linear-gradient(135deg,#069494,#0aacac)",
                 border: "none",
                 color: isSubmitting ? "#94A3B8" : "#fff",
                 fontSize: "12px",
                 fontWeight: 700,
                 fontFamily: "'Inter',sans-serif",
-                boxShadow:
-                  isSubmitting
-                    ? "none"
-                    : "0 4px 16px rgba(6,148,148,0.38)",
+                boxShadow: isSubmitting
+                  ? "none"
+                  : "0 4px 16px rgba(6,148,148,0.38)",
                 cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
               {isSubmitting ? "Saving..." : "Save & Continue"}
             </button>
           </div>
-        </div>
+        </section>
       </GlassCard>
     </div>
   );

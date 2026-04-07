@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import useTimedFlag from "@/hooks/useTimedFlag";
+import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { getTodayInputDate, toDisplayTime } from "@/lib/dtr-formatters";
 import { prependHistoryRecord } from "@/lib/dtr-storage";
@@ -28,6 +29,14 @@ const INITIAL_FORM = {
   status: "Regular Duty Day",
   note: "",
 };
+
+const ENCODE_PAST_DRAFT_STORAGE_KEY = "dtr-encode-past-form-draft";
+
+function isFormDifferentFromInitial(form) {
+  return Object.keys(INITIAL_FORM).some(
+    (key) => form[key] !== INITIAL_FORM[key],
+  );
+}
 
 function calculateTotalHours({ amIn, amOut, pmIn, pmOut }) {
   const toMinutes = (time) => {
@@ -83,6 +92,32 @@ export default function EncodePastContent() {
   const [saved, triggerSaved] = useTimedFlag(2500);
   const [fieldErrors, setFieldErrors] = useState({ am: false, pm: false });
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleRestoreDraft = useCallback((draft) => {
+    if (!draft || typeof draft !== "object") return;
+
+    setForm((current) => ({
+      ...current,
+      date: typeof draft.date === "string" ? draft.date : current.date,
+      amIn: typeof draft.amIn === "string" ? draft.amIn : current.amIn,
+      amOut: typeof draft.amOut === "string" ? draft.amOut : current.amOut,
+      pmIn: typeof draft.pmIn === "string" ? draft.pmIn : current.pmIn,
+      pmOut: typeof draft.pmOut === "string" ? draft.pmOut : current.pmOut,
+      status:
+        typeof draft.status === "string" &&
+        STATUS_OPTIONS.includes(draft.status)
+          ? draft.status
+          : current.status,
+      note: typeof draft.note === "string" ? draft.note : current.note,
+    }));
+  }, []);
+
+  useLocalStorageDraft({
+    storageKey: ENCODE_PAST_DRAFT_STORAGE_KEY,
+    draftValue: form,
+    hasDraft: isFormDifferentFromInitial(form),
+    onRestore: handleRestoreDraft,
+  });
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));

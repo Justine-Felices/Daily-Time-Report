@@ -118,6 +118,7 @@ export default memo(function SessionAndStatusSection({
             title="AM Session"
             icon={Sun}
             iconColor="#FF69B4"
+            draftStorageKey="dtr-home-session-draft-am"
             session={amSession}
             onValidationChange={onAmValidationChange}
             onTimeIn={onAmTimeIn}
@@ -135,6 +136,7 @@ export default memo(function SessionAndStatusSection({
             title="PM Session"
             icon={Sunset}
             iconColor="#069494"
+            draftStorageKey="dtr-home-session-draft-pm"
             session={pmSession}
             onValidationChange={onPmValidationChange}
             earliestTime={pmEarliestTime}

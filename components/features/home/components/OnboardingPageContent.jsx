@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PageShell from "@/components/layout/PageShell";
-import OnboardingModal from "@/components/features/home/components/OnboardingModal";
+import OnboardingForm from "@/components/features/home/components/OnboardingForm";
 import { createClient } from "@/lib/supabase/client";
 import {
   fetchUserProfileByUserId,
@@ -61,7 +61,9 @@ export default function OnboardingPageContent() {
       }
 
       setUserId(user.id);
-      setInitialValues(profile ? mapUserProfileToOnboardingValues(profile) : null);
+      setInitialValues(
+        profile ? mapUserProfileToOnboardingValues(profile) : null,
+      );
       setIsLoading(false);
     };
 
@@ -76,7 +78,8 @@ export default function OnboardingPageContent() {
     return (
       <PageShell width="narrow">
         <div className="rounded-2xl border border-white/45 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm backdrop-blur-md">
-          Supabase is not configured. Please set environment variables and refresh.
+          Supabase is not configured. Please set environment variables and
+          refresh.
         </div>
       </PageShell>
     );
@@ -94,13 +97,10 @@ export default function OnboardingPageContent() {
 
   return (
     <PageShell width="wide">
-      <OnboardingModal
-        isOpen
-        mode="page"
+      <OnboardingForm
         supabase={supabase}
         userId={userId}
         initialValues={initialValues}
-        allowCancel={false}
       />
     </PageShell>
   );

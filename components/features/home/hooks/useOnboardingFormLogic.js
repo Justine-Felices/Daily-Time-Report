@@ -24,7 +24,7 @@ function normalizeInitialValues(initialValues) {
   };
 }
 
-export default function useOnboardingModalLogic({
+export default function useOnboardingFormLogic({
   isOpen,
   supabase,
   userId,
