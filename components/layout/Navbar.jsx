@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Clock4, History, Home, Menu, PenLine, User, X } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", icon: Home },
@@ -19,118 +20,121 @@ function isActiveRoute(pathname, to) {
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
+function toInitials(name) {
+  if (!name) return "--";
+
+  const tokens = name.trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return "--";
+
+  return tokens
+    .slice(0, 2)
+    .map((token) => token.charAt(0).toUpperCase())
+    .join("");
+}
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const [viewer, setViewer] = useState({
+    name: "John Doe",
+    role: "Intern",
+    initials: "JD",
+  });
+
+  const hasSupabaseConfig =
+    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+    /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
+  const supabase = useMemo(() => {
+    if (!hasSupabaseConfig) return null;
+    return createClient();
+  }, [hasSupabaseConfig]);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    let mounted = true;
+
+    const loadViewer = async () => {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (!mounted || authError || !user) return;
+
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("full_name, position")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!mounted) return;
+
+      const metadataName =
+        typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name.trim()
+          : "";
+      const fallbackName = user.email ? user.email.split("@")[0] : "";
+      const resolvedName =
+        profile?.full_name?.trim() || metadataName || fallbackName || "User";
+
+      const metadataRole =
+        typeof user.user_metadata?.role === "string"
+          ? user.user_metadata.role.trim()
+          : "";
+      const resolvedRole =
+        profile?.position?.trim() || metadataRole || "Intern";
+
+      setViewer({
+        name: resolvedName,
+        role: resolvedRole,
+        initials: toInitials(resolvedName),
+      });
+    };
+
+    loadViewer();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
 
   return (
     <nav
       className="no-print sticky top-0 z-50 w-full"
       style={{
-        background: "rgba(255,255,255,0.88)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(6,148,148,0.12)",
-        boxShadow: "0 2px 20px rgba(6,148,148,0.07)",
-        fontFamily: "'Inter', sans-serif",
+        background: "rgba(244,255,255,0.88)",
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        borderBottom: "1px solid rgba(6,148,148,0.14)",
+        boxShadow: "0 4px 18px rgba(6,148,148,0.08)",
       }}
     >
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 no-underline">
-            <div
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="flex h-16 items-center justify-between md:hidden">
+          <Link href="/" className="flex items-center gap-3 no-underline">
+            <span
               className="flex h-9 w-9 items-center justify-center rounded-xl"
               style={{
                 background:
                   "linear-gradient(135deg, #046060 0%, #069494 55%, #FF69B4 100%)",
-                boxShadow: "0 4px 14px rgba(6,148,148,0.38)",
+                boxShadow: "0 4px 14px rgba(6,148,148,0.34)",
               }}
             >
               <Clock4 size={16} color="#fff" />
-            </div>
-            <div>
-              <div
-                style={{
-                  color: "#1E293B",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                  lineHeight: 1.1,
-                }}
-              >
-                TimeTrack
-              </div>
-              <div
-                style={{
-                  color: "#069494",
-                  fontSize: "9px",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                }}
-              >
-                DAILY TIME REPORT
-              </div>
-            </div>
+            </span>
+            <span className="text-lg font-semibold tracking-tight text-slate-900">
+              TimeTrack
+            </span>
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map(({ to, label, icon: Icon }) => {
-              const isActive = isActiveRoute(pathname, to);
-
-              return (
-                <Link
-                  key={to}
-                  href={to}
-                  className="no-underline"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "7px 14px",
-                    borderRadius: "10px",
-                    fontSize: "13px",
-                    fontWeight: isActive ? 600 : 500,
-                    color: isActive ? "#fff" : "#64748B",
-                    background: isActive
-                      ? "linear-gradient(135deg, #069494 0%, #0aacac 100%)"
-                      : "transparent",
-                    border: isActive
-                      ? "1px solid rgba(6,148,148,0.3)"
-                      : "1px solid transparent",
-                    transition: "all 0.18s ease",
-                    boxShadow: isActive
-                      ? "0 3px 10px rgba(6,148,148,0.3)"
-                      : "none",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      const el = e.currentTarget;
-                      el.style.background = "rgba(6,148,148,0.07)";
-                      el.style.color = "#069494";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      const el = e.currentTarget;
-                      el.style.background = "transparent";
-                      el.style.color = "#64748B";
-                    }
-                  }}
-                >
-                  <Icon size={14} />
-                  {label}
-                </Link>
-              );
-            })}
-          </div>
-
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-xl transition-all md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border text-slate-700 transition"
             style={{
-              background: mobileOpen ? "rgba(6,148,148,0.08)" : "transparent",
-              border: "1px solid rgba(6,148,148,0.18)",
-              cursor: "pointer",
-              color: "#069494",
+              borderColor: "rgba(6,148,148,0.2)",
+              background: "rgba(255,255,255,0.88)",
             }}
             onClick={() => setMobileOpen((value) => !value)}
             aria-label="Toggle navigation menu"
@@ -139,16 +143,101 @@ export default function Navbar() {
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
+
+        <div className="hidden h-18 grid-cols-[1fr_auto_1fr] items-center gap-3 md:grid">
+          <Link href="/" className="flex w-fit items-center gap-3 no-underline">
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-xl"
+              style={{
+                background:
+                  "linear-gradient(135deg, #046060 0%, #069494 55%, #FF69B4 100%)",
+                boxShadow: "0 4px 14px rgba(6,148,148,0.34)",
+              }}
+            >
+              <Clock4 size={16} color="#fff" />
+            </span>
+            <span className="text-[1.7rem] font-semibold leading-none tracking-tight text-slate-900">
+              TimeTrack
+            </span>
+          </Link>
+
+          <div
+            className="flex items-center gap-1 rounded-full p-1"
+            style={{
+              border: "1px solid rgba(6,148,148,0.14)",
+              background: "rgba(255,255,255,0.74)",
+              boxShadow:
+                "0 2px 10px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
+            }}
+          >
+            {NAV_LINKS.map(({ to, label }) => {
+              const isActive = isActiveRoute(pathname, to);
+
+              return (
+                <Link
+                  key={to}
+                  href={to}
+                  className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition-all ${
+                    isActive
+                      ? "text-white"
+                      : "text-slate-600 hover:text-[#046060]"
+                  }`}
+                  style={
+                    isActive
+                      ? {
+                          background:
+                            "linear-gradient(135deg, #069494 0%, #0aacac 100%)",
+                          boxShadow: "0 3px 10px rgba(6,148,148,0.28)",
+                        }
+                      : undefined
+                  }
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition"
+              style={{
+                borderColor: "rgba(6,148,148,0.14)",
+                background: "rgba(255,255,255,0.76)",
+              }}
+              aria-label="Open user profile"
+            >
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+                style={{
+                  background:
+                    "linear-gradient(140deg, #046060 0%, #069494 70%, #14b8a6 100%)",
+                }}
+              >
+                {viewer.initials}
+              </span>
+              <span className="leading-tight">
+                <span className="block text-sm font-semibold text-slate-900">
+                  {viewer.name}
+                </span>
+                <span className="block text-xs text-slate-500">
+                  {viewer.role}
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {mobileOpen && (
         <div
           className="space-y-1 border-t px-4 py-3 md:hidden"
           style={{
-            borderColor: "rgba(6,148,148,0.12)",
-            background: "rgba(255,255,255,0.95)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
+            borderColor: "rgba(6,148,148,0.14)",
+            background:
+              "radial-gradient(circle at 15% 10%, #d8fbfb 0%, #f4ffff 45%, #fff5fb 100%)",
           }}
         >
           {NAV_LINKS.map(({ to, label, icon: Icon }) => {
@@ -159,23 +248,51 @@ export default function Navbar() {
                 key={to}
                 href={to}
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-4 py-3 no-underline transition-all"
-                style={{
-                  background: isActive ? "rgba(6,148,148,0.08)" : "transparent",
-                  color: isActive ? "#069494" : "#64748B",
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "14px",
-                  fontWeight: isActive ? 600 : 500,
-                  borderLeft: isActive
-                    ? "3px solid #069494"
-                    : "3px solid transparent",
-                }}
+                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium no-underline transition-all ${
+                  isActive ? "text-white" : "text-slate-700"
+                }`}
+                style={
+                  isActive
+                    ? {
+                        borderColor: "rgba(6,148,148,0.22)",
+                        background:
+                          "linear-gradient(135deg, #069494 0%, #0aacac 100%)",
+                      }
+                    : {
+                        borderColor: "rgba(6,148,148,0.08)",
+                        background: "rgba(255,255,255,0.66)",
+                      }
+                }
               >
                 <Icon size={16} />
                 {label}
               </Link>
             );
           })}
+
+          <div
+            className="mt-3 flex items-center gap-2 rounded-xl border px-3 py-2"
+            style={{
+              borderColor: "rgba(6,148,148,0.14)",
+              background: "rgba(255,255,255,0.8)",
+            }}
+          >
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+              style={{
+                background:
+                  "linear-gradient(140deg, #046060 0%, #069494 70%, #14b8a6 100%)",
+              }}
+            >
+              {viewer.initials}
+            </span>
+            <div className="leading-tight">
+              <p className="text-sm font-semibold text-slate-900">
+                {viewer.name}
+              </p>
+              <p className="text-xs text-slate-500">{viewer.role}</p>
+            </div>
+          </div>
         </div>
       )}
     </nav>
