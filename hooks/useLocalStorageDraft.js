@@ -2,12 +2,15 @@
 
 import { useEffect, useRef } from "react";
 
+const DEFAULT_DRAFT_TTL_MS = 1000 * 60 * 60 * 48;
+
 export default function useLocalStorageDraft({
   storageKey,
   draftValue,
   onRestore,
   hasDraft = true,
   enabled = true,
+  ttlMs = DEFAULT_DRAFT_TTL_MS,
 }) {
   const hasHydratedRef = useRef(false);
   const onRestoreRef = useRef(onRestore);
@@ -28,14 +31,30 @@ export default function useLocalStorageDraft({
       const raw = window.localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
+
+        if (!parsed || typeof parsed !== "object") {
+          window.localStorage.removeItem(storageKey);
+          return;
+        }
+
+        const parsedUpdatedAt = Date.parse(parsed.updatedAt || "");
+        const isExpired =
+          Number.isFinite(parsedUpdatedAt) && Date.now() - parsedUpdatedAt > ttlMs;
+
+        if (isExpired) {
+          window.localStorage.removeItem(storageKey);
+          return;
+        }
+
         onRestoreRef.current?.(parsed);
       }
     } catch {
       // Ignore malformed or inaccessible storage data.
+      window.localStorage.removeItem(storageKey);
     } finally {
       hasHydratedRef.current = true;
     }
-  }, [enabled, storageKey]);
+  }, [enabled, storageKey, ttlMs]);
 
   useEffect(() => {
     if (!hasHydratedRef.current) return;

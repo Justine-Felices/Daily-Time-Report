@@ -4,6 +4,24 @@ import {
   fetchUserProfileByUserId,
   isUserProfileOnboarded,
 } from "@/lib/supabase-user-profiles";
+import { HISTORY_STORAGE_KEY } from "@/lib/dtr-constants";
+
+const ENCODE_PAST_DRAFT_STORAGE_KEY = "dtr-encode-past-form-draft";
+const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
+
+function clearLocalAttendanceCache() {
+  if (typeof window === "undefined") return;
+
+  [HISTORY_STORAGE_KEY, ENCODE_PAST_DRAFT_STORAGE_KEY, HOME_STATUS_SAVE_LOCK_KEY].forEach(
+    (key) => {
+      try {
+        window.localStorage.removeItem(key);
+      } catch {
+        // Ignore restricted storage contexts.
+      }
+    },
+  );
+}
 
 async function resolvePostAuthRoute({ supabase, userId }) {
   if (!supabase || !userId) return "/";
@@ -56,6 +74,10 @@ export default function useLocalAuth() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(Boolean(session));
+
+      if (!session) {
+        clearLocalAttendanceCache();
+      }
     });
 
     return () => {
@@ -138,6 +160,8 @@ export default function useLocalAuth() {
     if (error) {
       return { error: error.message };
     }
+
+    clearLocalAttendanceCache();
 
     return { error: null };
   };

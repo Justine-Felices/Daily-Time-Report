@@ -2,6 +2,22 @@ import { createClient } from "./supabase/client";
 
 const supabase = createClient();
 
+function toUserSafeErrorMessage(error) {
+  if (!error || typeof error !== "object") {
+    return "Failed to save attendance record. Please try again.";
+  }
+
+  if (error.code === "23505") {
+    return "A record for this date already exists. Please update the existing record instead.";
+  }
+
+  if (error.code === "PGRST204") {
+    return "Unable to save attendance right now due to a temporary database configuration issue.";
+  }
+
+  return "Failed to save attendance record. Please try again.";
+}
+
 /**
  * Map display status values to database enum values
  */
@@ -62,32 +78,14 @@ export async function createAttendanceRecord({
       .single();
 
     if (error) {
-      console.error("Supabase error details:", {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
-
-      // Handle common error cases
-      if (error.code === "PGRST204") {
-        // Column not found error - extract details from message
-        const extractedError = error.hint || error.message || "Unknown column";
-        throw new Error(
-          `Database schema mismatch: ${extractedError}. Please check that all columns exist (work_date, am_in, am_out, pm_in, pm_out, status, note, total_hours, entry_source, user_id).`,
-        );
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Supabase write error", {
+          code: error.code,
+          message: error.message,
+        });
       }
 
-      // Check for other Postgres errors
-      if (error.code === "23505") {
-        throw new Error(
-          "A record for this date already exists. Please update the existing record instead.",
-        );
-      }
-
-      throw new Error(
-        error.message || "Failed to save attendance record. Please try again.",
-      );
+      throw new Error(toUserSafeErrorMessage(error));
     }
 
     return data;
