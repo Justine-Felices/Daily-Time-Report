@@ -139,6 +139,7 @@ export default function HomeDashboard() {
       <SummarySection
         isLoading={loading.isLoading}
         todayHours={summary.todayHours}
+        weekHours={summary.weekHours}
         monthHours={summary.monthHours}
         totalHours={summary.totalHours}
       />

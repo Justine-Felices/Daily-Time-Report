@@ -1,7 +1,13 @@
 import EmptyState from "@/components/features/history/components/EmptyState";
 import HistoryItemCard from "@/components/features/history/components/HistoryItemCard";
 
-export default function HistoryListSection({ records, isLoading = false }) {
+export default function HistoryListSection({
+  records,
+  isLoading = false,
+  pendingRecordId = null,
+  onSaveRecord,
+  onDeleteRecord,
+}) {
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -23,7 +29,13 @@ export default function HistoryListSection({ records, isLoading = false }) {
   return (
     <div className="space-y-2">
       {records.map((record) => (
-        <HistoryItemCard key={record.id} record={record} />
+        <HistoryItemCard
+          key={record.id}
+          record={record}
+          isPending={pendingRecordId === record.id}
+          onSaveRecord={onSaveRecord}
+          onDeleteRecord={onDeleteRecord}
+        />
       ))}
     </div>
   );

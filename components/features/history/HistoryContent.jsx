@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PRINT_CSS } from "@/lib/dtr-constants";
-import { fetchAttendanceHistoryRecords } from "@/lib/supabase-history";
+import {
+  deleteAttendanceHistoryRecord,
+  fetchAttendanceHistoryRecords,
+  updateAttendanceHistoryRecord,
+} from "@/lib/supabase-history";
 import { fetchCurrentUserOverallInternHours } from "@/lib/supabase-overall-hours";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/history/components/HeaderSection";
@@ -111,6 +115,7 @@ export default function HistoryContent() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [sortDir, setSortDir] = useState("desc");
   const [page, setPage] = useState(1);
+  const [pendingRecordId, setPendingRecordId] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -203,6 +208,44 @@ export default function HistoryContent() {
     }, 60_000);
   };
 
+  const handleSaveRecord = async (payload) => {
+    setPendingRecordId(payload.id);
+
+    try {
+      const savedRecord = await updateAttendanceHistoryRecord(payload);
+      setHistory((prev) =>
+        prev.map((record) =>
+          record.id === savedRecord.id ? savedRecord : record,
+        ),
+      );
+      setOverallHoursLogged(null);
+      return { ok: true };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to save changes.";
+      return { ok: false, message };
+    } finally {
+      setPendingRecordId(null);
+    }
+  };
+
+  const handleDeleteRecord = async (recordId) => {
+    setPendingRecordId(recordId);
+
+    try {
+      await deleteAttendanceHistoryRecord({ id: recordId });
+      setHistory((prev) => prev.filter((record) => record.id !== recordId));
+      setOverallHoursLogged(null);
+      return { ok: true };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to delete entry.";
+      return { ok: false, message };
+    } finally {
+      setPendingRecordId(null);
+    }
+  };
+
   return (
     <PageShell width="wide">
       <div className="screen-content space-y-5">
@@ -239,7 +282,13 @@ export default function HistoryContent() {
           }
         />
 
-        <HistoryListSection records={paged} isLoading={isHistoryLoading} />
+        <HistoryListSection
+          records={paged}
+          isLoading={isHistoryLoading}
+          pendingRecordId={pendingRecordId}
+          onSaveRecord={handleSaveRecord}
+          onDeleteRecord={handleDeleteRecord}
+        />
 
         <PaginationSection
           currentPage={currentPage}

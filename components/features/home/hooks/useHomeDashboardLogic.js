@@ -41,6 +41,20 @@ function toLocalDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function getCurrentWeekRange(date) {
+  const startOfWeek = new Date(date);
+  const dayIndex = (startOfWeek.getDay() + 6) % 7;
+  startOfWeek.setDate(startOfWeek.getDate() - dayIndex);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+  return {
+    startDate: toLocalDateKey(startOfWeek),
+    endDate: toLocalDateKey(endOfWeek),
+  };
+}
+
 export default function useHomeDashboardLogic() {
   const router = useRouter();
   const hasSupabaseConfig =
@@ -65,6 +79,8 @@ export default function useHomeDashboardLogic() {
   const [hasSavedToday, setHasSavedToday] = useState(false);
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
+  const [persistedWeekHours, setPersistedWeekHours] = useState(0);
+  const [persistedTodayWeekHours, setPersistedTodayWeekHours] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const now = useLiveClock(60000);
@@ -122,6 +138,27 @@ export default function useHomeDashboardLogic() {
         setPersistedTotalHours(overallHours);
       }
 
+      const { startDate, endDate } = getCurrentWeekRange(new Date());
+      const { data: weeklyRows, error: weeklyError } = await supabase
+        .from("attendance_entries")
+        .select("work_date, total_hours")
+        .eq("user_id", user.id)
+        .gte("work_date", startDate)
+        .lte("work_date", endDate);
+
+      if (!mounted) return;
+
+      if (!weeklyError && Array.isArray(weeklyRows)) {
+        const weeklyTotal = weeklyRows.reduce(
+          (sum, row) => sum + (Number(row?.total_hours) || 0),
+          0,
+        );
+        const todayPersisted = weeklyRows.find((row) => row?.work_date === todayKey);
+
+        setPersistedWeekHours(weeklyTotal);
+        setPersistedTodayWeekHours(Number(todayPersisted?.total_hours) || 0);
+      }
+
       if (!isUserProfileOnboarded(profile)) {
         router.replace("/onboarding");
       }
@@ -134,7 +171,7 @@ export default function useHomeDashboardLogic() {
     return () => {
       mounted = false;
     };
-  }, [router, supabase]);
+  }, [router, supabase, todayKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -160,6 +197,8 @@ export default function useHomeDashboardLogic() {
     (amSession.timeIn && amSession.timeOut ? 4 : amSession.timeIn ? 2 : 0) +
     (pmSession.timeIn && pmSession.timeOut ? 4 : pmSession.timeIn ? 2 : 0);
 
+  const weekHours =
+    Math.max(0, persistedWeekHours - persistedTodayWeekHours) + todayHours;
   const monthHours = BASE_MONTH_HOURS + todayHours;
   const totalRenderedHours = persistedTotalHours + todayHours;
   const hasValidTargetHours =
@@ -381,6 +420,7 @@ export default function useHomeDashboardLogic() {
     },
     summary: {
       todayHours,
+      weekHours,
       monthHours,
       totalHours: totalRenderedHours,
     },

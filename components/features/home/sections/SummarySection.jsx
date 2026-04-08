@@ -11,6 +11,7 @@ const TITLE_STYLE = {
 export default function SummarySection({
   isLoading = false,
   todayHours,
+  weekHours,
   monthHours,
   totalHours,
 }) {
@@ -20,6 +21,12 @@ export default function SummarySection({
       value: `${todayHours.toFixed(1)}h`,
       sub: "logged today",
       accent: true,
+    },
+    {
+      label: "WEEK HOURS",
+      value: `${weekHours.toFixed(1)}h`,
+      sub: "this week",
+      accent: false,
     },
     {
       label: "MONTH HOURS",
@@ -42,7 +49,7 @@ export default function SummarySection({
         <span style={TITLE_STYLE}>Summary</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {summaryItems.map((item) => (
           <StatCard
             key={item.label}

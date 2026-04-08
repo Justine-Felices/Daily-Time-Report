@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { STATUS_COLORS } from "@/lib/dtr-constants";
 import { formatHistoryDate } from "@/lib/dtr-formatters";
 import HistoryDetailsDrawer from "@/components/features/history/components/HistoryDetailsDrawer";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
@@ -67,12 +66,14 @@ function computeRange(record) {
   return `${toCompactDisplay(firstIn)} - ${toCompactDisplay(lastOut)}`;
 }
 
-export default function HistoryRow({ record, isLoading = false }) {
+export default function HistoryRow({
+  record,
+  isLoading = false,
+  isPending = false,
+  onSaveRecord,
+  onDeleteRecord,
+}) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const statusColors = STATUS_COLORS[record.status] || {
-    bg: "rgba(148,163,184,0.1)",
-    color: "#64748B",
-  };
   const rangeLabel = isLoading ? "" : computeRange(record);
   const dateObject = !isLoading
     ? new Date(`${record.date}T12:00:00`)
@@ -101,7 +102,7 @@ export default function HistoryRow({ record, isLoading = false }) {
           width: "100%",
           textAlign: "left",
         }}
-        onClick={isLoading ? undefined : openDrawer}
+        onClick={isLoading || isPending ? undefined : openDrawer}
         onMouseEnter={(event) => {
           if (isLoading) return;
           event.currentTarget.style.background = "rgba(255,255,255,0.86)";
@@ -116,7 +117,7 @@ export default function HistoryRow({ record, isLoading = false }) {
           event.currentTarget.style.boxShadow =
             "0 4px 16px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.92)";
         }}
-        disabled={isLoading}
+        disabled={isLoading || isPending}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
@@ -208,10 +209,9 @@ export default function HistoryRow({ record, isLoading = false }) {
           isOpen={isDrawerOpen}
           onClose={closeDrawer}
           record={record}
-          rangeLabel={rangeLabel}
-          dateDay={dateDay}
-          dateMonth={dateMonth}
-          statusColors={statusColors}
+          isPending={isPending}
+          onSave={onSaveRecord}
+          onDelete={onDeleteRecord}
         />
       ) : null}
     </>

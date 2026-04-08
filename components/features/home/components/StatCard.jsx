@@ -25,7 +25,7 @@ const SUBTEXT_STYLE = {
 export default function StatCard({ label, value, sub, accent, isLoading = false }) {
   return (
     <div
-      className="flex flex-col rounded-2xl p-4"
+      className="flex flex-col items-center rounded-2xl p-4 text-center"
       style={{
         ...BASE_CONTAINER_STYLE,
         background: accent
@@ -36,9 +36,11 @@ export default function StatCard({ label, value, sub, accent, isLoading = false 
         }`,
       }}
     >
-      <div style={LABEL_STYLE}>{label}</div>
+      <div style={{ ...LABEL_STYLE, textAlign: "center", width: "100%" }}>
+        {label}
+      </div>
       {isLoading ? (
-        <SkeletonBlock className="h-6 w-16 rounded-md" />
+        <SkeletonBlock className="h-6 w-16 self-center rounded-md" />
       ) : (
         <div
           style={{
@@ -48,12 +50,16 @@ export default function StatCard({ label, value, sub, accent, isLoading = false 
             fontFamily: "'Inter',sans-serif",
             letterSpacing: "-0.03em",
             lineHeight: 1,
+            textAlign: "center",
+            width: "100%",
           }}
         >
           {value}
         </div>
       )}
-      <div style={SUBTEXT_STYLE}>{sub}</div>
+      <div style={{ ...SUBTEXT_STYLE, textAlign: "center", width: "100%" }}>
+        {sub}
+      </div>
     </div>
   );
 }
