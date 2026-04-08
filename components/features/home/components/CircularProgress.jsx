@@ -33,7 +33,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(6,148,148,0.12)"
+          stroke="color-mix(in srgb, var(--accent-strong) 20%, transparent)"
           strokeWidth={strokeWidth}
         />
 
@@ -57,15 +57,15 @@ export default function CircularProgress({ pct, isLoading = false }) {
         style={{
           width: size - strokeWidth * 2 - 12,
           height: size - strokeWidth * 2 - 12,
-          background: "rgba(224,249,249,0.5)",
+          background: "var(--surface-muted)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
-          border: "1px solid rgba(6,148,148,0.15)",
+          border: "1px solid var(--border-soft)",
         }}
       >
         <span
           style={{
-            color: "#069494",
+            color: "var(--accent-strong)",
             fontSize: "28px",
             fontWeight: 800,
             letterSpacing: "-0.03em",
@@ -76,7 +76,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
             <SkeletonCircle
               size={52}
               className="mx-auto"
-              style={{ background: "rgba(203,213,225,0.9)" }}
+              style={{ background: "color-mix(in srgb, var(--text-muted) 55%, transparent)" }}
             />
           ) : (
             `${pct}%`
@@ -84,7 +84,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
         </span>
         <span
           style={{
-            color: "#94A3B8",
+            color: "var(--text-muted)",
             fontSize: "10px",
             fontWeight: 600,
             letterSpacing: "0.06em",

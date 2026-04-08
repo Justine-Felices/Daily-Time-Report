@@ -1,13 +1,13 @@
 import { User } from "lucide-react";
 
 const TITLE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontFamily: "'Inter',sans-serif",
   margin: 0,
 };
 
 const SUBTITLE_STYLE = {
-  color: "#64748B",
+  color: "var(--text-muted)",
   fontSize: "13px",
   fontFamily: "'Inter',sans-serif",
   margin: 0,

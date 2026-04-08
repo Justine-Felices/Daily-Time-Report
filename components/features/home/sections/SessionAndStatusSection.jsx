@@ -13,20 +13,20 @@ import GlassCard from "@/components/ui/cards/GlassCard";
 import { isHalfDayStatus } from "@/lib/dtr-time-validation";
 
 const TITLE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "14px",
   fontWeight: 700,
   fontFamily: "'Inter',sans-serif",
 };
 
 const DATE_STYLE = {
-  color: "#94A3B8",
+  color: "var(--text-muted)",
   fontSize: "12px",
   fontFamily: "'Inter',sans-serif",
 };
 
 const STATUS_TITLE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "13px",
   fontWeight: 700,
   letterSpacing: "0.05em",

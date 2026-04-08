@@ -2,7 +2,7 @@ import { XCircle } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 
 const TEXT_STYLE = {
-  color: "#64748B",
+  color: "var(--text-muted)",
   fontFamily: "'Inter',sans-serif",
   fontSize: "14px",
   fontWeight: 500,

@@ -67,10 +67,10 @@ export default function HomeDashboard() {
           <div
             className="w-full max-w-md rounded-2xl border p-5"
             style={{
-              background: "rgba(255,255,255,0.92)",
+              background: "var(--surface-card)",
               backdropFilter: "blur(14px)",
               WebkitBackdropFilter: "blur(14px)",
-              borderColor: "rgba(6,148,148,0.2)",
+              borderColor: "var(--border-soft)",
               boxShadow: "0 8px 30px rgba(15,23,42,0.28)",
             }}
             role="dialog"
@@ -79,7 +79,7 @@ export default function HomeDashboard() {
           >
             <h3
               style={{
-                color: "#0F172A",
+                color: "var(--text-primary)",
                 fontSize: "16px",
                 fontWeight: 800,
                 fontFamily: "'Inter',sans-serif",
@@ -90,7 +90,7 @@ export default function HomeDashboard() {
             </h3>
             <p
               style={{
-                color: "#334155",
+                color: "var(--text-secondary)",
                 fontSize: "13px",
                 lineHeight: 1.5,
                 fontFamily: "'Inter',sans-serif",
@@ -107,8 +107,8 @@ export default function HomeDashboard() {
                 className="rounded-xl px-3.5 py-2"
                 style={{
                   background: "rgba(148,163,184,0.16)",
-                  border: "1px solid rgba(148,163,184,0.28)",
-                  color: "#334155",
+                  border: "1px solid var(--border-soft)",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",

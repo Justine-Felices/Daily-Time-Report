@@ -6,11 +6,11 @@ import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 
 const INPUT_STYLE = {
   width: "100%",
-  border: "1px solid rgba(148,163,184,0.35)",
-  background: "rgba(255,255,255,0.9)",
+  border: "1px solid var(--border-soft)",
+  background: "var(--surface-muted)",
   borderRadius: "12px",
   padding: "10px 12px",
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "14px",
   fontWeight: 500,
   fontFamily: "'Inter',sans-serif",
@@ -99,15 +99,27 @@ export default function HistoryDetailsDrawer({
     const pmInMinutes = toMinutes(pmIn);
     const pmOutMinutes = toMinutes(pmOut);
 
-    if (amInMinutes !== null && amOutMinutes !== null && amOutMinutes <= amInMinutes) {
+    if (
+      amInMinutes !== null &&
+      amOutMinutes !== null &&
+      amOutMinutes <= amInMinutes
+    ) {
       return "AM Out must be later than AM In.";
     }
 
-    if (pmInMinutes !== null && pmOutMinutes !== null && pmOutMinutes <= pmInMinutes) {
+    if (
+      pmInMinutes !== null &&
+      pmOutMinutes !== null &&
+      pmOutMinutes <= pmInMinutes
+    ) {
       return "PM Out must be later than PM In.";
     }
 
-    if (amOutMinutes !== null && pmInMinutes !== null && pmInMinutes < amOutMinutes) {
+    if (
+      amOutMinutes !== null &&
+      pmInMinutes !== null &&
+      pmInMinutes < amOutMinutes
+    ) {
       return "PM In cannot be earlier than AM Out.";
     }
 
@@ -202,12 +214,12 @@ export default function HistoryDetailsDrawer({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl rounded-3xl border px-4 pb-4 pt-3 sm:px-6 sm:pb-6"
+        className="w-full max-w-2xl rounded-3xl border px-4 pb-4 pt-3 sm:px-5 sm:pb-5 max-h-[88vh] overflow-y-auto"
         style={{
-          background: "rgba(255,255,255,0.95)",
+          background: "var(--surface-card)",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          borderColor: "rgba(6,148,148,0.15)",
+          borderColor: "var(--border-soft)",
           boxShadow: "0 20px 52px rgba(15,23,42,0.25)",
         }}
         onClick={(event) => event.stopPropagation()}
@@ -220,16 +232,16 @@ export default function HistoryDetailsDrawer({
               aria-label="Back"
               className="inline-flex h-9 w-9 items-center justify-center rounded-xl sm:hidden"
               style={{
-                color: "#1E293B",
+                color: "var(--text-primary)",
                 background: "rgba(148,163,184,0.12)",
-                border: "1px solid rgba(148,163,184,0.2)",
+                border: "1px solid var(--border-soft)",
               }}
             >
               <ArrowLeft size={18} strokeWidth={2.2} />
             </button>
             <div
               style={{
-                color: "#1E293B",
+                color: "var(--text-primary)",
                 fontSize: "14px",
                 fontWeight: 600,
                 letterSpacing: "0.01em",
@@ -250,7 +262,7 @@ export default function HistoryDetailsDrawer({
                 ? "rgba(148,163,184,0.2)"
                 : "linear-gradient(135deg,#069494,#00B4B4)",
               border: "1px solid rgba(6,148,148,0.2)",
-              color: isActionDisabled ? "#64748B" : "#FFFFFF",
+              color: isActionDisabled ? "var(--text-muted)" : "#FFFFFF",
               fontSize: "12px",
               fontWeight: 700,
               letterSpacing: "0.01em",
@@ -264,8 +276,8 @@ export default function HistoryDetailsDrawer({
         <div
           className="rounded-2xl border p-4 sm:p-5"
           style={{
-            background: "rgba(255,255,255,0.82)",
-            borderColor: "rgba(148,163,184,0.18)",
+            background: "var(--surface-muted)",
+            borderColor: "var(--border-soft)",
           }}
         >
           <div className="flex items-start justify-between gap-3">
@@ -279,7 +291,7 @@ export default function HistoryDetailsDrawer({
               >
                 <div
                   style={{
-                    color: "#334155",
+                    color: "var(--text-secondary)",
                     fontSize: "18px",
                     fontWeight: 700,
                     fontFamily: "'Inter',sans-serif",
@@ -290,7 +302,7 @@ export default function HistoryDetailsDrawer({
                 </div>
                 <div
                   style={{
-                    color: "#64748B",
+                    color: "var(--text-muted)",
                     fontSize: "9px",
                     fontWeight: 700,
                     fontFamily: "'Inter',sans-serif",
@@ -304,7 +316,7 @@ export default function HistoryDetailsDrawer({
               <div>
                 <div
                   style={{
-                    color: "#64748B",
+                    color: "var(--text-muted)",
                     fontSize: "11px",
                     fontWeight: 700,
                     letterSpacing: "0.08em",
@@ -316,7 +328,7 @@ export default function HistoryDetailsDrawer({
                 </div>
                 <div
                   style={{
-                    color: "#1E293B",
+                    color: "var(--text-primary)",
                     fontSize: "clamp(14px, 1.8vw, 16px)",
                     fontWeight: 600,
                     fontFamily: "'Inter',sans-serif",
@@ -331,7 +343,10 @@ export default function HistoryDetailsDrawer({
 
             <div
               style={{
-                color: Number(totalHours) > 0 ? "#0E7A7A" : "#94A3B8",
+                color:
+                  Number(totalHours) > 0
+                    ? "var(--accent-strong)"
+                    : "var(--text-muted)",
                 fontSize: "clamp(22px, 2.2vw, 30px)",
                 fontWeight: 600,
                 fontFamily: "'Inter',sans-serif",
@@ -342,13 +357,13 @@ export default function HistoryDetailsDrawer({
             </div>
           </div>
 
-          <div className="my-3 h-px bg-slate-200" />
+          <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label>
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -368,7 +383,7 @@ export default function HistoryDetailsDrawer({
             <label>
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -393,7 +408,7 @@ export default function HistoryDetailsDrawer({
             <label>
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -413,7 +428,7 @@ export default function HistoryDetailsDrawer({
             <label>
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -433,7 +448,7 @@ export default function HistoryDetailsDrawer({
             <label>
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -453,7 +468,7 @@ export default function HistoryDetailsDrawer({
             <label>
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -473,7 +488,7 @@ export default function HistoryDetailsDrawer({
             <label className="sm:col-span-2">
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -495,7 +510,7 @@ export default function HistoryDetailsDrawer({
             <label className="sm:col-span-2">
               <div
                 style={{
-                  color: "#334155",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -545,7 +560,7 @@ export default function HistoryDetailsDrawer({
             </div>
           ) : null}
 
-          <div className="my-3 h-px bg-slate-200" />
+          <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
 
           <button
             type="button"
@@ -559,7 +574,7 @@ export default function HistoryDetailsDrawer({
               border: isPending
                 ? "1px solid rgba(148,163,184,0.22)"
                 : "1px solid rgba(239,68,68,0.22)",
-              color: isPending ? "#64748B" : "#BE123C",
+              color: isPending ? "var(--text-muted)" : "#BE123C",
               fontSize: "15px",
               fontWeight: 700,
               fontFamily: "'Inter',sans-serif",

@@ -92,12 +92,11 @@ export default function HistoryRow({
         type="button"
         className="rounded-2xl p-4 transition-all"
         style={{
-          background: "rgba(255,255,255,0.68)",
+          background: "var(--surface-card)",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          border: "1.5px solid rgba(6,148,148,0.16)",
-          boxShadow:
-            "0 4px 16px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.92)",
+          border: "1.5px solid var(--border-soft)",
+          boxShadow: "var(--shadow-soft)",
           cursor: "pointer",
           width: "100%",
           textAlign: "left",
@@ -105,17 +104,16 @@ export default function HistoryRow({
         onClick={isLoading || isPending ? undefined : openDrawer}
         onMouseEnter={(event) => {
           if (isLoading) return;
-          event.currentTarget.style.background = "rgba(255,255,255,0.86)";
+          event.currentTarget.style.background = "var(--surface-muted)";
           event.currentTarget.style.borderColor = "rgba(6,148,148,0.24)";
           event.currentTarget.style.boxShadow =
-            "0 8px 26px rgba(6,148,148,0.12), inset 0 1px 0 rgba(255,255,255,1)";
+            "0 8px 26px rgba(6,148,148,0.12)";
         }}
         onMouseLeave={(event) => {
           if (isLoading) return;
-          event.currentTarget.style.background = "rgba(255,255,255,0.68)";
-          event.currentTarget.style.borderColor = "rgba(6,148,148,0.16)";
-          event.currentTarget.style.boxShadow =
-            "0 4px 16px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.92)";
+          event.currentTarget.style.background = "var(--surface-card)";
+          event.currentTarget.style.borderColor = "var(--border-soft)";
+          event.currentTarget.style.boxShadow = "var(--shadow-soft)";
         }}
         disabled={isLoading || isPending}
       >
@@ -157,7 +155,7 @@ export default function HistoryRow({
                 <>
                   <div
                     style={{
-                      color: "#334155",
+                      color: "var(--text-secondary)",
                       fontSize: "clamp(14px, 1.8vw, 14px)",
                       fontWeight: 700,
                       fontFamily: "'Inter',sans-serif",
@@ -168,7 +166,7 @@ export default function HistoryRow({
                   </div>
                   <div
                     style={{
-                      color: "#475569",
+                      color: "var(--text-muted)",
                       fontSize: "clamp(13px, 1.6vw, 13px)",
                       fontWeight: 500,
                       fontFamily: "'Inter',sans-serif",
@@ -190,7 +188,10 @@ export default function HistoryRow({
               <div
                 className="text-right"
                 style={{
-                  color: record.totalHours > 0 ? "#0E7A7A" : "#94A3B8",
+                  color:
+                    record.totalHours > 0
+                      ? "var(--accent-strong)"
+                      : "var(--text-muted)",
                   fontSize: "clamp(18px, 2.2vw, 18px)",
                   fontWeight: 600,
                   fontFamily: "'Inter',sans-serif",

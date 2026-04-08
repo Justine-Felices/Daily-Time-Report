@@ -153,7 +153,9 @@ export default function useHomeDashboardLogic() {
           (sum, row) => sum + (Number(row?.total_hours) || 0),
           0,
         );
-        const todayPersisted = weeklyRows.find((row) => row?.work_date === todayKey);
+        const todayPersisted = weeklyRows.find(
+          (row) => row?.work_date === todayKey,
+        );
 
         setPersistedWeekHours(weeklyTotal);
         setPersistedTodayWeekHours(Number(todayPersisted?.total_hours) || 0);

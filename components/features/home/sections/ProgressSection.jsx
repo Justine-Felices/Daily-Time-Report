@@ -4,7 +4,7 @@ import CircularProgress from "@/components/features/home/components/CircularProg
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 const TITLE_TEXT_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "13px",
   fontWeight: 700,
   letterSpacing: "0.05em",
@@ -13,22 +13,22 @@ const TITLE_TEXT_STYLE = {
 
 const PILL_STYLE = {
   background: "rgba(6,148,148,0.1)",
-  border: "1px solid rgba(6,148,148,0.2)",
-  color: "#069494",
+  border: "1px solid var(--border-soft)",
+  color: "var(--accent-strong)",
   fontSize: "12px",
   fontWeight: 600,
   fontFamily: "'Inter',sans-serif",
 };
 
 const CARD_TITLE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "13px",
   fontWeight: 700,
   fontFamily: "'Inter',sans-serif",
 };
 
 const CARD_LABEL_STYLE = {
-  color: "#94A3B8",
+  color: "var(--text-muted)",
   fontSize: "9px",
   fontWeight: 700,
   letterSpacing: "0.08em",
@@ -48,19 +48,19 @@ export default function ProgressSection({
       icon: Timer,
       label: "REMAINING",
       value: `${remaining.toFixed(0)}h`,
-      color: "#FF69B4",
+      color: "var(--accent-strong)",
     },
     {
       icon: Target,
       label: "TARGET",
       value: `${targetHours}h`,
-      color: "#069494",
+      color: "var(--accent-strong)",
     },
     {
       icon: CalendarCheck,
       label: "EST. FINISH",
       value: estimatedFinishText,
-      color: "#00B4B4",
+      color: "var(--accent-strong)",
     },
   ];
 
@@ -88,7 +88,10 @@ export default function ProgressSection({
 
       <div
         className="mb-5 w-full rounded-full"
-        style={{ height: "8px", background: "rgba(6,148,148,0.1)" }}
+        style={{
+          height: "8px",
+          background: "color-mix(in srgb, var(--accent-strong) 20%, transparent)",
+        }}
       >
         {isLoading ? (
           <SkeletonBlock className="h-full w-full rounded-full" />
@@ -111,8 +114,8 @@ export default function ProgressSection({
             key={label}
             className="flex flex-col items-center rounded-xl p-3 text-center"
             style={{
-              background: "rgba(240,253,253,0.6)",
-              border: "1px solid rgba(6,148,148,0.12)",
+              background: "var(--surface-muted)",
+              border: "1px solid var(--border-soft)",
               backdropFilter: "blur(8px)",
               WebkitBackdropFilter: "blur(8px)",
             }}

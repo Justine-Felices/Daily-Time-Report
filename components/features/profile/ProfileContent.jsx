@@ -12,6 +12,8 @@ import OJTDetailsSection from "@/components/features/profile/components/OJTDetai
 import PersonalInfoSection from "@/components/features/profile/components/PersonalInfoSection";
 import ProfileHeaderCard from "@/components/features/profile/components/ProfileHeaderCard";
 import EditPersonalInfoModal from "@/components/features/profile/components/EditPersonalInfoModal";
+import ThemeModeCard from "@/components/features/profile/components/ThemeModeCard";
+import useThemeMode from "@/hooks/useThemeMode";
 
 const EMPTY_PROFILE = {
   name: "",
@@ -66,6 +68,7 @@ export default function ProfileContent() {
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [, triggerSaved] = useTimedFlag(2500);
+  const { mode, resolvedMode, setMode } = useThemeMode();
 
   useEffect(() => {
     if (!supabase) return;
@@ -157,6 +160,12 @@ export default function ProfileContent() {
       />
 
       <OJTDetailsSection details={ojtDetails} />
+
+      <ThemeModeCard
+        mode={mode}
+        resolvedMode={resolvedMode}
+        onModeChange={setMode}
+      />
 
       <LogoutButton onClick={handleLogout} />
 

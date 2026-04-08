@@ -120,8 +120,8 @@ export default function Navbar() {
         background: "transparent",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
-        borderBottom: "1px solid rgba(6,148,148,0.14)",
-        boxShadow: "0 4px 18px rgba(6,148,148,0.08)",
+        borderBottom: "1px solid var(--border-soft)",
+        boxShadow: "var(--shadow-soft)",
       }}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -137,16 +137,20 @@ export default function Navbar() {
             >
               <Clock4 size={16} color="#fff" />
             </span>
-            <span className="text-lg font-semibold tracking-tight text-slate-900">
+            <span
+              className="text-lg font-semibold tracking-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
               TimeTrack
             </span>
           </Link>
 
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-xl border text-slate-700 transition"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border transition"
             style={{
-              borderColor: "rgba(6,148,148,0.2)",
-              background: "rgba(255,255,255,0.88)",
+              borderColor: "var(--border-soft)",
+              background: "var(--surface-card)",
+              color: "var(--text-secondary)",
             }}
             onClick={() => setMobileOpen((value) => !value)}
             aria-label="Toggle navigation menu"
@@ -168,7 +172,10 @@ export default function Navbar() {
             >
               <Clock4 size={16} color="#fff" />
             </span>
-            <span className="text-[1.7rem] font-semibold leading-none tracking-tight text-slate-900">
+            <span
+              className="text-[1.7rem] font-semibold leading-none tracking-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
               TimeTrack
             </span>
           </Link>
@@ -176,10 +183,9 @@ export default function Navbar() {
           <div
             className="flex items-center gap-1 rounded-full p-1"
             style={{
-              border: "1px solid rgba(6,148,148,0.14)",
-              background: "rgba(255,255,255,0.74)",
-              boxShadow:
-                "0 2px 10px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
+              border: "1px solid var(--border-soft)",
+              background: "var(--surface-card)",
+              boxShadow: "var(--shadow-soft)",
             }}
           >
             {NAV_LINKS.map(({ to, label }) => {
@@ -190,9 +196,7 @@ export default function Navbar() {
                   key={to}
                   href={to}
                   className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition-all ${
-                    isActive
-                      ? "text-white"
-                      : "text-slate-600 hover:text-[#046060]"
+                    isActive ? "text-white" : ""
                   }`}
                   style={
                     isActive
@@ -201,7 +205,9 @@ export default function Navbar() {
                             "linear-gradient(135deg, #069494 0%, #0aacac 100%)",
                           boxShadow: "0 3px 10px rgba(6,148,148,0.28)",
                         }
-                      : undefined
+                      : {
+                          color: "var(--text-secondary)",
+                        }
                   }
                   aria-current={isActive ? "page" : undefined}
                 >
@@ -216,8 +222,8 @@ export default function Navbar() {
               type="button"
               className="flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition"
               style={{
-                borderColor: "rgba(6,148,148,0.14)",
-                background: "rgba(255,255,255,0.76)",
+                borderColor: "var(--border-soft)",
+                background: "var(--surface-card)",
               }}
               aria-label="Open user profile"
             >
@@ -238,10 +244,16 @@ export default function Navbar() {
                   </span>
                 ) : (
                   <>
-                    <span className="block text-sm font-semibold text-slate-900">
+                    <span
+                      className="block text-sm font-semibold"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       {viewer.name}
                     </span>
-                    <span className="block text-xs text-slate-500">
+                    <span
+                      className="block text-xs"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {viewer.role}
                     </span>
                   </>
@@ -256,9 +268,8 @@ export default function Navbar() {
         <div
           className="space-y-1 border-t px-4 py-3 md:hidden"
           style={{
-            borderColor: "rgba(6,148,148,0.14)",
-            background:
-              "radial-gradient(circle at 15% 10%, #d8fbfb 0%, #f4ffff 45%, #fff5fb 100%)",
+            borderColor: "var(--border-soft)",
+            background: "var(--page-bg)",
           }}
         >
           {NAV_LINKS.map(({ to, label, icon: Icon }) => {
@@ -280,8 +291,9 @@ export default function Navbar() {
                           "linear-gradient(135deg, #069494 0%, #0aacac 100%)",
                       }
                     : {
-                        borderColor: "rgba(6,148,148,0.08)",
-                        background: "rgba(255,255,255,0.66)",
+                        borderColor: "var(--border-soft)",
+                        background: "var(--surface-card)",
+                        color: "var(--text-secondary)",
                       }
                 }
               >
@@ -294,8 +306,8 @@ export default function Navbar() {
           <div
             className="mt-3 flex items-center gap-2 rounded-xl border px-3 py-2"
             style={{
-              borderColor: "rgba(6,148,148,0.14)",
-              background: "rgba(255,255,255,0.8)",
+              borderColor: "var(--border-soft)",
+              background: "var(--surface-card)",
             }}
           >
             <span
@@ -308,10 +320,15 @@ export default function Navbar() {
               {viewer.initials}
             </span>
             <div className="leading-tight">
-              <p className="text-sm font-semibold text-slate-900">
+              <p
+                className="text-sm font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 {viewer.name}
               </p>
-              <p className="text-xs text-slate-500">{viewer.role}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                {viewer.role}
+              </p>
             </div>
           </div>
         </div>

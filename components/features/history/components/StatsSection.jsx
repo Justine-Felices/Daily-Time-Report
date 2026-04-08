@@ -3,7 +3,7 @@ import GlassCard from "@/components/ui/cards/GlassCard";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 const LABEL_STYLE = {
-  color: "#94A3B8",
+  color: "var(--text-muted)",
   fontSize: "8px",
   fontWeight: 700,
   letterSpacing: "0.1em",
@@ -11,7 +11,7 @@ const LABEL_STYLE = {
 };
 
 const VALUE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "20px",
   fontWeight: 800,
   fontFamily: "'Inter',sans-serif",

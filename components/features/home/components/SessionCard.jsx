@@ -133,14 +133,13 @@ export default function SessionCard({
       style={{
         opacity: disabled ? 0.5 : 1,
         pointerEvents: disabled ? "none" : "auto",
-        background: "rgba(255,255,255,0.75)",
+        background: "var(--surface-card)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         border: done
-          ? "1.5px solid rgba(6,148,148,0.25)"
-          : "1px solid rgba(6,148,148,0.13)",
-        boxShadow:
-          "0 4px 24px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.95)",
+          ? "1.5px solid color-mix(in srgb, var(--accent-strong) 45%, transparent)"
+          : "1px solid var(--border-soft)",
+        boxShadow: "var(--shadow-soft)",
       }}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -153,7 +152,7 @@ export default function SessionCard({
           </div>
           <span
             style={{
-              color: "#1E293B",
+              color: "var(--text-primary)",
               fontSize: "13px",
               fontWeight: 700,
               fontFamily: "'Inter',sans-serif",
@@ -196,10 +195,10 @@ export default function SessionCard({
               key={label}
               className="rounded-xl p-3"
               style={{
-                background: "rgba(240,253,253,0.6)",
+                background: "var(--surface-muted)",
                 border: fieldErrors[field]
                   ? "1px solid rgba(244,63,94,0.45)"
-                  : "1px solid rgba(6,148,148,0.12)",
+                  : "1px solid var(--border-soft)",
               }}
             >
               <div
@@ -236,7 +235,7 @@ export default function SessionCard({
                     ? "#94A3B8"
                     : fieldErrors[field]
                       ? "#E11D48"
-                      : "#1E293B",
+                      : "var(--text-primary)",
                   fontSize: "15px",
                   fontWeight: 700,
                   fontFamily: "'Inter',sans-serif",
@@ -322,7 +321,7 @@ export default function SessionCard({
               session.timeOut ||
               isLoading
                 ? "rgba(148,163,184,0.15)"
-                : "linear-gradient(135deg,#1E293B,#334155)",
+                : "linear-gradient(135deg,#069494,#0aacac)",
             color:
               disabled ||
               hasFieldError ||
@@ -350,7 +349,7 @@ export default function SessionCard({
               session.timeOut ||
               isLoading
                 ? "none"
-                : "0 3px 10px rgba(30,41,59,0.3)",
+                : "0 4px 14px rgba(6,148,148,0.32)",
             letterSpacing: "0.03em",
             transition: "all 0.15s",
             opacity: isLoading ? 0.65 : 1,

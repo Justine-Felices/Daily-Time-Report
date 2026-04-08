@@ -77,7 +77,7 @@ export default function TimeSessionCard({
           />
           <span
             style={{
-              color: "#1E293B",
+              color: "var(--text-primary)",
               fontSize: "12px",
               fontWeight: 700,
               letterSpacing: "0.06em",

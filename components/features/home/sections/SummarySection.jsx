@@ -2,7 +2,7 @@ import { Timer } from "lucide-react";
 import StatCard from "@/components/features/home/components/StatCard";
 
 const TITLE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "14px",
   fontWeight: 700,
   fontFamily: "'Inter',sans-serif",
@@ -26,26 +26,26 @@ export default function SummarySection({
       label: "WEEK HOURS",
       value: `${weekHours.toFixed(1)}h`,
       sub: "this week",
-      accent: false,
+      accent: true,
     },
     {
       label: "MONTH HOURS",
       value: `${monthHours.toFixed(0)}h`,
       sub: "this month",
-      accent: false,
+      accent: true,
     },
     {
       label: "TOTAL HOURS",
       value: `${totalHours.toFixed(0)}h`,
       sub: "all-time",
-      accent: false,
+      accent: true,
     },
   ];
 
   return (
     <div>
       <div className="mb-3 flex items-center gap-2 px-1">
-        <Timer size={15} color="#069494" />
+        <Timer size={15} color="var(--accent-strong)" />
         <span style={TITLE_STYLE}>Summary</span>
       </div>
 

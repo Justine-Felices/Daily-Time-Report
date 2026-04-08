@@ -7,7 +7,7 @@ const BASE_CONTAINER_STYLE = {
 };
 
 const LABEL_STYLE = {
-  color: "#94A3B8",
+  color: "var(--text-muted)",
   fontSize: "9px",
   fontWeight: 700,
   letterSpacing: "0.1em",
@@ -16,13 +16,19 @@ const LABEL_STYLE = {
 };
 
 const SUBTEXT_STYLE = {
-  color: "#94A3B8",
+  color: "var(--text-muted)",
   fontSize: "10px",
   fontFamily: "'Inter',sans-serif",
   marginTop: "4px",
 };
 
-export default function StatCard({ label, value, sub, accent, isLoading = false }) {
+export default function StatCard({
+  label,
+  value,
+  sub,
+  accent,
+  isLoading = false,
+}) {
   return (
     <div
       className="flex flex-col items-center rounded-2xl p-4 text-center"
@@ -30,7 +36,7 @@ export default function StatCard({ label, value, sub, accent, isLoading = false 
         ...BASE_CONTAINER_STYLE,
         background: accent
           ? "linear-gradient(135deg,rgba(6,148,148,0.1),rgba(0,240,255,0.08))"
-          : "rgba(255,255,255,0.75)",
+          : "var(--surface-card)",
         border: `1.5px solid ${
           accent ? "rgba(6,148,148,0.22)" : "rgba(6,148,148,0.1)"
         }`,
@@ -44,7 +50,7 @@ export default function StatCard({ label, value, sub, accent, isLoading = false 
       ) : (
         <div
           style={{
-            color: accent ? "#069494" : "#1E293B",
+            color: accent ? "var(--accent-strong)" : "var(--text-primary)",
             fontSize: "22px",
             fontWeight: 800,
             fontFamily: "'Inter',sans-serif",

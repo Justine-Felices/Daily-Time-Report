@@ -3,7 +3,7 @@ import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import GlassCard from "@/components/ui/cards/GlassCard";
 
 const LABEL_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "12px",
   fontWeight: 700,
   letterSpacing: "0.06em",

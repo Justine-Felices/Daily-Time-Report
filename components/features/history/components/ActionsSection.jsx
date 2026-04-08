@@ -2,17 +2,16 @@ import { Printer } from "lucide-react";
 
 const BUTTON_STYLE = {
   padding: "10px 18px",
-  background: "rgba(255,255,255,0.75)",
+  background: "var(--surface-card)",
   backdropFilter: "blur(12px)",
   WebkitBackdropFilter: "blur(12px)",
-  border: "1.5px solid rgba(6,148,148,0.3)",
-  color: "#069494",
+  border: "1.5px solid var(--border-soft)",
+  color: "var(--accent-strong)",
   fontFamily: "'Inter',sans-serif",
   fontSize: "13px",
   fontWeight: 600,
   cursor: "pointer",
-  boxShadow:
-    "0 3px 14px rgba(6,148,148,0.15), inset 0 1px 0 rgba(255,255,255,0.9)",
+  boxShadow: "var(--shadow-soft)",
   letterSpacing: "0.02em",
   whiteSpace: "nowrap",
 };
@@ -30,10 +29,9 @@ export default function ActionsSection({ onPrint }) {
         event.currentTarget.style.boxShadow = "0 4px 16px rgba(6,148,148,0.38)";
       }}
       onMouseLeave={(event) => {
-        event.currentTarget.style.background = "rgba(255,255,255,0.75)";
-        event.currentTarget.style.color = "#069494";
-        event.currentTarget.style.boxShadow =
-          "0 3px 14px rgba(6,148,148,0.15), inset 0 1px 0 rgba(255,255,255,0.9)";
+        event.currentTarget.style.background = "var(--surface-card)";
+        event.currentTarget.style.color = "var(--accent-strong)";
+        event.currentTarget.style.boxShadow = "var(--shadow-soft)";
       }}
     >
       <Printer size={14} />

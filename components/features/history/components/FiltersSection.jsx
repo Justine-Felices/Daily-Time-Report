@@ -2,10 +2,10 @@ import { ChevronDown, Filter, Search, TrendingUp } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 
 const FIELD_STYLE = {
-  background: "rgba(240,253,253,0.6)",
-  border: "1.5px solid rgba(6,148,148,0.15)",
+  background: "var(--surface-muted)",
+  border: "1.5px solid var(--border-soft)",
   borderRadius: "12px",
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontFamily: "'Inter',sans-serif",
   fontSize: "13px",
 };
@@ -14,7 +14,7 @@ const SORT_BUTTON_STYLE = {
   padding: "9px 14px",
   background: "rgba(6,148,148,0.08)",
   border: "1.5px solid rgba(6,148,148,0.2)",
-  color: "#069494",
+  color: "var(--accent-strong)",
   fontFamily: "'Inter',sans-serif",
   fontSize: "13px",
   fontWeight: 600,

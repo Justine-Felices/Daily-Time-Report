@@ -1,5 +1,5 @@
 const TEXT_STYLE = {
-  color: "#64748B",
+  color: "var(--text-muted)",
   fontSize: "12px",
   fontFamily: "'Inter',sans-serif",
 };
@@ -34,10 +34,11 @@ export default function PaginationSection({
                 background:
                   pageNum === currentPage
                     ? "linear-gradient(135deg,#069494,#0aacac)"
-                    : "rgba(255,255,255,0.7)",
+                    : "var(--surface-card)",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
-                color: pageNum === currentPage ? "#fff" : "#64748B",
+                color:
+                  pageNum === currentPage ? "#fff" : "var(--text-muted)",
                 border:
                   pageNum === currentPage
                     ? "1px solid rgba(6,148,148,0.3)"
