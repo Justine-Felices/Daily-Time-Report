@@ -4,6 +4,7 @@ import { useState } from "react";
 import { STATUS_COLORS } from "@/lib/dtr-constants";
 import { formatHistoryDate } from "@/lib/dtr-formatters";
 import HistoryDetailsDrawer from "@/components/features/history/components/HistoryDetailsDrawer";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 function toMinutesFromDisplayTime(value) {
   if (!value || typeof value !== "string") return null;
@@ -66,18 +67,20 @@ function computeRange(record) {
   return `${toCompactDisplay(firstIn)} - ${toCompactDisplay(lastOut)}`;
 }
 
-export default function HistoryRow({ record }) {
+export default function HistoryRow({ record, isLoading = false }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const statusColors = STATUS_COLORS[record.status] || {
     bg: "rgba(148,163,184,0.1)",
     color: "#64748B",
   };
-  const rangeLabel = computeRange(record);
-  const dateObject = new Date(`${record.date}T12:00:00`);
-  const dateDay = dateObject.getDate();
-  const dateMonth = dateObject
-    .toLocaleDateString("en-US", { month: "short" })
-    .toUpperCase();
+  const rangeLabel = isLoading ? "" : computeRange(record);
+  const dateObject = !isLoading
+    ? new Date(`${record.date}T12:00:00`)
+    : new Date();
+  const dateDay = !isLoading ? dateObject.getDate() : "--";
+  const dateMonth = !isLoading
+    ? dateObject.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+    : "---";
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
@@ -98,19 +101,22 @@ export default function HistoryRow({ record }) {
           width: "100%",
           textAlign: "left",
         }}
-        onClick={openDrawer}
+        onClick={isLoading ? undefined : openDrawer}
         onMouseEnter={(event) => {
+          if (isLoading) return;
           event.currentTarget.style.background = "rgba(255,255,255,0.86)";
           event.currentTarget.style.borderColor = "rgba(6,148,148,0.24)";
           event.currentTarget.style.boxShadow =
             "0 8px 26px rgba(6,148,148,0.12), inset 0 1px 0 rgba(255,255,255,1)";
         }}
         onMouseLeave={(event) => {
+          if (isLoading) return;
           event.currentTarget.style.background = "rgba(255,255,255,0.68)";
           event.currentTarget.style.borderColor = "rgba(6,148,148,0.16)";
           event.currentTarget.style.boxShadow =
             "0 4px 16px rgba(6,148,148,0.08), inset 0 1px 0 rgba(255,255,255,0.92)";
         }}
+        disabled={isLoading}
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
@@ -141,58 +147,73 @@ export default function HistoryRow({ record }) {
             </div>
 
             <div className="min-w-0">
-              <div
-                style={{
-                  color: "#334155",
-                  fontSize: "clamp(14px, 1.8vw, 14px)",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  lineHeight: 1.08,
-                }}
-              >
-                {formatHistoryDate(record.date)}
-              </div>
-              <div
-                style={{
-                  color: "#475569",
-                  fontSize: "clamp(13px, 1.6vw, 13px)",
-                  fontWeight: 500,
-                  fontFamily: "'Inter',sans-serif",
-                  marginTop: "2px",
-                  lineHeight: 1.15,
-                }}
-              >
-                {rangeLabel}
-              </div>
+              {isLoading ? (
+                <div className="space-y-1">
+                  <SkeletonBlock className="h-3.5 w-36 rounded-md" />
+                  <SkeletonBlock className="h-3 w-28 rounded-md" />
+                </div>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      color: "#334155",
+                      fontSize: "clamp(14px, 1.8vw, 14px)",
+                      fontWeight: 700,
+                      fontFamily: "'Inter',sans-serif",
+                      lineHeight: 1.08,
+                    }}
+                  >
+                    {formatHistoryDate(record.date)}
+                  </div>
+                  <div
+                    style={{
+                      color: "#475569",
+                      fontSize: "clamp(13px, 1.6vw, 13px)",
+                      fontWeight: 500,
+                      fontFamily: "'Inter',sans-serif",
+                      marginTop: "2px",
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {rangeLabel}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-center">
-            <div
-              className="text-right"
-              style={{
-                color: record.totalHours > 0 ? "#0E7A7A" : "#94A3B8",
-                fontSize: "clamp(18px, 2.2vw, 18px)",
-                fontWeight: 600,
-                fontFamily: "'Inter',sans-serif",
-                lineHeight: 1,
-              }}
-            >
-              {record.totalHours}hrs
-            </div>
+            {isLoading ? (
+              <SkeletonBlock className="h-6 w-14 rounded-full" />
+            ) : (
+              <div
+                className="text-right"
+                style={{
+                  color: record.totalHours > 0 ? "#0E7A7A" : "#94A3B8",
+                  fontSize: "clamp(18px, 2.2vw, 18px)",
+                  fontWeight: 600,
+                  fontFamily: "'Inter',sans-serif",
+                  lineHeight: 1,
+                }}
+              >
+                {record.totalHours}hrs
+              </div>
+            )}
           </div>
         </div>
       </button>
 
-      <HistoryDetailsDrawer
-        isOpen={isDrawerOpen}
-        onClose={closeDrawer}
-        record={record}
-        rangeLabel={rangeLabel}
-        dateDay={dateDay}
-        dateMonth={dateMonth}
-        statusColors={statusColors}
-      />
+      {!isLoading ? (
+        <HistoryDetailsDrawer
+          isOpen={isDrawerOpen}
+          onClose={closeDrawer}
+          record={record}
+          rangeLabel={rangeLabel}
+          dateDay={dateDay}
+          dateMonth={dateMonth}
+          statusColors={statusColors}
+        />
+      ) : null}
     </>
   );
 }

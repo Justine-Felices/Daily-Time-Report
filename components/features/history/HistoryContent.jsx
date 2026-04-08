@@ -105,6 +105,7 @@ async function buildDtrPdf(records, totalHours) {
 export default function HistoryContent() {
   const [history, setHistory] = useState([]);
   const [overallHoursLogged, setOverallHoursLogged] = useState(null);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isOverallHoursLoading, setIsOverallHoursLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -115,20 +116,24 @@ export default function HistoryContent() {
     let mounted = true;
 
     const loadSupabaseHistory = async () => {
-      const [records, totalHours] = await Promise.all([
-        fetchAttendanceHistoryRecords(),
-        fetchCurrentUserOverallInternHours(),
-      ]);
+      try {
+        const [records, totalHours] = await Promise.all([
+          fetchAttendanceHistoryRecords(),
+          fetchCurrentUserOverallInternHours(),
+        ]);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      setHistory(records);
+        setHistory(records);
 
-      if (totalHours !== null) {
-        setOverallHoursLogged(totalHours);
+        if (totalHours !== null) {
+          setOverallHoursLogged(totalHours);
+        }
+      } finally {
+        if (!mounted) return;
+        setIsHistoryLoading(false);
+        setIsOverallHoursLoading(false);
       }
-
-      setIsOverallHoursLoading(false);
     };
 
     loadSupabaseHistory();
@@ -213,6 +218,7 @@ export default function HistoryContent() {
           totalRecords={filtered.length}
           presentDays={presentDays}
           hoursLogged={hoursLogged}
+          isLoading={isHistoryLoading || isOverallHoursLoading}
         />
 
         <FiltersSection
@@ -233,7 +239,7 @@ export default function HistoryContent() {
           }
         />
 
-        <HistoryListSection records={paged} />
+        <HistoryListSection records={paged} isLoading={isHistoryLoading} />
 
         <PaginationSection
           currentPage={currentPage}

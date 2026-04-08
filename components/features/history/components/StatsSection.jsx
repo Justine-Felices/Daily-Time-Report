@@ -1,5 +1,6 @@
 import { CheckCircle, Clock, History as HistoryIcon } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 const LABEL_STYLE = {
   color: "#94A3B8",
@@ -21,6 +22,7 @@ export default function StatsSection({
   totalRecords,
   presentDays,
   hoursLogged,
+  isLoading = false,
 }) {
   const hoursLoggedText =
     typeof hoursLogged === "number" ? `${hoursLogged.toFixed(1)}h` : "...";
@@ -54,7 +56,11 @@ export default function StatsSection({
             <Icon size={12} color={color} />
             <span style={LABEL_STYLE}>{label}</span>
           </div>
-          <div style={VALUE_STYLE}>{value}</div>
+          {isLoading ? (
+            <SkeletonBlock className="h-6 w-20 rounded-md" />
+          ) : (
+            <div style={VALUE_STYLE}>{value}</div>
+          )}
         </GlassCard>
       ))}
     </div>

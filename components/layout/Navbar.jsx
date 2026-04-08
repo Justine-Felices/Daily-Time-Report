@@ -5,11 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Clock4, History, Home, Menu, PenLine, User, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", icon: Home },
   { to: "/encode-past", label: "Encode Past", icon: PenLine },
-  { to: "/history", label: "Activity", icon: History },
+  { to: "/history", label: "Activity Logs", icon: History },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
@@ -35,8 +36,9 @@ function toInitials(name) {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const [isViewerLoading, setIsViewerLoading] = useState(true);
   const [viewer, setViewer] = useState({
-    name: "John Doe",
+    name: "---",
     role: "Intern",
     initials: "JD",
   });
@@ -52,46 +54,56 @@ export default function Navbar() {
   }, [hasSupabaseConfig]);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      setIsViewerLoading(false);
+      return;
+    }
 
     let mounted = true;
 
     const loadViewer = async () => {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { session },
+          error: authError,
+        } = await supabase.auth.getSession();
 
-      if (!mounted || authError || !user) return;
+        const user = session?.user ?? null;
 
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("full_name, position")
-        .eq("user_id", user.id)
-        .maybeSingle();
+        if (!mounted || authError || !user) return;
 
-      if (!mounted) return;
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("full_name, position")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      const metadataName =
-        typeof user.user_metadata?.full_name === "string"
-          ? user.user_metadata.full_name.trim()
-          : "";
-      const fallbackName = user.email ? user.email.split("@")[0] : "";
-      const resolvedName =
-        profile?.full_name?.trim() || metadataName || fallbackName || "User";
+        if (!mounted) return;
 
-      const metadataRole =
-        typeof user.user_metadata?.role === "string"
-          ? user.user_metadata.role.trim()
-          : "";
-      const resolvedRole =
-        profile?.position?.trim() || metadataRole || "Intern";
+        const metadataName =
+          typeof user.user_metadata?.full_name === "string"
+            ? user.user_metadata.full_name.trim()
+            : "";
+        const fallbackName = user.email ? user.email.split("@")[0] : "";
+        const resolvedName =
+          profile?.full_name?.trim() || metadataName || fallbackName || "User";
 
-      setViewer({
-        name: resolvedName,
-        role: resolvedRole,
-        initials: toInitials(resolvedName),
-      });
+        const metadataRole =
+          typeof user.user_metadata?.role === "string"
+            ? user.user_metadata.role.trim()
+            : "";
+        const resolvedRole =
+          profile?.position?.trim() || metadataRole || "Intern";
+
+        setViewer({
+          name: resolvedName,
+          role: resolvedRole,
+          initials: toInitials(resolvedName),
+        });
+      } finally {
+        if (!mounted) return;
+        setIsViewerLoading(false);
+      }
     };
 
     loadViewer();
@@ -219,12 +231,21 @@ export default function Navbar() {
                 {viewer.initials}
               </span>
               <span className="leading-tight">
-                <span className="block text-sm font-semibold text-slate-900">
-                  {viewer.name}
-                </span>
-                <span className="block text-xs text-slate-500">
-                  {viewer.role}
-                </span>
+                {isViewerLoading ? (
+                  <span className="block space-y-1">
+                    <SkeletonBlock className="h-4 w-28 rounded-md" />
+                    <SkeletonBlock className="h-3 w-20 rounded-md" />
+                  </span>
+                ) : (
+                  <>
+                    <span className="block text-sm font-semibold text-slate-900">
+                      {viewer.name}
+                    </span>
+                    <span className="block text-xs text-slate-500">
+                      {viewer.role}
+                    </span>
+                  </>
+                )}
               </span>
             </button>
           </div>
