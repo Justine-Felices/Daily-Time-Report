@@ -106,77 +106,87 @@ export default function useHomeDashboardLogic() {
     let mounted = true;
 
     const loadOnboardingState = async () => {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
 
-      if (!mounted || userError || !user) {
-        if (mounted) {
-          setIsLoading(false);
+        if (!mounted || userError || !user) {
+          if (mounted) {
+            setIsLoading(false);
+          }
+          return;
         }
-        return;
-      }
 
-      const { data: profile, error: profileError } =
-        await fetchUserProfileByUserId({
+        const { data: profile, error: profileError } =
+          await fetchUserProfileByUserId({
+            supabase,
+            userId: user.id,
+          });
+
+        if (!mounted) return;
+
+        if (profileError) {
+          router.replace("/onboarding");
+          setIsLoading(false);
+          return;
+        }
+        const parsedTargetHours = Number(profile?.target_hours);
+        setTargetHours(
+          Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
+            ? parsedTargetHours
+            : null,
+        );
+
+        const overallHours = await fetchOverallInternHoursByUserId({
           supabase,
           userId: user.id,
         });
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      if (profileError) {
-        router.replace("/onboarding");
+        if (overallHours !== null) {
+          setPersistedTotalHours(overallHours);
+        }
+
+        const { startDate, endDate } = getCurrentWeekRange(new Date());
+        const { data: weeklyRows, error: weeklyError } = await supabase
+          .from("attendance_entries")
+          .select("work_date, total_hours")
+          .eq("user_id", user.id)
+          .gte("work_date", startDate)
+          .lte("work_date", endDate);
+
+        if (!mounted) return;
+
+        if (!weeklyError && Array.isArray(weeklyRows)) {
+          const weeklyTotal = weeklyRows.reduce(
+            (sum, row) => sum + (Number(row?.total_hours) || 0),
+            0,
+          );
+          const todayPersisted = weeklyRows.find(
+            (row) => row?.work_date === todayKey,
+          );
+
+          setPersistedWeekHours(weeklyTotal);
+          setPersistedTodayWeekHours(Number(todayPersisted?.total_hours) || 0);
+        }
+
+        if (!isUserProfileOnboarded(profile)) {
+          router.replace("/onboarding");
+        }
+
         setIsLoading(false);
-        return;
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to load Home onboarding state", error);
+        }
+
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-      const parsedTargetHours = Number(profile?.target_hours);
-      setTargetHours(
-        Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
-          ? parsedTargetHours
-          : null,
-      );
-
-      const overallHours = await fetchOverallInternHoursByUserId({
-        supabase,
-        userId: user.id,
-      });
-
-      if (!mounted) return;
-
-      if (overallHours !== null) {
-        setPersistedTotalHours(overallHours);
-      }
-
-      const { startDate, endDate } = getCurrentWeekRange(new Date());
-      const { data: weeklyRows, error: weeklyError } = await supabase
-        .from("attendance_entries")
-        .select("work_date, total_hours")
-        .eq("user_id", user.id)
-        .gte("work_date", startDate)
-        .lte("work_date", endDate);
-
-      if (!mounted) return;
-
-      if (!weeklyError && Array.isArray(weeklyRows)) {
-        const weeklyTotal = weeklyRows.reduce(
-          (sum, row) => sum + (Number(row?.total_hours) || 0),
-          0,
-        );
-        const todayPersisted = weeklyRows.find(
-          (row) => row?.work_date === todayKey,
-        );
-
-        setPersistedWeekHours(weeklyTotal);
-        setPersistedTodayWeekHours(Number(todayPersisted?.total_hours) || 0);
-      }
-
-      if (!isUserProfileOnboarded(profile)) {
-        router.replace("/onboarding");
-      }
-
-      setIsLoading(false);
     };
 
     loadOnboardingState();

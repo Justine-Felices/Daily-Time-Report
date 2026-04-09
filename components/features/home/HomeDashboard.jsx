@@ -98,8 +98,8 @@ export default function HomeDashboard() {
               }}
             >
               Changing status to {resetDialog.pendingStatus || "this option"}{" "}
-              will delete your AM and PM session logs for today. Do you want to
-              continue?
+              will delete your Morning and Afternoon session logs for today. Do
+              you want to continue?
             </p>
             <div className="flex justify-end gap-2">
               <button

@@ -99,7 +99,7 @@ export default memo(function SessionAndStatusSection({
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SessionCard
-            title="AM Session"
+            title="Morning Session"
             icon={Sun}
             iconColor="#FF69B4"
             isLoading={isLoading}
@@ -118,7 +118,7 @@ export default memo(function SessionAndStatusSection({
           />
 
           <SessionCard
-            title="PM Session"
+            title="Afternoon Session"
             icon={Sunset}
             iconColor="#069494"
             isLoading={isLoading}
@@ -126,7 +126,7 @@ export default memo(function SessionAndStatusSection({
             session={pmSession}
             onValidationChange={onPmValidationChange}
             earliestTime={pmEarliestTime}
-            earliestLabel="AM session"
+            earliestLabel="Morning session"
             onTimeIn={onPmTimeIn}
             onTimeOut={onPmTimeOut}
             onTimeInChange={onPmTimeInChange}

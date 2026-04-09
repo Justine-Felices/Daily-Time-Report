@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { CalendarRange } from "lucide-react";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
@@ -15,6 +16,8 @@ import { createAttendanceRecord } from "@/lib/supabase-operations";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
 import DateSection from "@/components/features/encode-past/components/DateSection";
+import AttendanceModeSection from "@/components/features/encode-past/components/AttendanceModeSection";
+import BulkAddDtrModal from "@/components/features/encode-past/components/BulkAddDtrModal";
 import TimeSessionsSection from "@/components/features/encode-past/components/TimeSessionsSection";
 import StatusNoteSection from "@/components/features/encode-past/components/StatusNoteSection";
 import ErrorMessage from "@/components/features/encode-past/components/ErrorMessage";
@@ -22,10 +25,13 @@ import SaveButton from "@/components/features/encode-past/components/SaveButton"
 
 const INITIAL_FORM = {
   date: "2026-03-02",
+  mode: "session",
   amIn: "09:30",
   amOut: "12:00",
   pmIn: "13:00",
   pmOut: "18:30",
+  simpleIn: "",
+  simpleOut: "",
   status: "Regular Duty Day",
   note: "",
 };
@@ -72,6 +78,20 @@ function calculateTotalHours({ amIn, amOut, pmIn, pmOut }) {
 
   let rawHours = amHours + pmHours;
 
+  // Handle simple mode payload where only amIn and pmOut are provided.
+  if (
+    rawHours === 0 &&
+    amInMinutes !== null &&
+    pmOutMinutes !== null &&
+    amOutMinutes === null &&
+    pmInMinutes === null
+  ) {
+    rawHours = Math.max(0, (pmOutMinutes - amInMinutes) / 60);
+    if (amInMinutes < 12 * 60 && pmOutMinutes > 13 * 60) {
+      rawHours = Math.max(0, rawHours - 1);
+    }
+  }
+
   // Auto-deduct lunch only for a single continuous shift that spans 12:00-13:00.
   if (!hasCompleteAM && hasCompletePM) {
     if (pmInMinutes < 12 * 60 && pmOutMinutes > 13 * 60) {
@@ -90,7 +110,12 @@ export default function EncodePastContent() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [saved, triggerSaved] = useTimedFlag(2500);
-  const [fieldErrors, setFieldErrors] = useState({ am: false, pm: false });
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    am: false,
+    pm: false,
+    simple: false,
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRestoreDraft = useCallback((draft) => {
@@ -99,10 +124,20 @@ export default function EncodePastContent() {
     setForm((current) => ({
       ...current,
       date: typeof draft.date === "string" ? draft.date : current.date,
+      mode:
+        draft.mode === "simple" || draft.mode === "session"
+          ? draft.mode
+          : current.mode,
       amIn: typeof draft.amIn === "string" ? draft.amIn : current.amIn,
       amOut: typeof draft.amOut === "string" ? draft.amOut : current.amOut,
       pmIn: typeof draft.pmIn === "string" ? draft.pmIn : current.pmIn,
       pmOut: typeof draft.pmOut === "string" ? draft.pmOut : current.pmOut,
+      simpleIn:
+        typeof draft.simpleIn === "string" ? draft.simpleIn : current.simpleIn,
+      simpleOut:
+        typeof draft.simpleOut === "string"
+          ? draft.simpleOut
+          : current.simpleOut,
       status:
         typeof draft.status === "string" &&
         STATUS_OPTIONS.includes(draft.status)
@@ -137,8 +172,10 @@ export default function EncodePastContent() {
         amOut: "",
         pmIn: "",
         pmOut: "",
+        simpleIn: "",
+        simpleOut: "",
       }));
-      setFieldErrors({ am: false, pm: false });
+      setFieldErrors({ am: false, pm: false, simple: false });
       return;
     }
 
@@ -158,7 +195,33 @@ export default function EncodePastContent() {
     setForm((current) => ({ ...current, status: nextStatus }));
   }, []);
 
-  const hasTimeValidationErrors = fieldErrors.am || fieldErrors.pm;
+  const handleModeChange = useCallback((nextMode) => {
+    setForm((current) => {
+      if (current.mode === nextMode) {
+        return current;
+      }
+
+      if (nextMode === "simple") {
+        return {
+          ...current,
+          mode: "simple",
+          simpleIn: current.simpleIn || current.amIn || "",
+          simpleOut: current.simpleOut || current.pmOut || current.amOut || "",
+        };
+      }
+
+      return {
+        ...current,
+        mode: "session",
+      };
+    });
+
+    setFieldErrors({ am: false, pm: false, simple: false });
+    setError("");
+  }, []);
+
+  const hasTimeValidationErrors =
+    fieldErrors.am || fieldErrors.pm || fieldErrors.simple;
   const disableSave = hasTimeValidationErrors || isLoading;
   const sessionsLocked = isResetStatus(form.status);
 
@@ -170,8 +233,8 @@ export default function EncodePastContent() {
 
     const timeEntryError = validateRequiredTimeEntry({
       status: form.status,
-      amIn: form.amIn,
-      pmIn: form.pmIn,
+      amIn: form.mode === "simple" ? form.simpleIn : form.amIn,
+      pmIn: form.mode === "simple" ? "" : form.pmIn,
     });
     if (timeEntryError) {
       setError(timeEntryError);
@@ -187,15 +250,31 @@ export default function EncodePastContent() {
     setIsLoading(true);
 
     try {
-      const totalHours = calculateTotalHours(form);
+      const savePayload =
+        form.mode === "simple"
+          ? {
+              amIn: form.simpleIn || "",
+              amOut: "",
+              pmIn: "",
+              pmOut: form.simpleOut || "",
+            }
+          : {
+              amIn: form.amIn || "",
+              amOut: form.amOut || "",
+              pmIn: form.pmIn || "",
+              pmOut: form.pmOut || "",
+            };
+
+      const totalHours = calculateTotalHours(savePayload);
 
       // Save to Supabase
       await createAttendanceRecord({
         date: form.date,
-        am_in: form.amIn || null,
-        am_out: form.amOut || null,
-        pm_in: form.pmIn || null,
-        pm_out: form.pmOut || null,
+        am_in: savePayload.amIn || null,
+        am_out: savePayload.amOut || null,
+        pm_in: savePayload.pmIn || null,
+        pm_out: savePayload.pmOut || null,
+        mode: form.mode,
         status: form.status,
         note: form.note || null,
         total_hours: totalHours,
@@ -205,10 +284,11 @@ export default function EncodePastContent() {
       prependHistoryRecord({
         id: Date.now().toString(),
         date: form.date,
-        amIn: toDisplayTime(form.amIn),
-        amOut: toDisplayTime(form.amOut),
-        pmIn: toDisplayTime(form.pmIn),
-        pmOut: toDisplayTime(form.pmOut),
+        amIn: toDisplayTime(savePayload.amIn),
+        amOut: toDisplayTime(savePayload.amOut),
+        pmIn: toDisplayTime(savePayload.pmIn),
+        pmOut: toDisplayTime(savePayload.pmOut),
+        mode: form.mode,
         status: form.status,
         note: form.note,
         totalHours,
@@ -223,7 +303,9 @@ export default function EncodePastContent() {
           ? error.message
           : "Failed to save attendance. Please try again.";
       setError(errorMessage);
-      console.error("Save error:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Save warning:", error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -236,6 +318,27 @@ export default function EncodePastContent() {
         subtitle="Manually enter time records for a previous date"
       />
 
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setShowBulkModal(true)}
+          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2"
+          style={{
+            border: "1px solid var(--border-soft)",
+            background: "var(--surface-muted)",
+            color: "var(--text-secondary)",
+            fontSize: "12px",
+            fontWeight: 700,
+            fontFamily: "'Inter',sans-serif",
+          }}
+        >
+          <CalendarRange size={13} color="var(--accent-strong)" />
+          Bulk Add
+        </button>
+
+        <AttendanceModeSection mode={form.mode} onModeChange={handleModeChange} />
+      </div>
+
       <DateSection
         date={form.date}
         maxDate={getTodayInputDate()}
@@ -243,14 +346,19 @@ export default function EncodePastContent() {
       />
 
       <TimeSessionsSection
+        mode={form.mode}
         amIn={form.amIn}
         amOut={form.amOut}
         pmIn={form.pmIn}
         pmOut={form.pmOut}
+        simpleIn={form.simpleIn}
+        simpleOut={form.simpleOut}
         onAmInChange={(value) => updateField("amIn", value)}
         onAmOutChange={(value) => updateField("amOut", value)}
         onPmInChange={(value) => updateField("pmIn", value)}
         onPmOutChange={(value) => updateField("pmOut", value)}
+        onSimpleInChange={(value) => updateField("simpleIn", value)}
+        onSimpleOutChange={(value) => updateField("simpleOut", value)}
         onValidationChange={handleTimeValidation}
         status={form.status}
         sessionsLocked={sessionsLocked}
@@ -271,6 +379,11 @@ export default function EncodePastContent() {
         onSave={handleSave}
         disabled={disableSave}
         isLoading={isLoading}
+      />
+
+      <BulkAddDtrModal
+        open={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
       />
     </PageShell>
   );
