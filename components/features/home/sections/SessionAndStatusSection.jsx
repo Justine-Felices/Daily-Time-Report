@@ -78,24 +78,7 @@ export default memo(function SessionAndStatusSection({
   const saveButtonDisabled = disableSave || saveLocked;
 
   if (saveLocked) {
-    return (
-      <GlassCard padding="20px">
-        <div
-          className="rounded-xl px-3 py-2"
-          style={{
-            background: "rgba(6,148,148,0.08)",
-            border: "1px solid rgba(6,148,148,0.22)",
-            color: "#0F766E",
-            fontSize: "12px",
-            fontWeight: 600,
-            fontFamily: "'Inter',sans-serif",
-          }}
-        >
-          You already saved today&apos;s session and status. This section will
-          unlock tomorrow.
-        </div>
-      </GlassCard>
-    );
+    return null;
   }
 
   return (

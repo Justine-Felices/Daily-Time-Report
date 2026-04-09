@@ -14,6 +14,16 @@ import { fetchOverallInternHoursByUserId } from "@/lib/supabase-overall-hours";
 const BASE_MONTH_HOURS = 126;
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
+const STATUS_TO_ENUM = {
+  "Regular Duty Day": "REGULAR_DUTY_DAY",
+  "Sick Leave": "SICK_LEAVE",
+  "Vacation Leave": "VACATION_LEAVE",
+  Absent: "ABSENT",
+  Holiday: "HOLIDAY",
+  "Half Day": "HALF_DAY",
+  "Work From Home": "WORK_FROM_HOME",
+  "On Field": "ON_FIELD",
+};
 
 const HOME_INPUT_STYLE = {
   ...GLASS_INPUT_STYLE,
@@ -82,6 +92,7 @@ export default function useHomeDashboardLogic() {
   const [persistedWeekHours, setPersistedWeekHours] = useState(0);
   const [persistedTodayWeekHours, setPersistedTodayWeekHours] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
@@ -225,19 +236,20 @@ export default function useHomeDashboardLogic() {
       })
     : "Set target hours";
 
-  const hasAnyLog = amSession.timeIn || pmSession.timeIn;
   const isClockIn =
     (amSession.timeIn && !amSession.timeOut) ||
     (pmSession.timeIn && !pmSession.timeOut);
 
-  const statusLabel = isClockIn
-    ? "CLOCKED IN"
-    : hasAnyLog
-      ? "CLOCKED OUT"
-      : "NOT YET";
+  const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
   const isSessionLocked = isResetStatus(dailyStatus);
   const hasTimeLoggingError = amHasTimeError || pmHasTimeError;
   const pmEarliestTime = amSession.timeOut || amSession.timeIn;
+  const hasAnyLog = Boolean(
+    amSession.timeIn ||
+      amSession.timeOut ||
+      pmSession.timeIn ||
+      pmSession.timeOut,
+  );
 
   const handleAmTimeIn = () => {
     setAmSession((prev) => ({
@@ -354,26 +366,67 @@ export default function useHomeDashboardLogic() {
     setShowResetConfirm(false);
   };
 
-  const handleSaveTodayStatus = () => {
-    if (hasSavedToday) {
+  const handleSaveTodayStatus = async () => {
+    if (hasSavedToday || isSaving || !supabase) {
       return;
     }
 
-    triggerNoteSaved();
-    setHasSavedToday(true);
-
-    if (typeof window === "undefined") return;
+    setIsSaving(true);
 
     try {
-      window.localStorage.setItem(
-        HOME_STATUS_SAVE_LOCK_KEY,
-        JSON.stringify({
-          date: todayKey,
-          savedAt: new Date().toISOString(),
-        }),
-      );
-    } catch {
-      // Ignore storage issues in restricted browsing contexts.
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error("You must be logged in to save your session.");
+      }
+
+      const { error: saveError } = await supabase
+        .from("attendance_entries")
+        .upsert(
+          {
+            user_id: user.id,
+            work_date: todayKey,
+            am_in: amSession.timeIn || null,
+            am_out: amSession.timeOut || null,
+            pm_in: pmSession.timeIn || null,
+            pm_out: pmSession.timeOut || null,
+            status: STATUS_TO_ENUM[dailyStatus] || "REGULAR_DUTY_DAY",
+            note: dailyNote.trim() || null,
+            total_hours: Number(todayHours) || 0,
+            source: "ENCODE_PAST",
+          },
+          { onConflict: "user_id,work_date" },
+        );
+
+      if (saveError) {
+        throw new Error(saveError.message || "Failed to save today's status.");
+      }
+
+      triggerNoteSaved();
+      setHasSavedToday(true);
+
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            HOME_STATUS_SAVE_LOCK_KEY,
+            JSON.stringify({
+              date: todayKey,
+              savedAt: new Date().toISOString(),
+            }),
+          );
+        } catch {
+          // Ignore storage issues in restricted browsing contexts.
+        }
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to save Home session/status", error);
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -405,7 +458,7 @@ export default function useHomeDashboardLogic() {
       noteSaved,
       saveLocked: hasSavedToday,
       sessionsLocked: isSessionLocked,
-      disableSave: hasTimeLoggingError,
+      disableSave: hasTimeLoggingError || isSaving,
       onAmTimeIn: handleAmTimeIn,
       onAmTimeOut: handleAmTimeOut,
       onPmTimeIn: handlePmTimeIn,
