@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { CalendarRange } from "lucide-react";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
@@ -12,13 +12,18 @@ import {
   isHalfDayStatus,
   validateRequiredTimeEntry,
 } from "@/lib/dtr-time-validation";
+import { createClient } from "@/lib/supabase/client";
 import { createAttendanceRecord } from "@/lib/supabase-operations";
+import {
+  fetchUserProfileByUserId,
+  normalizeAttendanceMode,
+} from "@/lib/supabase-user-profiles";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
 import DateSection from "@/components/features/encode-past/components/DateSection";
-import AttendanceModeSection from "@/components/features/encode-past/components/AttendanceModeSection";
 import BulkAddDtrModal from "@/components/features/encode-past/components/BulkAddDtrModal";
 import TimeSessionsSection from "@/components/features/encode-past/components/TimeSessionsSection";
+import TimeSessionsSkeleton from "@/components/features/encode-past/components/TimeSessionsSkeleton";
 import StatusNoteSection from "@/components/features/encode-past/components/StatusNoteSection";
 import ErrorMessage from "@/components/features/encode-past/components/ErrorMessage";
 import SaveButton from "@/components/features/encode-past/components/SaveButton";
@@ -107,10 +112,21 @@ function calculateTotalHours({ amIn, amOut, pmIn, pmOut }) {
 }
 
 export default function EncodePastContent() {
+  const hasSupabaseConfig =
+    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+    /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+    Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+
+  const supabase = useMemo(() => {
+    if (!hasSupabaseConfig) return null;
+    return createClient();
+  }, [hasSupabaseConfig]);
+
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
   const [saved, triggerSaved] = useTimedFlag(2500);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [isModeLoading, setIsModeLoading] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({
     am: false,
     pm: false,
@@ -124,10 +140,7 @@ export default function EncodePastContent() {
     setForm((current) => ({
       ...current,
       date: typeof draft.date === "string" ? draft.date : current.date,
-      mode:
-        draft.mode === "simple" || draft.mode === "session"
-          ? draft.mode
-          : current.mode,
+      mode: current.mode,
       amIn: typeof draft.amIn === "string" ? draft.amIn : current.amIn,
       amOut: typeof draft.amOut === "string" ? draft.amOut : current.amOut,
       pmIn: typeof draft.pmIn === "string" ? draft.pmIn : current.pmIn,
@@ -146,6 +159,51 @@ export default function EncodePastContent() {
       note: typeof draft.note === "string" ? draft.note : current.note,
     }));
   }, []);
+
+  useEffect(() => {
+    if (!supabase) {
+      setIsModeLoading(false);
+      return;
+    }
+
+    let mounted = true;
+
+    const loadAttendanceMode = async () => {
+      try {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
+
+        if (!mounted || authError || !user) return;
+
+        const { data } = await fetchUserProfileByUserId({
+          supabase,
+          userId: user.id,
+        });
+
+        if (!mounted) return;
+
+        const attendanceMode = normalizeAttendanceMode(data?.attendance_mode);
+        const modeFromProfile =
+          attendanceMode === "single" ? "simple" : "session";
+
+        setForm((current) => ({
+          ...current,
+          mode: modeFromProfile,
+        }));
+      } finally {
+        if (!mounted) return;
+        setIsModeLoading(false);
+      }
+    };
+
+    loadAttendanceMode();
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
 
   useLocalStorageDraft({
     storageKey: ENCODE_PAST_DRAFT_STORAGE_KEY,
@@ -195,34 +253,9 @@ export default function EncodePastContent() {
     setForm((current) => ({ ...current, status: nextStatus }));
   }, []);
 
-  const handleModeChange = useCallback((nextMode) => {
-    setForm((current) => {
-      if (current.mode === nextMode) {
-        return current;
-      }
-
-      if (nextMode === "simple") {
-        return {
-          ...current,
-          mode: "simple",
-          simpleIn: current.simpleIn || current.amIn || "",
-          simpleOut: current.simpleOut || current.pmOut || current.amOut || "",
-        };
-      }
-
-      return {
-        ...current,
-        mode: "session",
-      };
-    });
-
-    setFieldErrors({ am: false, pm: false, simple: false });
-    setError("");
-  }, []);
-
   const hasTimeValidationErrors =
     fieldErrors.am || fieldErrors.pm || fieldErrors.simple;
-  const disableSave = hasTimeValidationErrors || isLoading;
+  const disableSave = hasTimeValidationErrors || isLoading || isModeLoading;
   const sessionsLocked = isResetStatus(form.status);
 
   const handleSave = async () => {
@@ -295,7 +328,7 @@ export default function EncodePastContent() {
       });
 
       triggerSaved(() => {
-        setForm(INITIAL_FORM);
+        setForm((current) => ({ ...INITIAL_FORM, mode: current.mode }));
       });
     } catch (error) {
       const errorMessage =
@@ -335,8 +368,6 @@ export default function EncodePastContent() {
           <CalendarRange size={13} color="var(--accent-strong)" />
           Bulk Add
         </button>
-
-        <AttendanceModeSection mode={form.mode} onModeChange={handleModeChange} />
       </div>
 
       <DateSection
@@ -345,24 +376,28 @@ export default function EncodePastContent() {
         onDateChange={(value) => updateField("date", value)}
       />
 
-      <TimeSessionsSection
-        mode={form.mode}
-        amIn={form.amIn}
-        amOut={form.amOut}
-        pmIn={form.pmIn}
-        pmOut={form.pmOut}
-        simpleIn={form.simpleIn}
-        simpleOut={form.simpleOut}
-        onAmInChange={(value) => updateField("amIn", value)}
-        onAmOutChange={(value) => updateField("amOut", value)}
-        onPmInChange={(value) => updateField("pmIn", value)}
-        onPmOutChange={(value) => updateField("pmOut", value)}
-        onSimpleInChange={(value) => updateField("simpleIn", value)}
-        onSimpleOutChange={(value) => updateField("simpleOut", value)}
-        onValidationChange={handleTimeValidation}
-        status={form.status}
-        sessionsLocked={sessionsLocked}
-      />
+      {isModeLoading ? (
+        <TimeSessionsSkeleton />
+      ) : (
+        <TimeSessionsSection
+          mode={form.mode}
+          amIn={form.amIn}
+          amOut={form.amOut}
+          pmIn={form.pmIn}
+          pmOut={form.pmOut}
+          simpleIn={form.simpleIn}
+          simpleOut={form.simpleOut}
+          onAmInChange={(value) => updateField("amIn", value)}
+          onAmOutChange={(value) => updateField("amOut", value)}
+          onPmInChange={(value) => updateField("pmIn", value)}
+          onPmOutChange={(value) => updateField("pmOut", value)}
+          onSimpleInChange={(value) => updateField("simpleIn", value)}
+          onSimpleOutChange={(value) => updateField("simpleOut", value)}
+          onValidationChange={handleTimeValidation}
+          status={form.status}
+          sessionsLocked={sessionsLocked}
+        />
+      )}
 
       <StatusNoteSection
         status={form.status}

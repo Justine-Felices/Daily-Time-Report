@@ -13,7 +13,12 @@ import PersonalInfoSection from "@/components/features/profile/components/Person
 import ProfileHeaderCard from "@/components/features/profile/components/ProfileHeaderCard";
 import EditPersonalInfoModal from "@/components/features/profile/components/EditPersonalInfoModal";
 import ThemeModeCard from "@/components/features/profile/components/ThemeModeCard";
+import AttendanceFormatCard from "@/components/features/profile/components/AttendanceFormatCard";
 import useThemeMode from "@/hooks/useThemeMode";
+import {
+  normalizeAttendanceMode,
+  updateUserAttendanceModeByUserId,
+} from "@/lib/supabase-user-profiles";
 
 const EMPTY_PROFILE = {
   name: "",
@@ -68,6 +73,9 @@ export default function ProfileContent() {
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [, triggerSaved] = useTimedFlag(2500);
+  const [attendanceMode, setAttendanceMode] = useState("dual");
+  const [isSavingAttendanceMode, setIsSavingAttendanceMode] = useState(false);
+  const [attendanceModeSaved, triggerAttendanceModeSaved] = useTimedFlag(1800);
   const { mode, resolvedMode, setMode } = useThemeMode();
 
   useEffect(() => {
@@ -86,7 +94,7 @@ export default function ProfileContent() {
       const { data, error } = await supabase
         .from("user_profiles")
         .select(
-          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours",
+          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours, attendance_mode",
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -108,6 +116,7 @@ export default function ProfileContent() {
             ? ""
             : String(data.target_hours),
       }));
+          setAttendanceMode(normalizeAttendanceMode(data.attendance_mode));
     };
 
     loadProfile();
@@ -140,6 +149,49 @@ export default function ProfileContent() {
     }
   };
 
+  const handleAttendanceModeChange = async (nextMode) => {
+    const normalizedNextMode = normalizeAttendanceMode(nextMode);
+    if (!supabase || isSavingAttendanceMode || normalizedNextMode === attendanceMode) {
+      return;
+    }
+
+    setIsSavingAttendanceMode(true);
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        throw new Error("Unable to resolve signed-in user.");
+      }
+
+      const previousMode = attendanceMode;
+      setAttendanceMode(normalizedNextMode);
+
+      const { data, error } = await updateUserAttendanceModeByUserId({
+        supabase,
+        userId: user.id,
+        attendanceMode: normalizedNextMode,
+      });
+
+      if (error) {
+        setAttendanceMode(previousMode);
+        throw new Error(error.message || "Failed to update attendance format.");
+      }
+
+      setAttendanceMode(normalizeAttendanceMode(data?.attendance_mode));
+      triggerAttendanceModeSaved();
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to update attendance mode", error);
+      }
+    } finally {
+      setIsSavingAttendanceMode(false);
+    }
+  };
+
   return (
     <PageShell width="narrow">
       <HeaderSection
@@ -165,6 +217,13 @@ export default function ProfileContent() {
         mode={mode}
         resolvedMode={resolvedMode}
         onModeChange={setMode}
+      />
+
+      <AttendanceFormatCard
+        mode={attendanceMode}
+        isSaving={isSavingAttendanceMode}
+        saved={attendanceModeSaved}
+        onModeChange={handleAttendanceModeChange}
       />
 
       <LogoutButton onClick={handleLogout} />

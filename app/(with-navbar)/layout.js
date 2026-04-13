@@ -1,9 +1,9 @@
-import Navbar from "@/components/layout/Navbar";
+import ClientOnlyNavbar from "@/components/layout/ClientOnlyNavbar";
 
 export default function WithNavbarLayout({ children }) {
   return (
     <>
-      <Navbar />
+      <ClientOnlyNavbar />
       {children}
     </>
   );
