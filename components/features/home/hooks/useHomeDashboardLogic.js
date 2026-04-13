@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import useLiveClock from "@/hooks/useLiveClock";
@@ -9,9 +9,8 @@ import {
   fetchUserProfileByUserId,
   isUserProfileOnboarded,
 } from "@/lib/supabase-user-profiles";
-import { fetchOverallInternHoursByUserId } from "@/lib/supabase-overall-hours";
+import { fetchDashboardInternHoursByUserId } from "@/lib/supabase-dashboard-hours";
 
-const BASE_MONTH_HOURS = 126;
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
 const STATUS_TO_ENUM = {
@@ -51,20 +50,6 @@ function toLocalDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
-function getCurrentWeekRange(date) {
-  const startOfWeek = new Date(date);
-  const dayIndex = (startOfWeek.getDay() + 6) % 7;
-  startOfWeek.setDate(startOfWeek.getDate() - dayIndex);
-
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-  return {
-    startDate: toLocalDateKey(startOfWeek),
-    endDate: toLocalDateKey(endOfWeek),
-  };
-}
-
 export default function useHomeDashboardLogic() {
   const router = useRouter();
   const hasSupabaseConfig =
@@ -90,12 +75,38 @@ export default function useHomeDashboardLogic() {
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
   const [persistedWeekHours, setPersistedWeekHours] = useState(0);
-  const [persistedTodayWeekHours, setPersistedTodayWeekHours] = useState(0);
+  const [persistedTodayHours, setPersistedTodayHours] = useState(0);
+  const [persistedMonthHours, setPersistedMonthHours] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
+
+  const refreshPersistedSummary = useCallback(
+    async (userId) => {
+      if (!supabase || !userId) return;
+
+      const dashboardHours = await fetchDashboardInternHoursByUserId({
+        supabase,
+        userId,
+      });
+
+      if (!dashboardHours) {
+        setPersistedTodayHours(0);
+        setPersistedWeekHours(0);
+        setPersistedMonthHours(0);
+        setPersistedTotalHours(0);
+        return;
+      }
+
+      setPersistedTodayHours(dashboardHours.todayHours);
+      setPersistedWeekHours(dashboardHours.weekHours);
+      setPersistedMonthHours(dashboardHours.monthHours);
+      setPersistedTotalHours(dashboardHours.totalHours);
+    },
+    [supabase],
+  );
 
   useEffect(() => {
     if (!supabase) {
@@ -139,39 +150,9 @@ export default function useHomeDashboardLogic() {
             : null,
         );
 
-        const overallHours = await fetchOverallInternHoursByUserId({
-          supabase,
-          userId: user.id,
-        });
+        await refreshPersistedSummary(user.id);
 
         if (!mounted) return;
-
-        if (overallHours !== null) {
-          setPersistedTotalHours(overallHours);
-        }
-
-        const { startDate, endDate } = getCurrentWeekRange(new Date());
-        const { data: weeklyRows, error: weeklyError } = await supabase
-          .from("attendance_entries")
-          .select("work_date, total_hours")
-          .eq("user_id", user.id)
-          .gte("work_date", startDate)
-          .lte("work_date", endDate);
-
-        if (!mounted) return;
-
-        if (!weeklyError && Array.isArray(weeklyRows)) {
-          const weeklyTotal = weeklyRows.reduce(
-            (sum, row) => sum + (Number(row?.total_hours) || 0),
-            0,
-          );
-          const todayPersisted = weeklyRows.find(
-            (row) => row?.work_date === todayKey,
-          );
-
-          setPersistedWeekHours(weeklyTotal);
-          setPersistedTodayWeekHours(Number(todayPersisted?.total_hours) || 0);
-        }
 
         if (!isUserProfileOnboarded(profile)) {
           router.replace("/onboarding");
@@ -194,7 +175,7 @@ export default function useHomeDashboardLogic() {
     return () => {
       mounted = false;
     };
-  }, [router, supabase, todayKey]);
+  }, [refreshPersistedSummary, router, supabase]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -216,14 +197,14 @@ export default function useHomeDashboardLogic() {
     });
   }, [todayKey]);
 
-  const todayHours =
+  const draftTodayHours =
     (amSession.timeIn && amSession.timeOut ? 4 : amSession.timeIn ? 2 : 0) +
     (pmSession.timeIn && pmSession.timeOut ? 4 : pmSession.timeIn ? 2 : 0);
 
-  const weekHours =
-    Math.max(0, persistedWeekHours - persistedTodayWeekHours) + todayHours;
-  const monthHours = BASE_MONTH_HOURS + todayHours;
-  const totalRenderedHours = persistedTotalHours + todayHours;
+  const todayHours = persistedTodayHours;
+  const weekHours = persistedWeekHours;
+  const monthHours = persistedMonthHours;
+  const totalRenderedHours = persistedTotalHours;
   const hasValidTargetHours =
     Number.isFinite(targetHours) && Number(targetHours) > 0;
   const pct = Math.min(
@@ -405,7 +386,7 @@ export default function useHomeDashboardLogic() {
             pm_out: pmSession.timeOut || null,
             status: STATUS_TO_ENUM[dailyStatus] || "REGULAR_DUTY_DAY",
             note: dailyNote.trim() || null,
-            total_hours: Number(todayHours) || 0,
+            total_hours: Number(draftTodayHours) || 0,
             source: "ENCODE_PAST",
           },
           { onConflict: "user_id,work_date" },
@@ -414,6 +395,8 @@ export default function useHomeDashboardLogic() {
       if (saveError) {
         throw new Error(saveError.message || "Failed to save today's status.");
       }
+
+      await refreshPersistedSummary(user.id);
 
       triggerNoteSaved();
       setHasSavedToday(true);
