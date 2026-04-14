@@ -50,6 +50,36 @@ function toLocalDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function formatDashboardDate(dateText) {
+  if (typeof dateText !== "string") return null;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateText.trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+
+  const localDate = new Date(year, month - 1, day);
+  if (
+    localDate.getFullYear() !== year ||
+    localDate.getMonth() !== month - 1 ||
+    localDate.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return localDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function useHomeDashboardLogic() {
   const router = useRouter();
   const hasSupabaseConfig =
@@ -77,6 +107,8 @@ export default function useHomeDashboardLogic() {
   const [persistedWeekHours, setPersistedWeekHours] = useState(0);
   const [persistedTodayHours, setPersistedTodayHours] = useState(0);
   const [persistedMonthHours, setPersistedMonthHours] = useState(0);
+  const [persistedEstimatedFinishDate, setPersistedEstimatedFinishDate] =
+    useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -97,6 +129,7 @@ export default function useHomeDashboardLogic() {
         setPersistedWeekHours(0);
         setPersistedMonthHours(0);
         setPersistedTotalHours(0);
+        setPersistedEstimatedFinishDate(null);
         return;
       }
 
@@ -104,6 +137,7 @@ export default function useHomeDashboardLogic() {
       setPersistedWeekHours(dashboardHours.weekHours);
       setPersistedMonthHours(dashboardHours.monthHours);
       setPersistedTotalHours(dashboardHours.totalHours);
+      setPersistedEstimatedFinishDate(dashboardHours.estimatedFinishDate);
     },
     [supabase],
   );
@@ -216,16 +250,10 @@ export default function useHomeDashboardLogic() {
   const remaining = hasValidTargetHours
     ? Math.max(0, Number(targetHours) - totalRenderedHours)
     : 0;
-
-  const estimatedFinish = new Date();
-  estimatedFinish.setDate(estimatedFinish.getDate() + Math.ceil(remaining / 8));
-  const estimatedFinishText = hasValidTargetHours
-    ? estimatedFinish.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "Set target hours";
+  const formattedEstimatedFinish = formatDashboardDate(persistedEstimatedFinishDate);
+  const estimatedFinishText = !hasValidTargetHours
+    ? "Set target hours"
+    : formattedEstimatedFinish || "Not available";
 
   const isClockIn =
     (amSession.timeIn && !amSession.timeOut) ||
