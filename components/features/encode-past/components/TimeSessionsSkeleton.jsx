@@ -73,7 +73,7 @@ export default function TimeSessionsSkeleton({ mode }) {
           boxShadow: "var(--shadow-soft)",
         }}
       >
-        <SkeletonBlock className="mb-3 h-3 w-18" />
+        <SkeletonBlock className="mb-3 h-3 w-18" /> 
         <SkeletonBlock className="mb-3 h-10 w-full rounded-xl" />
         <SkeletonBlock className="mb-3 h-3 w-28" />
         <SkeletonBlock className="h-20 w-full rounded-xl" />

@@ -218,10 +218,10 @@ export default function BulkAddDtrModal({ open, onClose }) {
   const [endDate, setEndDate] = useState("");
   const [note, setNote] = useState("");
   const [times, setTimes] = useState({
-    amIn: "09:00",
+    amIn: "09:30",
     amOut: "12:00",
     pmIn: "13:00",
-    pmOut: "18:00",
+    pmOut: "18:30",
   });
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState("");

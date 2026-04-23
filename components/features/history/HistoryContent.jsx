@@ -8,6 +8,7 @@ import {
   updateAttendanceHistoryRecord,
 } from "@/lib/supabase-history";
 import { fetchCurrentUserOverallInternHours } from "@/lib/supabase-overall-hours";
+import { fetchCurrentUserProfile } from "@/lib/supabase-user-profiles";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/history/components/HeaderSection";
 import ActionsSection from "@/components/features/history/components/ActionsSection";
@@ -42,7 +43,7 @@ function sortHistoryRecords(records, sortDir) {
   });
 }
 
-async function buildDtrPdf(records, totalHours) {
+async function buildDtrPdf(records, totalHours, profile) {
   const [{ jsPDF }, autoTableModule] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
@@ -50,27 +51,42 @@ async function buildDtrPdf(records, totalHours) {
   const autoTable = autoTableModule.default;
   const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
 
+  const dateOptions = { year: "numeric", month: "long", day: "numeric" };
+  const formattedGeneratedDate = new Date().toLocaleDateString(
+    "en-US",
+    dateOptions,
+  );
+
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(16);
   pdf.text("Daily Time Record", 40, 44);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10);
-  pdf.text(`Generated: ${new Date().toLocaleString("en-US")}`, 40, 62);
+  pdf.text(`Generated: ${formattedGeneratedDate}`, 40, 62);
+  pdf.text(`Student Name: ${profile?.full_name || "N/A"}`, 40, 78);
+  pdf.text(`Target Hours: ${profile?.target_hours || "0"}`, 40, 94);
 
   autoTable(pdf, {
-    startY: 80,
+    startY: 110,
     margin: { left: 40, right: 40 },
     head: [["Date", "AM In", "AM Out", "PM In", "PM Out", "Status", "Hours"]],
-    body: records.map((record) => [
-      record.date,
-      record.amIn || "",
-      record.amOut || "",
-      record.pmIn || "",
-      record.pmOut || "",
-      record.status || "",
-      Number(record.totalHours || 0).toFixed(1),
-    ]),
+    body: records.map((record) => {
+      // Parse YYYY-MM-DD to avoid timezone shifts
+      const [year, month, day] = record.date.split("-");
+      const dateObj = new Date(year, month - 1, day);
+      const formattedDate = dateObj.toLocaleDateString("en-US", dateOptions);
+
+      return [
+        formattedDate,
+        record.amIn || "",
+        record.amOut || "",
+        record.pmIn || "",
+        record.pmOut || "",
+        record.status || "",
+        Number(record.totalHours || 0).toFixed(1),
+      ];
+    }),
     theme: "grid",
     styles: {
       font: "helvetica",
@@ -86,17 +102,17 @@ async function buildDtrPdf(records, totalHours) {
       fontStyle: "bold",
     },
     columnStyles: {
-      0: { cellWidth: 70 },
-      1: { cellWidth: 52 },
-      2: { cellWidth: 52 },
-      3: { cellWidth: 52 },
-      4: { cellWidth: 52 },
-      5: { cellWidth: 110 },
+      0: { cellWidth: 95 },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 50 },
+      3: { cellWidth: 50 },
+      4: { cellWidth: 50 },
+      5: { cellWidth: 105 },
       6: { cellWidth: 45, halign: "right" },
     },
   });
 
-  const footerY = (pdf.lastAutoTable?.finalY || 80) + 18;
+  const footerY = (pdf.lastAutoTable?.finalY || 110) + 18;
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(10);
   pdf.text(`Total Hours: ${totalHours.toFixed(1)}`, 555, footerY, {
@@ -108,6 +124,7 @@ async function buildDtrPdf(records, totalHours) {
 
 export default function HistoryContent() {
   const [history, setHistory] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
   const [overallHoursLogged, setOverallHoursLogged] = useState(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isOverallHoursLoading, setIsOverallHoursLoading] = useState(true);
@@ -122,14 +139,16 @@ export default function HistoryContent() {
 
     const loadSupabaseHistory = async () => {
       try {
-        const [records, totalHours] = await Promise.all([
+        const [records, totalHours, profile] = await Promise.all([
           fetchAttendanceHistoryRecords(),
           fetchCurrentUserOverallInternHours(),
+          fetchCurrentUserProfile(),
         ]);
 
         if (!mounted) return;
 
         setHistory(records);
+        setUserProfile(profile);
 
         if (totalHours !== null) {
           setOverallHoursLogged(totalHours);
@@ -199,7 +218,7 @@ export default function HistoryContent() {
   );
 
   const handlePrint = async () => {
-    const pdf = await buildDtrPdf(allSorted, totalAllHours);
+    const pdf = await buildDtrPdf(allSorted, totalAllHours, userProfile);
     const blob = pdf.output("blob");
     const blobUrl = URL.createObjectURL(blob);
     window.open(blobUrl, "_blank", "noopener,noreferrer");
