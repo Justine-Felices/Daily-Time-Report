@@ -10,6 +10,7 @@ import {
   isUserProfileOnboarded,
 } from "@/lib/supabase-user-profiles";
 import { fetchDashboardInternHoursByUserId } from "@/lib/supabase-dashboard-hours";
+import { fetchAttendanceRecordByDate } from "@/lib/supabase-history";
 
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
@@ -119,10 +120,17 @@ export default function useHomeDashboardLogic() {
     async (userId) => {
       if (!supabase || !userId) return;
 
-      const dashboardHours = await fetchDashboardInternHoursByUserId({
-        supabase,
-        userId,
-      });
+      const [dashboardHours, todayRecord] = await Promise.all([
+        fetchDashboardInternHoursByUserId({
+          supabase,
+          userId,
+        }),
+        fetchAttendanceRecordByDate({
+          supabase,
+          userId,
+          dateKey: todayKey,
+        }),
+      ]);
 
       if (!dashboardHours) {
         setPersistedTodayHours(0);
@@ -130,16 +138,31 @@ export default function useHomeDashboardLogic() {
         setPersistedMonthHours(0);
         setPersistedTotalHours(0);
         setPersistedEstimatedFinishDate(null);
-        return;
+      } else {
+        setPersistedTodayHours(dashboardHours.todayHours);
+        setPersistedWeekHours(dashboardHours.weekHours);
+        setPersistedMonthHours(dashboardHours.monthHours);
+        setPersistedTotalHours(dashboardHours.totalHours);
+        setPersistedEstimatedFinishDate(dashboardHours.estimatedFinishDate);
       }
 
-      setPersistedTodayHours(dashboardHours.todayHours);
-      setPersistedWeekHours(dashboardHours.weekHours);
-      setPersistedMonthHours(dashboardHours.monthHours);
-      setPersistedTotalHours(dashboardHours.totalHours);
-      setPersistedEstimatedFinishDate(dashboardHours.estimatedFinishDate);
+      if (todayRecord) {
+        setHasSavedToday(true);
+        setAmSession({
+          timeIn: todayRecord.amIn,
+          timeOut: todayRecord.amOut,
+        });
+        setPmSession({
+          timeIn: todayRecord.pmIn,
+          timeOut: todayRecord.pmOut,
+        });
+        setDailyStatus(todayRecord.status);
+        setDailyNote(todayRecord.note || "");
+      } else {
+        setHasSavedToday(false);
+      }
     },
-    [supabase],
+    [supabase, todayKey],
   );
 
   useEffect(() => {
@@ -211,25 +234,6 @@ export default function useHomeDashboardLogic() {
     };
   }, [refreshPersistedSummary, router, supabase]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    Promise.resolve().then(() => {
-      try {
-        const raw = window.localStorage.getItem(HOME_STATUS_SAVE_LOCK_KEY);
-
-        if (!raw) {
-          setHasSavedToday(false);
-          return;
-        }
-
-        const parsed = JSON.parse(raw);
-        setHasSavedToday(parsed?.date === todayKey);
-      } catch {
-        setHasSavedToday(false);
-      }
-    });
-  }, [todayKey]);
 
   const draftTodayHours =
     (amSession.timeIn && amSession.timeOut ? 4 : amSession.timeIn ? 2 : 0) +
@@ -428,20 +432,6 @@ export default function useHomeDashboardLogic() {
 
       triggerNoteSaved();
       setHasSavedToday(true);
-
-      if (typeof window !== "undefined") {
-        try {
-          window.localStorage.setItem(
-            HOME_STATUS_SAVE_LOCK_KEY,
-            JSON.stringify({
-              date: todayKey,
-              savedAt: new Date().toISOString(),
-            }),
-          );
-        } catch {
-          // Ignore storage issues in restricted browsing contexts.
-        }
-      }
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
         console.error("Failed to save Home session/status", error);
