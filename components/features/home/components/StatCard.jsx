@@ -1,71 +1,39 @@
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 
-const BASE_CONTAINER_STYLE = {
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  boxShadow: "0 3px 16px rgba(6,148,148,0.07)",
-};
-
-const LABEL_STYLE = {
-  color: "var(--text-muted)",
-  fontSize: "9px",
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  fontFamily: "'Inter',sans-serif",
-  marginBottom: "6px",
-};
-
-const SUBTEXT_STYLE = {
-  color: "var(--text-muted)",
-  fontSize: "10px",
-  fontFamily: "'Inter',sans-serif",
-  marginTop: "4px",
-};
-
 export default function StatCard({
   label,
   value,
   sub,
-  accent,
   isLoading = false,
 }) {
   return (
     <div
-      className="flex flex-col items-center rounded-2xl p-4 text-center"
-      style={{
-        ...BASE_CONTAINER_STYLE,
-        background: accent
-          ? "linear-gradient(135deg,rgba(6,148,148,0.1),rgba(0,240,255,0.08))"
-          : "var(--surface-card)",
-        border: `1.5px solid ${
-          accent ? "rgba(6,148,148,0.22)" : "rgba(6,148,148,0.1)"
-        }`,
-      }}
+      className="relative md:w-[180px] md:h-[140px] w-[140px] h-[110px] shrink-0 flex flex-col items-center justify-center gap-y-1 bg-[#1C1C1E] rounded-[30px] border-t border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
     >
-      <div style={{ ...LABEL_STYLE, textAlign: "center", width: "100%" }}>
+      {/* Label */}
+      <span className="text-[#58D4d4] font-bold tracking-tight uppercase md:text-[12px] text-[10px]">
         {label}
+      </span>
+
+      {/* Main Stat */}
+      <div className="flex items-center justify-center py-0.5 md:py-1">
+        {isLoading ? (
+          <SkeletonBlock className="md:h-10 h-8 md:w-24 w-16 rounded-lg bg-white/5" />
+        ) : (
+          <span className="text-white md:text-4xl text-2xl font-semibold leading-none tracking-tighter">
+            {value}
+          </span>
+        )}
       </div>
-      {isLoading ? (
-        <SkeletonBlock className="h-6 w-16 self-center rounded-md" />
-      ) : (
-        <div
-          style={{
-            color: accent ? "var(--accent-strong)" : "var(--text-primary)",
-            fontSize: "22px",
-            fontWeight: 800,
-            fontFamily: "'Inter',sans-serif",
-            letterSpacing: "-0.03em",
-            lineHeight: 1,
-            textAlign: "center",
-            width: "100%",
-          }}
-        >
-          {value}
-        </div>
-      )}
-      <div style={{ ...SUBTEXT_STYLE, textAlign: "center", width: "100%" }}>
+
+      {/* Subtext */}
+      <div className="text-[#8E8E93] font-bold tracking-tight md:text-[10px] text-[8px] text-center uppercase">
         {sub}
       </div>
     </div>
   );
 }
+
+
+
+
