@@ -3,7 +3,7 @@ import StatCard from "@/components/features/home/components/StatCard";
 
 const TITLE_STYLE = {
   color: "var(--text-primary)",
-  fontSize: "14px",
+  fontSize: "18px",
   fontWeight: 700,
   fontFamily: "'Inter',sans-serif",
 };
@@ -45,11 +45,11 @@ export default function SummarySection({
   return (
     <div>
       <div className="mb-3 flex items-center gap-2 px-1">
-        <Timer size={15} color="var(--accent-strong)" />
+        <Timer size={18} color="var(--accent-strong)" />
         <span style={TITLE_STYLE}>Summary</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-row flex-wrap gap-3 pb-4 sm:grid sm:grid-cols-4 sm:overflow-visible lg:grid-cols-4">
         {summaryItems.map((item) => (
           <StatCard
             key={item.label}
