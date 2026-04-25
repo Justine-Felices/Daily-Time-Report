@@ -44,6 +44,14 @@ function toMinutes(clock) {
   return hours * 60 + minutes;
 }
 
+function calculateDuration(startTime, endTime) {
+  if (!startTime || !endTime) return 0;
+  const start = toMinutes(startTime);
+  const end = toMinutes(endTime);
+  if (start === null || end === null || end <= start) return 0;
+  return (end - start) / 60;
+}
+
 function toLocalDateKey(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -113,6 +121,16 @@ export default function useHomeDashboardLogic() {
     useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [attendanceMode, setAttendanceMode] = useState("dual");
+  const [showClockOutModal, setShowClockOutModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (!errorMessage) return;
+    const timer = setTimeout(() => setErrorMessage(null), 5000);
+    return () => clearTimeout(timer);
+  }, [errorMessage]);
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
@@ -121,7 +139,7 @@ export default function useHomeDashboardLogic() {
     async (userId) => {
       if (!supabase || !userId) return;
 
-      const [dashboardHours, todayRecord] = await Promise.all([
+      const [dashboardHours, todayRecord, profileResult] = await Promise.all([
         fetchDashboardInternHoursByUserId({
           supabase,
           userId,
@@ -131,7 +149,16 @@ export default function useHomeDashboardLogic() {
           userId,
           dateKey: todayKey,
         }),
+        supabase
+          .from("user_profiles")
+          .select("attendance_mode")
+          .eq("user_id", userId)
+          .maybeSingle(),
       ]);
+
+      if (profileResult?.data) {
+        setAttendanceMode(profileResult.data.attendance_mode || "dual");
+      }
 
       if (!dashboardHours) {
         setPersistedTodayHours(0);
@@ -161,6 +188,8 @@ export default function useHomeDashboardLogic() {
         setDailyNote(todayRecord.note || "");
       } else {
         setHasSavedToday(false);
+        setAmSession(EMPTY_SESSION);
+        setPmSession(EMPTY_SESSION);
       }
     },
     [supabase, todayKey],
@@ -262,6 +291,55 @@ export default function useHomeDashboardLogic() {
     ? "Set target hours"
     : formattedEstimatedFinish || "Not available";
 
+  // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
+  const currentStatus = useMemo(() => {
+    if (!amSession.timeIn) return "clock-in";
+    if (!amSession.timeOut) return "clock-out-am";
+    if (!pmSession.timeIn) return "start-pm";
+    if (!pmSession.timeOut) return "clock-out-pm";
+    return "done";
+  }, [amSession, pmSession]);
+
+  const buttonConfig = useMemo(() => {
+    switch (currentStatus) {
+      case "clock-in":
+        return {
+          label: "Clock In",
+          background: "linear-gradient(135deg, #58D4D4 0%, #2AC9C9 100%)",
+          color: "#0F172A",
+          shadow: "rgba(88, 212, 212, 0.3)",
+        };
+      case "clock-out-am":
+        return {
+          label: "Clock Out (AM)",
+          background: "linear-gradient(135deg, #FB923C 0%, #F59E0B 100%)",
+          color: "#FFFFFF",
+          shadow: "rgba(245, 158, 11, 0.3)",
+        };
+      case "start-pm":
+        return {
+          label: "Start PM",
+          background: "linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)",
+          color: "#FFFFFF",
+          shadow: "rgba(14, 165, 233, 0.3)",
+        };
+      case "clock-out-pm":
+        return {
+          label: "Clock Out",
+          background: "linear-gradient(135deg, #FB7185 0%, #E11D48 100%)",
+          color: "#FFFFFF",
+          shadow: "rgba(225, 29, 72, 0.3)",
+        };
+      default:
+        return {
+          label: "Already Logged",
+          background: "rgba(255, 255, 255, 0.05)",
+          color: "rgba(255, 255, 255, 0.3)",
+          shadow: "transparent",
+        };
+    }
+  }, [currentStatus]);
+
   const isClockIn =
     (amSession.timeIn && !amSession.timeOut) ||
     (pmSession.timeIn && !pmSession.timeOut);
@@ -280,7 +358,26 @@ export default function useHomeDashboardLogic() {
     return Math.max(0, (nowMinutes - startMinutes) / 60);
   }, [activeSessionTimeIn, now]);
 
+  const modalHours = useMemo(() => {
+    const timeNow = formatNowClock(now);
+    if (currentStatus === "clock-out-am") {
+      if (attendanceMode === "dual") {
+        const morning = calculateDuration(amSession.timeIn, "11:00");
+        const afternoon = calculateDuration("12:00", timeNow);
+        return morning + afternoon;
+      }
+      return calculateDuration(amSession.timeIn, timeNow);
+    }
+    if (currentStatus === "clock-out-pm") {
+      const morning = calculateDuration(amSession.timeIn, amSession.timeOut);
+      const afternoon = calculateDuration(pmSession.timeIn, timeNow);
+      return morning + afternoon;
+    }
+    return 0;
+  }, [currentStatus, amSession, pmSession, attendanceMode, now]);
+
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
+  const isDayComplete = currentStatus === "done";
   const isSessionLocked = isResetStatus(dailyStatus);
   const hasTimeLoggingError = amHasTimeError || pmHasTimeError;
   const pmEarliestTime = amSession.timeOut || amSession.timeIn;
@@ -290,6 +387,144 @@ export default function useHomeDashboardLogic() {
       pmSession.timeIn ||
       pmSession.timeOut,
   );
+
+  // ─── CLOCK IN: Insert a new row with am_in = now ───
+  const handleClockIn = async () => {
+    if (!supabase || isSaving) return;
+    setErrorMessage(null);
+    setIsSaving(true);
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setErrorMessage("Your session has expired. Please log in again to record your attendance.");
+        return;
+      }
+      const timeNow = formatNowClock(new Date());
+      const { error: insertError } = await supabase
+        .from("attendance_entries")
+        .upsert(
+          {
+            user_id: user.id,
+            work_date: todayKey,
+            am_in: timeNow,
+            status: "REGULAR_DUTY_DAY",
+            source: "ENCODE_PAST",
+            total_hours: 0,
+          },
+          { onConflict: "user_id,work_date" },
+        );
+      if (insertError) {
+        setErrorMessage("We couldn't reach the server. Please check your connection and try clocking in again.");
+        return;
+      }
+      await refreshPersistedSummary(user.id);
+    } catch (err) {
+      setErrorMessage("Something went wrong on our end. Please refresh the page and try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ─── START PM: Update existing row with pm_in = now ───
+  const handleStartPm = async () => {
+    if (!supabase || isSaving) return;
+    setErrorMessage(null);
+    setIsSaving(true);
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setErrorMessage("Session expired. Please log in again to start your PM session.");
+        return;
+      }
+      const timeNow = formatNowClock(new Date());
+      const { error: updateError } = await supabase
+        .from("attendance_entries")
+        .update({ pm_in: timeNow })
+        .eq("user_id", user.id)
+        .eq("work_date", todayKey);
+      if (updateError) {
+        setErrorMessage("Failed to start PM session. Please check your internet connection.");
+        return;
+      }
+      await refreshPersistedSummary(user.id);
+    } catch (err) {
+      setErrorMessage("We encountered an error starting your session. Please try again in a moment.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ─── CONFIRM CLOCK OUT: Update row with am_out/pm_out ───
+  const handleConfirmClockOut = async () => {
+    if (!supabase || isSaving) return;
+    setErrorMessage(null);
+    setIsSaving(true);
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setErrorMessage("Session expired. Please log in again to save your clock out.");
+        return;
+      }
+      const timeNow = formatNowClock(new Date());
+      let updates = {};
+
+      if (currentStatus === "clock-out-am") {
+        if (attendanceMode === "dual") {
+          // Dual mode: auto-fill am_out, pm_in, pm_out
+          updates = {
+            am_out: "11:00",
+            pm_in: "12:00",
+            pm_out: timeNow,
+            total_hours: modalHours,
+          };
+        } else {
+          // Single mode: just set am_out
+          updates = { am_out: timeNow, total_hours: modalHours };
+        }
+      } else if (currentStatus === "clock-out-pm") {
+        updates = { pm_out: timeNow, total_hours: modalHours };
+      }
+
+      const { error: updateError } = await supabase
+        .from("attendance_entries")
+        .update(updates)
+        .eq("user_id", user.id)
+        .eq("work_date", todayKey);
+      if (updateError) {
+        setErrorMessage("Unable to save your clock out. Please check your connection.");
+        return;
+      }
+      await refreshPersistedSummary(user.id);
+      setShowClockOutModal(false);
+    } catch (err) {
+      setErrorMessage("Something went wrong while clocking out. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ─── TOGGLE CLOCK: Dispatches to the correct handler ───
+  const onToggleClock = () => {
+    if (currentStatus === "clock-in") {
+      handleClockIn();
+    } else if (currentStatus === "start-pm") {
+      handleStartPm();
+    } else if (
+      currentStatus === "clock-out-am" ||
+      currentStatus === "clock-out-pm"
+    ) {
+      setShowClockOutModal(true);
+    }
+  };
 
   const handleAmTimeIn = () => {
     setAmSession((prev) => ({
@@ -474,6 +709,7 @@ export default function useHomeDashboardLogic() {
       userName: fullName,
       currentSessionTimeIn: activeSessionTimeIn,
       currentSessionHours: currentSessionHours,
+      isDayComplete,
     },
     progress: {
       pct,
@@ -482,6 +718,7 @@ export default function useHomeDashboardLogic() {
     },
     sessions: {
       now,
+      isSaving,
       amSession,
       pmSession,
       dailyStatus,
@@ -490,6 +727,17 @@ export default function useHomeDashboardLogic() {
       saveLocked: hasSavedToday,
       sessionsLocked: isSessionLocked,
       disableSave: hasTimeLoggingError || isSaving,
+      currentStatus,
+      buttonConfig,
+      isDayComplete,
+      onToggleClock,
+      showClockOutModal,
+      setShowClockOutModal,
+      handleConfirmClockOut,
+      attendanceMode,
+      modalHours,
+      errorMessage,
+      clearError: () => setErrorMessage(null),
       onAmTimeIn: handleAmTimeIn,
       onAmTimeOut: handleAmTimeOut,
       onPmTimeIn: handlePmTimeIn,

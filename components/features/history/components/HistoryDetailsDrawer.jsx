@@ -56,6 +56,7 @@ export default function HistoryDetailsDrawer({
   const [totalHours, setTotalHours] = useState("0");
   const [note, setNote] = useState("");
   const [errorText, setErrorText] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !record) return;
@@ -69,6 +70,7 @@ export default function HistoryDetailsDrawer({
     setTotalHours(String(Number(record.totalHours || 0)));
     setNote(record.note || "");
     setErrorText("");
+    setShowDeleteConfirm(false);
   }, [isOpen, record]);
 
   useEffect(() => {
@@ -164,11 +166,6 @@ export default function HistoryDetailsDrawer({
 
   const handleDelete = async () => {
     if (!onDelete || !record?.id || isPending) return;
-
-    const confirmed = window.confirm(
-      "Delete this entry permanently? This action cannot be undone.",
-    );
-    if (!confirmed) return;
 
     setErrorText("");
     const result = await onDelete(record.id);
@@ -562,27 +559,83 @@ export default function HistoryDetailsDrawer({
 
           <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
 
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isPending}
-            className="w-full rounded-2xl px-4 py-3"
-            style={{
-              background: isPending
-                ? "rgba(148,163,184,0.14)"
-                : "rgba(239,68,68,0.12)",
-              border: isPending
-                ? "1px solid rgba(148,163,184,0.22)"
-                : "1px solid rgba(239,68,68,0.22)",
-              color: isPending ? "var(--text-muted)" : "#BE123C",
-              fontSize: "15px",
-              fontWeight: 700,
-              fontFamily: "'Inter',sans-serif",
-              lineHeight: 1.1,
-            }}
-          >
-            {isPending ? "Working..." : "Delete Entry"}
-          </button>
+          {!showDeleteConfirm ? (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isPending}
+              className="w-full rounded-2xl px-4 py-3"
+              style={{
+                background: isPending
+                  ? "rgba(148,163,184,0.14)"
+                  : "rgba(239,68,68,0.12)",
+                border: isPending
+                  ? "1px solid rgba(148,163,184,0.22)"
+                  : "1px solid rgba(239,68,68,0.22)",
+                color: isPending ? "var(--text-muted)" : "#BE123C",
+                fontSize: "15px",
+                fontWeight: 700,
+                fontFamily: "'Inter',sans-serif",
+                lineHeight: 1.1,
+              }}
+            >
+              {isPending ? "Working..." : "Delete Entry"}
+            </button>
+          ) : (
+            <div
+              className="rounded-2xl p-4"
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.2)",
+              }}
+            >
+              <p
+                style={{
+                  color: "var(--text-primary)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  fontFamily: "'Inter',sans-serif",
+                  marginBottom: "12px",
+                }}
+              >
+                Delete this entry permanently? This cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-xl px-3 py-2.5"
+                  style={{
+                    background: "rgba(148,163,184,0.16)",
+                    border: "1px solid var(--border-soft)",
+                    color: "var(--text-secondary)",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    fontFamily: "'Inter',sans-serif",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isPending}
+                  className="flex-1 rounded-xl px-3 py-2.5"
+                  style={{
+                    background: "linear-gradient(135deg,#EF4444,#DC2626)",
+                    border: "1px solid rgba(220,38,38,0.28)",
+                    color: "#fff",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    fontFamily: "'Inter',sans-serif",
+                    boxShadow: "0 3px 12px rgba(220,38,38,0.3)",
+                  }}
+                >
+                  {isPending ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

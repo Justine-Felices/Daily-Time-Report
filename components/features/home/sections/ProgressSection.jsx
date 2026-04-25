@@ -48,8 +48,10 @@ export default function ProgressSection({
   remaining,
   targetHours,
   totalHours,
-  isClockIn,
+  buttonConfig,
+  isDayComplete,
   estimatedFinishText,
+  onToggleClock,
 }) {
   // Simple calculation for the tip - assuming 20 working days left as a placeholder or a rough estimate
   // In a real app, this would be calculated based on the actual working days between now and estimated finish
@@ -135,17 +137,20 @@ export default function ProgressSection({
 
           {/* Action Button */}
           <button
-            className="w-full py-3.5 rounded-2xl font-bold text-[14px] tracking-wide transition-all active:scale-[0.98] shadow-lg border border-white/10"
+            onClick={onToggleClock}
+            disabled={isDayComplete}
+            className="w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: isClockIn ? "#EF4444" : "#58D4D4",
-              color: isClockIn ? "white" : "#0F172A",
-              boxShadow: isClockIn 
-                ? "0 4px 15px rgba(239, 68, 68, 0.2)" 
-                : "0 4px 15px rgba(88, 212, 212, 0.2)",
+              background: buttonConfig.background,
+              color: buttonConfig.color,
+              boxShadow: isDayComplete
+                ? "none"
+                : `0 8px 25px ${buttonConfig.shadow}`,
               fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+              border: isDayComplete ? "1px solid rgba(255,255,255,0.1)" : "none",
             }}
           >
-            {isClockIn ? "CLOCK OUT" : "CLOCK IN"}
+            {buttonConfig.label}
           </button>
         </div>
       </div>
