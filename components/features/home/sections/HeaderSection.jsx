@@ -49,9 +49,15 @@ export default memo(function HeaderSection({
     <div className="flex flex-col items-center justify-center gap-1 py-12 px-2 text-center">
       <div style={DATE_TEXT_STYLE}>{formatLongDate(now)}</div>
       
-      <div className="mt-2 mb-1">
-        <span className="text-white/40 font-medium text-lg tracking-tight">
-          {greeting}, <span className="text-white/90 font-bold">{userName || "User"}</span>
+      <div className="mt-4 mb-2">
+        <span 
+          className="text-white/80 font-medium text-5xl tracking-tight"
+          style={{ fontFamily: "var(--font-dancing-script), cursive" }}
+        >
+          {greeting},{" "}
+          <span className="text-white font-bold bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] bg-clip-text text-transparent">
+            {userName || "User"}
+          </span>
         </span>
       </div>
 
