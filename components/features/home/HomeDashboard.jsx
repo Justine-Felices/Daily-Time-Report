@@ -24,6 +24,9 @@ export default function HomeDashboard() {
         now={header.now}
         isClockIn={header.isClockIn}
         statusLabel={header.statusLabel}
+        userName={header.userName}
+        currentSessionTimeIn={header.currentSessionTimeIn}
+        currentSessionHours={header.currentSessionHours}
       />
 
       <ProgressSection
@@ -31,6 +34,8 @@ export default function HomeDashboard() {
         pct={progress.pct}
         remaining={progress.remaining}
         targetHours={constants.TARGET_HOURS}
+        totalHours={summary.totalHours}
+        isClockIn={header.isClockIn}
         estimatedFinishText={progress.estimatedFinishText}
       />
 

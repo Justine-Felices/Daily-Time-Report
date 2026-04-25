@@ -103,6 +103,7 @@ export default function useHomeDashboardLogic() {
   const [pmHasTimeError, setPmHasTimeError] = useState(false);
   const [noteSaved, triggerNoteSaved] = useTimedFlag(2500);
   const [hasSavedToday, setHasSavedToday] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
   const [persistedWeekHours, setPersistedWeekHours] = useState(0);
@@ -200,6 +201,8 @@ export default function useHomeDashboardLogic() {
           setIsLoading(false);
           return;
         }
+
+        setFullName(profile?.full_name || "");
         const parsedTargetHours = Number(profile?.target_hours);
         setTargetHours(
           Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
@@ -262,6 +265,20 @@ export default function useHomeDashboardLogic() {
   const isClockIn =
     (amSession.timeIn && !amSession.timeOut) ||
     (pmSession.timeIn && !pmSession.timeOut);
+
+  const activeSessionTimeIn = (amSession.timeIn && !amSession.timeOut) 
+    ? amSession.timeIn 
+    : (pmSession.timeIn && !pmSession.timeOut) 
+      ? pmSession.timeIn 
+      : null;
+
+  const currentSessionHours = useMemo(() => {
+    if (!activeSessionTimeIn) return 0;
+    const startMinutes = toMinutes(activeSessionTimeIn);
+    const nowMinutes = toMinutes(formatNowClock(now));
+    if (startMinutes === null || nowMinutes === null) return 0;
+    return Math.max(0, (nowMinutes - startMinutes) / 60);
+  }, [activeSessionTimeIn, now]);
 
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
   const isSessionLocked = isResetStatus(dailyStatus);
@@ -454,6 +471,9 @@ export default function useHomeDashboardLogic() {
       now,
       isClockIn,
       statusLabel,
+      userName: fullName,
+      currentSessionTimeIn: activeSessionTimeIn,
+      currentSessionHours: currentSessionHours,
     },
     progress: {
       pct,

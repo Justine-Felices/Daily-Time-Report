@@ -3,9 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Clock4, History, Home, Menu, PenLine, User, X } from "lucide-react";
+import { Clock4, History, Home, PenLine, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
+import { cn } from "@/lib/utils";
+import {
+  Navbar as ResizableNavbar,
+  NavBody,
+  NavItems,
+  MobileNav,
+  MobileNavHeader,
+  MobileNavToggle,
+  MobileNavMenu,
+} from "@/components/ui/ResizableNavbar";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", icon: Home },
@@ -14,23 +24,11 @@ const NAV_LINKS = [
   { to: "/profile", label: "Profile", icon: User },
 ];
 
-function isActiveRoute(pathname, to) {
-  if (to === "/") {
-    return pathname === "/";
-  }
-  return pathname === to || pathname.startsWith(`${to}/`);
-}
-
 function toInitials(name) {
   if (!name) return "--";
-
   const tokens = name.trim().split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return "--";
-
-  return tokens
-    .slice(0, 2)
-    .map((token) => token.charAt(0).toUpperCase())
-    .join("");
+  return tokens.slice(0, 2).map((token) => token.charAt(0).toUpperCase()).join("");
 }
 
 export default function Navbar() {
@@ -43,34 +41,23 @@ export default function Navbar() {
     initials: "JD",
   });
 
-  const hasSupabaseConfig =
-    typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-    /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-
   const supabase = useMemo(() => {
-    if (!hasSupabaseConfig) return null;
-    return createClient();
-  }, [hasSupabaseConfig]);
+    const hasConfig = typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+                     Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    return hasConfig ? createClient() : null;
+  }, []);
 
   useEffect(() => {
     if (!supabase) {
       setIsViewerLoading(false);
       return;
     }
-
     let mounted = true;
-
     const loadViewer = async () => {
       try {
-        const {
-          data: { session },
-          error: authError,
-        } = await supabase.auth.getSession();
-
+        const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user ?? null;
-
-        if (!mounted || authError || !user) return;
+        if (!mounted || !user) return;
 
         const { data: profile } = await supabase
           .from("user_profiles")
@@ -80,20 +67,8 @@ export default function Navbar() {
 
         if (!mounted) return;
 
-        const metadataName =
-          typeof user.user_metadata?.full_name === "string"
-            ? user.user_metadata.full_name.trim()
-            : "";
-        const fallbackName = user.email ? user.email.split("@")[0] : "";
-        const resolvedName =
-          profile?.full_name?.trim() || metadataName || fallbackName || "User";
-
-        const metadataRole =
-          typeof user.user_metadata?.role === "string"
-            ? user.user_metadata.role.trim()
-            : "";
-        const resolvedRole =
-          profile?.position?.trim() || metadataRole || "Intern";
+        const resolvedName = profile?.full_name?.trim() || user.user_metadata?.full_name?.trim() || user.email?.split("@")[0] || "User";
+        const resolvedRole = profile?.position?.trim() || user.user_metadata?.role?.trim() || "Intern";
 
         setViewer({
           name: resolvedName,
@@ -101,238 +76,88 @@ export default function Navbar() {
           initials: toInitials(resolvedName),
         });
       } finally {
-        if (!mounted) return;
-        setIsViewerLoading(false);
+        if (mounted) setIsViewerLoading(false);
       }
     };
-
     loadViewer();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [supabase]);
 
   return (
-    <nav
-      className="no-print sticky top-0 z-50 w-full"
-      style={{
-        background: "transparent",
-        backdropFilter: "blur(18px)",
-        WebkitBackdropFilter: "blur(18px)",
-        borderBottom: "1px solid var(--border-soft)",
-        boxShadow: "var(--shadow-soft)",
-      }}
-    >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between md:hidden">
-          <Link href="/" className="flex items-center gap-3 no-underline">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-xl"
-              style={{
-                background:
-                  "linear-gradient(135deg, #046060 0%, #069494 55%, #FF69B4 100%)",
-                boxShadow: "0 4px 14px rgba(6,148,148,0.34)",
-              }}
-            >
-              <Clock4 size={16} color="#fff" />
-            </span>
-            <span
-              className="text-lg font-semibold tracking-tight"
-              style={{ color: "var(--text-primary)" }}
-            >
-              TimeTrack
-            </span>
-          </Link>
+    <ResizableNavbar className="no-print">
+      {/* Desktop Navigation */}
+      <NavBody>
+        <Link href="/" className="flex items-center gap-3 no-underline z-20">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-700 via-teal-600 to-pink-500 shadow-lg shadow-teal-900/20">
+            <Clock4 size={16} color="#fff" />
+          </span>
+          <span className="text-xl font-bold tracking-tight text-white">TimeTrack</span>
+        </Link>
 
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-xl border transition"
-            style={{
-              borderColor: "var(--border-soft)",
-              background: "var(--surface-card)",
-              color: "var(--text-secondary)",
-            }}
-            onClick={() => setMobileOpen((value) => !value)}
-            aria-label="Toggle navigation menu"
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
+        <NavItems items={NAV_LINKS} pathname={pathname} />
 
-        <div className="hidden h-18 grid-cols-[1fr_auto_1fr] items-center gap-3 md:grid">
-          <Link href="/" className="flex w-fit items-center gap-3 no-underline">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-xl"
-              style={{
-                background:
-                  "linear-gradient(135deg, #046060 0%, #069494 55%, #FF69B4 100%)",
-                boxShadow: "0 4px 14px rgba(6,148,148,0.34)",
-              }}
-            >
-              <Clock4 size={16} color="#fff" />
-            </span>
-            <span
-              className="text-[1.7rem] font-semibold leading-none tracking-tight"
-              style={{ color: "var(--text-primary)" }}
-            >
-              TimeTrack
-            </span>
-          </Link>
-
-          <div
-            className="flex items-center gap-1 rounded-full p-1"
-            style={{
-              border: "1px solid var(--border-soft)",
-              background: "var(--surface-card)",
-              boxShadow: "var(--shadow-soft)",
-            }}
-          >
-            {NAV_LINKS.map(({ to, label }) => {
-              const isActive = isActiveRoute(pathname, to);
-
-              return (
-                <Link
-                  key={to}
-                  href={to}
-                  className={`rounded-full px-4 py-2 text-sm font-medium no-underline transition-all ${
-                    isActive ? "text-white" : ""
-                  }`}
-                  style={
-                    isActive
-                      ? {
-                          background:
-                            "linear-gradient(135deg, #069494 0%, #0aacac 100%)",
-                          boxShadow: "0 3px 10px rgba(6,148,148,0.28)",
-                        }
-                      : {
-                          color: "var(--text-secondary)",
-                        }
-                  }
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
-              className="flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-left transition"
-              style={{
-                borderColor: "var(--border-soft)",
-                background: "var(--surface-card)",
-              }}
-              aria-label="Open user profile"
-            >
-              <span
-                className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-                style={{
-                  background:
-                    "linear-gradient(140deg, #046060 0%, #069494 70%, #14b8a6 100%)",
-                }}
-              >
-                {viewer.initials}
-              </span>
-              <span className="leading-tight">
-                {isViewerLoading ? (
-                  <span className="block space-y-1">
-                    <SkeletonBlock className="h-4 w-28 rounded-md" />
-                    <SkeletonBlock className="h-3 w-20 rounded-md" />
-                  </span>
-                ) : (
-                  <>
-                    <span
-                      className="block text-sm font-semibold"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      {viewer.name}
-                    </span>
-                    <span
-                      className="block text-xs"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {viewer.role}
-                    </span>
-                  </>
-                )}
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {mobileOpen && (
-        <div
-          className="space-y-1 border-t px-4 py-3 md:hidden"
-          style={{
-            borderColor: "var(--border-soft)",
-            background: "var(--page-bg)",
-          }}
-        >
-          {NAV_LINKS.map(({ to, label, icon: Icon }) => {
-            const isActive = isActiveRoute(pathname, to);
-
-            return (
-              <Link
-                key={to}
-                href={to}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium no-underline transition-all ${
-                  isActive ? "text-white" : "text-slate-700"
-                }`}
-                style={
-                  isActive
-                    ? {
-                        borderColor: "rgba(6,148,148,0.22)",
-                        background:
-                          "linear-gradient(135deg, #069494 0%, #0aacac 100%)",
-                      }
-                    : {
-                        borderColor: "var(--border-soft)",
-                        background: "var(--surface-card)",
-                        color: "var(--text-secondary)",
-                      }
-                }
-              >
-                <Icon size={16} />
-                {label}
-              </Link>
-            );
-          })}
-
-          <div
-            className="mt-3 flex items-center gap-2 rounded-xl border px-3 py-2"
-            style={{
-              borderColor: "var(--border-soft)",
-              background: "var(--surface-card)",
-            }}
-          >
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-              style={{
-                background:
-                  "linear-gradient(140deg, #046060 0%, #069494 70%, #14b8a6 100%)",
-              }}
-            >
+        <div className="flex items-center gap-2 z-20">
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-left">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white bg-gradient-to-br from-teal-800 to-teal-500">
               {viewer.initials}
             </span>
-            <div className="leading-tight">
-              <p
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {viewer.name}
-              </p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                {viewer.role}
-              </p>
+            <div className="hidden sm:block leading-tight">
+              {isViewerLoading ? (
+                <SkeletonBlock className="h-4 w-24 rounded-md" />
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-white">{viewer.name}</p>
+                  <p className="text-[10px] text-white/50">{viewer.role}</p>
+                </>
+              )}
             </div>
           </div>
         </div>
-      )}
-    </nav>
+      </NavBody>
+
+      {/* Mobile Navigation */}
+      <MobileNav>
+        <MobileNavHeader>
+          <Link href="/" className="flex items-center gap-2 no-underline">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-teal-700 to-teal-500">
+              <Clock4 size={12} color="#fff" />
+            </span>
+            <span className="text-lg font-bold text-white">TimeTrack</span>
+          </Link>
+          <MobileNavToggle isOpen={mobileOpen} onClick={() => setMobileOpen(!mobileOpen)} />
+        </MobileNavHeader>
+
+        <MobileNavMenu isOpen={mobileOpen}>
+          <div className="flex flex-col gap-2 w-full">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                href={link.to}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
+                  pathname === link.to 
+                    ? "bg-teal-600 text-white" 
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <link.icon size={18} />
+                {link.label}
+              </Link>
+            ))}
+            
+            <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white bg-teal-600">
+                {viewer.initials}
+              </span>
+              <div>
+                <p className="text-sm font-bold text-white">{viewer.name}</p>
+                <p className="text-xs text-white/50">{viewer.role}</p>
+              </div>
+            </div>
+          </div>
+        </MobileNavMenu>
+      </MobileNav>
+    </ResizableNavbar>
   );
 }

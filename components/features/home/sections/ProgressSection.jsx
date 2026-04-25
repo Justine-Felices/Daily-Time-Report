@@ -1,39 +1,45 @@
-import { CalendarCheck, Target, Timer, TrendingUp } from "lucide-react";
+import React from "react";
+import { CalendarCheck, Target, Timer, TrendingUp, Lightbulb } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import CircularProgress from "@/components/features/home/components/CircularProgress";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 const TITLE_TEXT_STYLE = {
-  color: "var(--text-primary)",
-  fontSize: "13px",
+  color: "#FFFFFF",
+  fontSize: "14px",
   fontWeight: 700,
   letterSpacing: "0.05em",
-  fontFamily: "'Inter',sans-serif",
+  fontFamily: "var(--font-geist-sans), Inter, sans-serif",
 };
 
 const PILL_STYLE = {
-  background: "rgba(6,148,148,0.1)",
-  border: "1px solid var(--border-soft)",
-  color: "var(--accent-strong)",
+  background: "transparent",
+  border: "1px solid rgba(88, 212, 212, 0.3)",
+  color: "#58D4D4",
   fontSize: "12px",
+  fontWeight: 500,
+  fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+};
+
+const STAT_VALUE_STYLE = {
+  color: "white",
+  fontSize: "21px",
   fontWeight: 600,
-  fontFamily: "'Inter',sans-serif",
+  fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+  lineHeight: "1",
+  letterSpacing: "-0.025em",
+  textAlign: "center",
 };
 
-const CARD_TITLE_STYLE = {
-  color: "var(--text-primary)",
-  fontSize: "13px",
+const STAT_LABEL_STYLE = {
+  color: "#58D4D4",
+  fontSize: "11px",
   fontWeight: 700,
-  fontFamily: "'Inter',sans-serif",
-};
-
-const CARD_LABEL_STYLE = {
-  color: "var(--text-muted)",
-  fontSize: "9px",
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  fontFamily: "'Inter',sans-serif",
+  letterSpacing: "-0.01em",
+  fontFamily: "var(--font-geist-sans), Inter, sans-serif",
   marginTop: "2px",
+  textTransform: "uppercase",
+  textAlign: "center",
 };
 
 export default function ProgressSection({
@@ -41,99 +47,107 @@ export default function ProgressSection({
   pct,
   remaining,
   targetHours,
+  totalHours,
+  isClockIn,
   estimatedFinishText,
 }) {
+  // Simple calculation for the tip - assuming 20 working days left as a placeholder or a rough estimate
+  // In a real app, this would be calculated based on the actual working days between now and estimated finish
+  const hoursPerDayNeeded = remaining > 0 ? (remaining / 20).toFixed(1) : 0;
+
   const statItems = [
     {
-      icon: Timer,
       label: "REMAINING",
       value: `${remaining.toFixed(0)}h`,
-      color: "var(--accent-strong)",
     },
     {
-      icon: Target,
       label: "TARGET",
       value: `${targetHours}h`,
-      color: "var(--accent-strong)",
     },
     {
-      icon: CalendarCheck,
-      label: "EST. FINISH",
+      label: "EST. FINISH DATE",
       value: estimatedFinishText,
-      color: "var(--accent-strong)",
     },
   ];
 
   return (
-    <GlassCard padding="24px">
-      <div className="mb-5 flex items-center gap-2">
+    <GlassCard padding="24px" className="overflow-hidden">
+      {/* Header */}
+      <div className="mb-8 flex items-center gap-3">
         <div
-          className="flex h-7 w-7 items-center justify-center rounded-lg"
+          className="flex h-8 w-8 items-center justify-center rounded-lg"
           style={{
-            background: "linear-gradient(135deg,#069494,#00F0FF)",
-            boxShadow: "0 3px 10px rgba(6,148,148,0.4)",
+            background: "#58D4D4",
+            boxShadow: "0 0 8px rgba(88, 212, 212, 0.15)",
           }}
         >
-          <TrendingUp size={14} color="#fff" />
+          <TrendingUp size={18} color="white" strokeWidth={2.5} />
         </div>
         <span style={TITLE_TEXT_STYLE}>OJT PROGRESS</span>
-        <div className="ml-auto rounded-full px-3 py-0.5" style={PILL_STYLE}>
-          {pct}% Done
+        <div className="ml-auto rounded-full px-4 py-1.5" style={PILL_STYLE}>
+          {totalHours?.toFixed(0) || 0} Hours Completed
         </div>
       </div>
 
-      <div className="mb-5 flex flex-col items-center">
-        <CircularProgress pct={pct} isLoading={isLoading} />
-      </div>
+      {/* Main Content Area */}
+      <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+        {/* Left: Circular Progress */}
+        <div className="flex-shrink-0 px-10 md:px-6">
+          <CircularProgress pct={pct} isLoading={isLoading} />
+        </div>
 
-      <div
-        className="mb-5 w-full rounded-full"
-        style={{
-          height: "8px",
-          background: "color-mix(in srgb, var(--accent-strong) 20%, transparent)",
-        }}
-      >
-        {isLoading ? (
-          <SkeletonBlock className="h-full w-full rounded-full" />
-        ) : (
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: `${pct}%`,
-              background: "linear-gradient(90deg, #046060, #069494, #00F0FF)",
-              transition: "width 0.9s ease",
-              boxShadow: "0 2px 10px rgba(0,240,255,0.4)",
-            }}
-          />
-        )}
-      </div>
+        {/* Right: Stats and Tip */}
+        <div className="flex flex-col flex-grow w-full">
+          {/* Stats Row */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-y-6 sm:gap-x-0 mb-10 w-full">
+            {statItems.map((item, index) => (
+              <React.Fragment key={item.label}>
+                <div className="flex flex-col items-center text-center flex-1">
+                  {isLoading ? (
+                    <SkeletonBlock className="h-7 w-24 rounded-md mb-1" />
+                  ) : (
+                    <div style={STAT_VALUE_STYLE}>{item.value}</div>
+                  )}
+                  <div style={STAT_LABEL_STYLE}>{item.label}</div>
+                </div>
+                {index < statItems.length - 1 && (
+                  <div className="hidden sm:block h-10 w-[1px] bg-white/10" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {statItems.map(({ icon: Icon, label, value, color }) => (
-          <div
-            key={label}
-            className="flex flex-col items-center rounded-xl p-3 text-center"
+          {/* Tip Section */}
+          <div 
+            className="flex items-center gap-3 rounded-2xl p-4 w-full mb-4"
             style={{
-              background: "var(--surface-muted)",
-              border: "1px solid var(--border-soft)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid rgba(255, 255, 255, 0.05)",
             }}
           >
-            <div
-              className="mb-2 flex h-7 w-7 items-center justify-center rounded-lg"
-              style={{ background: `${color}18` }}
-            >
-              <Icon size={13} color={color} />
+            <div className="text-[#58D4D4]">
+              <Lightbulb size={20} />
             </div>
-            {isLoading ? (
-              <SkeletonBlock className="h-4 w-20 rounded-md" />
-            ) : (
-              <div style={CARD_TITLE_STYLE}>{value}</div>
-            )}
-            <div style={CARD_LABEL_STYLE}>{label}</div>
+            <p className="text-[13px] text-white/70 font-medium">
+              You need <span className="text-[#58D4D4] font-bold">{hoursPerDayNeeded} hrs/day</span> to finish on time.
+            </p>
           </div>
-        ))}
+
+          {/* Action Button */}
+          <button
+            className="w-full py-3.5 rounded-2xl font-bold text-[14px] tracking-wide transition-all active:scale-[0.98] shadow-lg border border-white/10"
+            style={{
+              background: isClockIn ? "#EF4444" : "#58D4D4",
+              color: isClockIn ? "white" : "#0F172A",
+              boxShadow: isClockIn 
+                ? "0 4px 15px rgba(239, 68, 68, 0.2)" 
+                : "0 4px 15px rgba(88, 212, 212, 0.2)",
+              fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+            }}
+          >
+            {isClockIn ? "CLOCK OUT" : "CLOCK IN"}
+          </button>
+        </div>
       </div>
     </GlassCard>
   );

@@ -1,26 +1,27 @@
 import { SkeletonCircle } from "@/components/ui/Skeleton";
 
 export default function CircularProgress({ pct, isLoading = false }) {
-  const size = 168;
-  const strokeWidth = 13;
-  const radius = (size - strokeWidth) / 2;
+  // SVG coordinate system constants (relative to viewBox 0 0 100 100)
+  const strokeWidth = 8;
+  const radius = 41; 
   const circumference = 2 * Math.PI * radius;
+  
   const offset = circumference - (pct / 100) * circumference;
 
   return (
-    <div
-      className="relative flex items-center justify-center"
-      style={{ width: size, height: size }}
-    >
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+    <div className="relative flex items-center justify-center w-40 h-40 md:w-52 md:h-52 transition-all duration-500">
+      <svg 
+        viewBox="0 0 100 100" 
+        className="w-full h-full"
+        style={{ transform: "rotate(-90deg)" }}
+      >
         <defs>
           <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#046060" />
-            <stop offset="50%" stopColor="#069494" />
+            <stop offset="0%" stopColor="#088A8A" />
             <stop offset="100%" stopColor="#00F0FF" />
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="0.8" result="coloredBlur" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
               <feMergeNode in="SourceGraphic" />
@@ -28,18 +29,20 @@ export default function CircularProgress({ pct, isLoading = false }) {
           </filter>
         </defs>
 
+        {/* Background Track (Thick) */}
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx="50"
+          cy="50"
           r={radius}
           fill="none"
-          stroke="color-mix(in srgb, var(--accent-strong) 20%, transparent)"
+          stroke="rgba(255, 255, 255, 0.04)"
           strokeWidth={strokeWidth}
         />
 
+        {/* Progress Path (Main Thick Arc) */}
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx="50"
+          cy="50"
           r={radius}
           fill="none"
           stroke="url(#progressGrad)"
@@ -52,48 +55,39 @@ export default function CircularProgress({ pct, isLoading = false }) {
         />
       </svg>
 
+      {/* Inner Content Card */}
       <div
-        className="absolute flex flex-col items-center justify-center rounded-full"
+        className="absolute flex flex-col items-center justify-center rounded-full w-[68%] h-[68%]"
         style={{
-          width: size - strokeWidth * 2 - 12,
-          height: size - strokeWidth * 2 - 12,
-          background: "var(--surface-muted)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          border: "1px solid var(--border-soft)",
+          background: "#111D29",
+          border: "1px solid rgba(255, 255, 255, 0.05)",
         }}
       >
-        <span
-          style={{
-            color: "var(--accent-strong)",
-            fontSize: "28px",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            lineHeight: 1,
-          }}
-        >
-          {isLoading ? (
-            <SkeletonCircle
-              size={52}
-              className="mx-auto"
-              style={{ background: "color-mix(in srgb, var(--text-muted) 55%, transparent)" }}
-            />
-          ) : (
-            `${pct}%`
-          )}
-        </span>
-        <span
-          style={{
-            color: "var(--text-muted)",
-            fontSize: "10px",
-            fontWeight: 600,
-            letterSpacing: "0.06em",
-            marginTop: "3px",
-          }}
-        >
-          COMPLETE
-        </span>
+        <div className="flex flex-col items-center">
+          <span
+            className="text-white font-bold leading-none tracking-tight text-4xl md:text-5xl"
+            style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+          >
+            {isLoading ? (
+              <SkeletonCircle
+                size={48}
+                className="mx-auto"
+                style={{ background: "rgba(255, 255, 255, 0.1)" }}
+              />
+            ) : (
+              `${pct}%`
+            )}
+          </span>
+          <span
+            className="text-white font-bold tracking-[0.25em] mt-3 text-[9px] md:text-[10px] uppercase opacity-80"
+            style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+          >
+            COMPLETE
+          </span>
+        </div>
       </div>
     </div>
   );
 }
+
+

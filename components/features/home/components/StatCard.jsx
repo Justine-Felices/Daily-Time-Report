@@ -8,7 +8,7 @@ export default function StatCard({
 }) {
   return (
     <div
-      className="relative md:w-[180px] md:h-[140px] w-[140px] h-[110px] shrink-0 flex flex-col items-center justify-center gap-y-1 bg-[#1C1C1E] rounded-[30px] border-t border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+      className="relative flex flex-col items-center justify-center gap-y-1 bg-[#1C1C1E] rounded-3xl p-4 text-center border-t border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
     >
       {/* Label */}
       <span className="text-[#58D4d4] font-bold tracking-tight uppercase md:text-[12px] text-[10px]">
@@ -20,7 +20,10 @@ export default function StatCard({
         {isLoading ? (
           <SkeletonBlock className="md:h-10 h-8 md:w-24 w-16 rounded-lg bg-white/5" />
         ) : (
-          <span className="text-white md:text-4xl text-2xl font-semibold leading-none tracking-tighter">
+          <span 
+            className="text-white md:text-3xl text-3xl font-semibold leading-none tracking-tight"
+            style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+          >
             {value}
           </span>
         )}
