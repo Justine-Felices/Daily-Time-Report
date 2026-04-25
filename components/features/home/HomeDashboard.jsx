@@ -3,10 +3,9 @@
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
-import SessionAndStatusSection from "@/components/features/home/sections/SessionAndStatusSection";
 import SummarySection from "@/components/features/home/sections/SummarySection";
 import useHomeDashboardLogic from "@/components/features/home/hooks/useHomeDashboardLogic";
-
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 export default function HomeDashboard() {
   const {
     loading,
@@ -15,7 +14,6 @@ export default function HomeDashboard() {
     progress,
     sessions,
     summary,
-    resetDialog,
   } = useHomeDashboardLogic();
 
   return (
@@ -29,6 +27,7 @@ export default function HomeDashboard() {
         currentSessionHours={header.currentSessionHours}
         isDayComplete={header.isDayComplete}
       />
+
 
       <ProgressSection
         isLoading={loading.isLoading}
@@ -79,7 +78,30 @@ export default function HomeDashboard() {
         </div>
       )}
       {/* Clock Out Confirmation Modal */}
-      {sessions.showClockOutModal && (
+      {sessions.showClockOutModal && (() => {
+        // Detect late clock-in for dual mode (am_in >= 11:00)
+        const amInTime = sessions.amSession?.timeIn;
+        const amInMinutes = amInTime
+          ? (() => {
+              const t = amInTime.trim().toUpperCase();
+              const m12 = t.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/);
+              if (m12) {
+                let h = Number(m12[1]);
+                const mm = Number(m12[2]);
+                if (m12[3] === "AM" && h === 12) h = 0;
+                if (m12[3] === "PM" && h !== 12) h += 12;
+                return h * 60 + mm;
+              }
+              const [h, m] = t.split(":").map(Number);
+              return h * 60 + m;
+            })()
+          : null;
+        const isLateStart = sessions.attendanceMode === "dual"
+          && sessions.currentStatus === "clock-out-am"
+          && amInMinutes !== null
+          && amInMinutes >= 660; // 11:00 = 660 minutes
+
+        return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
           <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl">
             <div className="flex flex-col items-center text-center mb-8">
@@ -90,7 +112,7 @@ export default function HomeDashboard() {
               </div>
               <h3 className="text-2xl font-bold text-white mb-2">
                 {sessions.currentStatus === "clock-out-am"
-                  ? "Finish Morning Session?"
+                  ? (isLateStart ? "Clock Out for the Day?" : "Finish Morning Session?")
                   : "Clock Out for the Day?"}
               </h3>
               <p className="text-slate-400 text-sm">
@@ -109,14 +131,26 @@ export default function HomeDashboard() {
               </div>
               <div className="h-px bg-white/5" />
               <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">AM Time In</span>
-                  <span className="text-white font-medium">
-                    {sessions.amSession?.timeIn || "—"}
-                  </span>
-                </div>
-                {sessions.attendanceMode === "dual" && (
+                {/* Dual mode + late start: show PM-only rows */}
+                {sessions.attendanceMode === "dual" && isLateStart && (
                   <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">PM Time In</span>
+                      <span className="text-white font-medium">
+                        {sessions.amSession?.timeIn || "—"}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {/* Dual mode + normal start: show all 4 rows */}
+                {sessions.attendanceMode === "dual" && !isLateStart && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">AM Time In</span>
+                      <span className="text-white font-medium">
+                        {sessions.amSession?.timeIn || "—"}
+                      </span>
+                    </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400">AM Time Out</span>
                       <span className="text-white font-medium">
@@ -131,13 +165,24 @@ export default function HomeDashboard() {
                     </div>
                   </>
                 )}
-                {sessions.attendanceMode === "single" && sessions.currentStatus === "clock-out-pm" && (
-                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">AM Time Out</span>
-                    <span className="text-white font-medium">
-                      {sessions.amSession?.timeOut || "—"}
-                    </span>
-                  </div>
+                {/* Single mode rows */}
+                {sessions.attendanceMode === "single" && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">AM Time In</span>
+                      <span className="text-white font-medium">
+                        {sessions.amSession?.timeIn || "—"}
+                      </span>
+                    </div>
+                    {sessions.currentStatus === "clock-out-pm" && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-400">AM Time Out</span>
+                        <span className="text-white font-medium">
+                          {sessions.amSession?.timeOut || "—"}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-400">Current Time</span>
@@ -152,13 +197,14 @@ export default function HomeDashboard() {
 
               {sessions.attendanceMode === "dual" &&
                 sessions.currentStatus === "clock-out-am" && (
-                  <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-xl p-3 mt-4">
-                    <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mb-1">
-                      Dual Mode Automation
+                  <div className={`${isLateStart ? "bg-amber-500/5 border-amber-500/10" : "bg-cyan-500/5 border-cyan-500/10"} border rounded-xl p-3 mt-4`}>
+                    <p className={`text-[10px] ${isLateStart ? "text-amber-400" : "text-cyan-400"} font-bold uppercase tracking-widest mb-1`}>
+                      {isLateStart ? "Late Start — PM Only" : "Dual Mode Automation"}
                     </p>
                     <p className="text-xs text-slate-300 italic">
-                      This will auto-fill AM Out (11:00), PM In (12:00), and PM
-                      Out (current time).
+                      {isLateStart
+                        ? "You clocked in after 11:00 AM. AM fields will be cleared and your session will be recorded as PM only."
+                        : "This will auto-fill AM Out (11:00), PM In (12:00), and PM Out (current time)."}
                     </p>
                   </div>
                 )}
@@ -192,109 +238,12 @@ export default function HomeDashboard() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
-      <SessionAndStatusSection
-        isLoading={loading.isLoading}
-        now={sessions.now}
-        amSession={sessions.amSession}
-        pmSession={sessions.pmSession}
-        onAmTimeIn={sessions.onAmTimeIn}
-        onAmTimeOut={sessions.onAmTimeOut}
-        onPmTimeIn={sessions.onPmTimeIn}
-        onPmTimeOut={sessions.onPmTimeOut}
-        onAmTimeInChange={sessions.onAmTimeInChange}
-        onAmTimeOutChange={sessions.onAmTimeOutChange}
-        onPmTimeInChange={sessions.onPmTimeInChange}
-        onPmTimeOutChange={sessions.onPmTimeOutChange}
-        onAmValidationChange={sessions.onAmValidationChange}
-        onPmValidationChange={sessions.onPmValidationChange}
-        sessionsLocked={sessions.sessionsLocked}
-        dailyStatus={sessions.dailyStatus}
-        dailyNote={sessions.dailyNote}
-        onDailyStatusChange={sessions.onDailyStatusChange}
-        onDailyNoteChange={sessions.onDailyNoteChange}
-        onSave={sessions.onSave}
-        disableSave={sessions.disableSave}
-        noteSaved={sessions.noteSaved}
-        saveLocked={sessions.saveLocked}
-        statusOptions={constants.STATUS_OPTIONS}
-        inputStyle={constants.HOME_INPUT_STYLE}
-      />
 
-      {resetDialog.showResetConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 px-4">
-          <div
-            className="w-full max-w-md rounded-2xl border p-5"
-            style={{
-              background: "var(--surface-card)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              borderColor: "var(--border-soft)",
-              boxShadow: "0 8px 30px rgba(15,23,42,0.28)",
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Confirm log reset"
-          >
-            <h3
-              style={{
-                color: "var(--text-primary)",
-                fontSize: "16px",
-                fontWeight: 800,
-                fontFamily: "'Inter',sans-serif",
-                marginBottom: "8px",
-              }}
-            >
-              Reset time logs?
-            </h3>
-            <p
-              style={{
-                color: "var(--text-secondary)",
-                fontSize: "13px",
-                lineHeight: 1.5,
-                fontFamily: "'Inter',sans-serif",
-                marginBottom: "16px",
-              }}
-            >
-              Changing status to {resetDialog.pendingStatus || "this option"}{" "}
-              will delete your Morning and Afternoon session logs for today. Do
-              you want to continue?
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={resetDialog.handleCancelReset}
-                className="rounded-xl px-3.5 py-2"
-                style={{
-                  background: "rgba(148,163,184,0.16)",
-                  border: "1px solid var(--border-soft)",
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={resetDialog.handleConfirmReset}
-                className="rounded-xl px-3.5 py-2"
-                style={{
-                  background: "linear-gradient(135deg,#EF4444,#DC2626)",
-                  border: "1px solid rgba(220,38,38,0.28)",
-                  color: "#fff",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  boxShadow: "0 3px 12px rgba(220,38,38,0.3)",
-                }}
-              >
-                Yes, Reset Logs
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+
 
       <SummarySection
         isLoading={loading.isLoading}

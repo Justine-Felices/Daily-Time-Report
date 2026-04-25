@@ -3,8 +3,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import useLiveClock from "@/hooks/useLiveClock";
 import useTimedFlag from "@/hooks/useTimedFlag";
-import { GLASS_INPUT_STYLE, STATUS_OPTIONS } from "@/lib/dtr-constants";
-import { isHalfDayStatus, isResetStatus } from "@/lib/dtr-time-validation";
 import {
   fetchUserProfileByUserId,
   isUserProfileOnboarded,
@@ -13,23 +11,7 @@ import { fetchDashboardInternHoursByUserId } from "@/lib/supabase-dashboard-hour
 import { fetchAttendanceRecordByDate } from "@/lib/supabase-history";
 
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
-const HOME_STATUS_SAVE_LOCK_KEY = "dtr-home-status-save-lock";
-const STATUS_TO_ENUM = {
-  "Regular Duty Day": "REGULAR_DUTY_DAY",
-  "Sick Leave": "SICK_LEAVE",
-  "Vacation Leave": "VACATION_LEAVE",
-  Absent: "ABSENT",
-  Holiday: "HOLIDAY",
-  "Half Day": "HALF_DAY",
-  "Work From Home": "WORK_FROM_HOME",
-  "On Field": "ON_FIELD",
-};
 
-const HOME_INPUT_STYLE = {
-  ...GLASS_INPUT_STYLE,
-  fontSize: "13px",
-  transition: "all 0.15s",
-};
 
 function formatNowClock(date) {
   const hours = date.getHours().toString().padStart(2, "0");
@@ -39,7 +21,22 @@ function formatNowClock(date) {
 
 function toMinutes(clock) {
   if (!clock) return null;
-  const [hours, minutes] = clock.split(":").map(Number);
+  const trimmed = clock.trim().toUpperCase();
+
+  // 12-hour format: "02:07 PM"
+  const match12 = trimmed.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/);
+  if (match12) {
+    let hours = Number(match12[1]);
+    const minutes = Number(match12[2]);
+    const period = match12[3];
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+    if (period === "AM" && hours === 12) hours = 0;
+    if (period === "PM" && hours !== 12) hours += 12;
+    return hours * 60 + minutes;
+  }
+
+  // 24-hour format: "14:07"
+  const [hours, minutes] = trimmed.split(":").map(Number);
   if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
   return hours * 60 + minutes;
 }
@@ -103,14 +100,6 @@ export default function useHomeDashboardLogic() {
 
   const [amSession, setAmSession] = useState(EMPTY_SESSION);
   const [pmSession, setPmSession] = useState(EMPTY_SESSION);
-  const [dailyStatus, setDailyStatus] = useState(STATUS_OPTIONS[0]);
-  const [pendingStatus, setPendingStatus] = useState(null);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [dailyNote, setDailyNote] = useState("");
-  const [amHasTimeError, setAmHasTimeError] = useState(false);
-  const [pmHasTimeError, setPmHasTimeError] = useState(false);
-  const [noteSaved, triggerNoteSaved] = useTimedFlag(2500);
-  const [hasSavedToday, setHasSavedToday] = useState(false);
   const [fullName, setFullName] = useState("");
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
@@ -175,7 +164,6 @@ export default function useHomeDashboardLogic() {
       }
 
       if (todayRecord) {
-        setHasSavedToday(true);
         setAmSession({
           timeIn: todayRecord.amIn,
           timeOut: todayRecord.amOut,
@@ -184,10 +172,7 @@ export default function useHomeDashboardLogic() {
           timeIn: todayRecord.pmIn,
           timeOut: todayRecord.pmOut,
         });
-        setDailyStatus(todayRecord.status);
-        setDailyNote(todayRecord.note || "");
       } else {
-        setHasSavedToday(false);
         setAmSession(EMPTY_SESSION);
         setPmSession(EMPTY_SESSION);
       }
@@ -293,6 +278,8 @@ export default function useHomeDashboardLogic() {
 
   // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
   const currentStatus = useMemo(() => {
+    // PM-only session (late-start dual mode): AM is empty but PM is complete
+    if (!amSession.timeIn && pmSession.timeIn && pmSession.timeOut) return "done";
     if (!amSession.timeIn) return "clock-in";
     if (!amSession.timeOut) return "clock-out-am";
     if (!pmSession.timeIn) return "start-pm";
@@ -362,6 +349,15 @@ export default function useHomeDashboardLogic() {
     const timeNow = formatNowClock(now);
     if (currentStatus === "clock-out-am") {
       if (attendanceMode === "dual") {
+        const amInMinutes = toMinutes(amSession.timeIn);
+        const amCutoff = toMinutes("11:00");
+
+        if (amInMinutes !== null && amInMinutes >= amCutoff) {
+          // Late start (>= 11:00 AM): PM-only, duration = now - original am_in
+          return calculateDuration(amSession.timeIn, timeNow);
+        }
+
+        // Normal dual: morning (am_in → 11:00) + afternoon (12:00 → now)
         const morning = calculateDuration(amSession.timeIn, "11:00");
         const afternoon = calculateDuration("12:00", timeNow);
         return morning + afternoon;
@@ -378,9 +374,6 @@ export default function useHomeDashboardLogic() {
 
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
   const isDayComplete = currentStatus === "done";
-  const isSessionLocked = isResetStatus(dailyStatus);
-  const hasTimeLoggingError = amHasTimeError || pmHasTimeError;
-  const pmEarliestTime = amSession.timeOut || amSession.timeIn;
   const hasAnyLog = Boolean(
     amSession.timeIn ||
       amSession.timeOut ||
@@ -479,16 +472,32 @@ export default function useHomeDashboardLogic() {
 
       if (currentStatus === "clock-out-am") {
         if (attendanceMode === "dual") {
-          // Dual mode: auto-fill am_out, pm_in, pm_out
-          updates = {
-            am_out: "11:00",
-            pm_in: "12:00",
-            pm_out: timeNow,
-            total_hours: modalHours,
-          };
+          const amInMinutes = toMinutes(amSession.timeIn);
+          const amCutoff = toMinutes("11:00");
+
+          if (amInMinutes !== null && amInMinutes >= amCutoff) {
+            // CASE 2: Late start (am_in >= 11:00 AM) — treat as PM-only
+            // Move original am_in → pm_in, clear AM fields, set pm_out = now
+            updates = {
+              am_in: null,
+              am_out: null,
+              pm_in: amSession.timeIn,
+              pm_out: timeNow,
+              total_hours: modalHours,
+            };
+          } else {
+            // CASE 1: Normal dual mode (am_in < 11:00 AM)
+            // am_out = 11:00, pm_in = 12:00, pm_out = now
+            updates = {
+              am_out: "11:00",
+              pm_in: "12:00",
+              pm_out: timeNow,
+              total_hours: modalHours,
+            };
+          }
         } else {
-          // Single mode: just set am_out
-          updates = { am_out: timeNow, total_hours: modalHours };
+          // Single mode: just set pm_out = now
+          updates = { pm_out: timeNow, total_hours: modalHours };
         }
       } else if (currentStatus === "clock-out-pm") {
         updates = { pm_out: timeNow, total_hours: modalHours };
@@ -526,171 +535,9 @@ export default function useHomeDashboardLogic() {
     }
   };
 
-  const handleAmTimeIn = () => {
-    setAmSession((prev) => ({
-      ...prev,
-      timeIn: formatNowClock(new Date()),
-    }));
-  };
-
-  const handleAmTimeOut = () => {
-    setAmSession((prev) => {
-      const nowClock = formatNowClock(new Date());
-      if (prev.timeIn && toMinutes(nowClock) <= toMinutes(prev.timeIn)) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        timeOut: nowClock,
-      };
-    });
-  };
-
-  const handlePmTimeIn = () => {
-    setPmSession((prev) => {
-      const nowClock = formatNowClock(new Date());
-      if (pmEarliestTime && toMinutes(nowClock) < toMinutes(pmEarliestTime)) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        timeIn: nowClock,
-      };
-    });
-  };
-
-  const handlePmTimeOut = () => {
-    setPmSession((prev) => {
-      const nowClock = formatNowClock(new Date());
-      if (pmEarliestTime && toMinutes(nowClock) < toMinutes(pmEarliestTime)) {
-        return prev;
-      }
-      if (prev.timeIn && toMinutes(nowClock) <= toMinutes(prev.timeIn)) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        timeOut: nowClock,
-      };
-    });
-  };
-
-  const handleAmTimeInChange = (value) => {
-    setAmSession((prev) => ({ ...prev, timeIn: value }));
-  };
-
-  const handleAmTimeOutChange = (value) => {
-    setAmSession((prev) => ({ ...prev, timeOut: value }));
-  };
-
-  const handlePmTimeInChange = (value) => {
-    setPmSession((prev) => ({ ...prev, timeIn: value }));
-  };
-
-  const handlePmTimeOutChange = (value) => {
-    setPmSession((prev) => ({ ...prev, timeOut: value }));
-  };
-
   const resetSessionLogs = () => {
     setAmSession(EMPTY_SESSION);
     setPmSession(EMPTY_SESSION);
-    setAmHasTimeError(false);
-    setPmHasTimeError(false);
-  };
-
-  const handleDailyStatusChange = (event) => {
-    const nextStatus = event.target.value;
-
-    if (isHalfDayStatus(nextStatus)) {
-      setDailyStatus(nextStatus);
-      setPmSession(EMPTY_SESSION);
-      setPmHasTimeError(false);
-      return;
-    }
-
-    if (!isResetStatus(nextStatus)) {
-      setDailyStatus(nextStatus);
-      return;
-    }
-
-    if (!hasAnyLog) {
-      setDailyStatus(nextStatus);
-      resetSessionLogs();
-      return;
-    }
-
-    setPendingStatus(nextStatus);
-    setShowResetConfirm(true);
-  };
-
-  const handleConfirmReset = () => {
-    if (pendingStatus) {
-      setDailyStatus(pendingStatus);
-    }
-
-    resetSessionLogs();
-    setPendingStatus(null);
-    setShowResetConfirm(false);
-  };
-
-  const handleCancelReset = () => {
-    setPendingStatus(null);
-    setShowResetConfirm(false);
-  };
-
-  const handleSaveTodayStatus = async () => {
-    if (hasSavedToday || isSaving || !supabase) {
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        throw new Error("You must be logged in to save your session.");
-      }
-
-      const { error: saveError } = await supabase
-        .from("attendance_entries")
-        .upsert(
-          {
-            user_id: user.id,
-            work_date: todayKey,
-            am_in: amSession.timeIn || null,
-            am_out: amSession.timeOut || null,
-            pm_in: pmSession.timeIn || null,
-            pm_out: pmSession.timeOut || null,
-            status: STATUS_TO_ENUM[dailyStatus] || "REGULAR_DUTY_DAY",
-            note: dailyNote.trim() || null,
-            total_hours: Number(draftTodayHours) || 0,
-            source: "ENCODE_PAST",
-          },
-          { onConflict: "user_id,work_date" },
-        );
-
-      if (saveError) {
-        throw new Error(saveError.message || "Failed to save today's status.");
-      }
-
-      await refreshPersistedSummary(user.id);
-
-      triggerNoteSaved();
-      setHasSavedToday(true);
-    } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Failed to save Home session/status", error);
-      }
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   return {
@@ -699,8 +546,6 @@ export default function useHomeDashboardLogic() {
     },
     constants: {
       TARGET_HOURS: hasValidTargetHours ? Number(targetHours) : 0,
-      STATUS_OPTIONS,
-      HOME_INPUT_STYLE,
     },
     header: {
       now,
@@ -721,12 +566,6 @@ export default function useHomeDashboardLogic() {
       isSaving,
       amSession,
       pmSession,
-      dailyStatus,
-      dailyNote,
-      noteSaved,
-      saveLocked: hasSavedToday,
-      sessionsLocked: isSessionLocked,
-      disableSave: hasTimeLoggingError || isSaving,
       currentStatus,
       buttonConfig,
       isDayComplete,
@@ -738,31 +577,12 @@ export default function useHomeDashboardLogic() {
       modalHours,
       errorMessage,
       clearError: () => setErrorMessage(null),
-      onAmTimeIn: handleAmTimeIn,
-      onAmTimeOut: handleAmTimeOut,
-      onPmTimeIn: handlePmTimeIn,
-      onPmTimeOut: handlePmTimeOut,
-      onAmTimeInChange: handleAmTimeInChange,
-      onAmTimeOutChange: handleAmTimeOutChange,
-      onPmTimeInChange: handlePmTimeInChange,
-      onPmTimeOutChange: handlePmTimeOutChange,
-      onAmValidationChange: setAmHasTimeError,
-      onPmValidationChange: setPmHasTimeError,
-      onDailyStatusChange: handleDailyStatusChange,
-      onDailyNoteChange: (event) => setDailyNote(event.target.value),
-      onSave: handleSaveTodayStatus,
     },
     summary: {
       todayHours,
       weekHours,
       monthHours,
       totalHours: totalRenderedHours,
-    },
-    resetDialog: {
-      showResetConfirm,
-      pendingStatus,
-      handleCancelReset,
-      handleConfirmReset,
     },
   };
 }

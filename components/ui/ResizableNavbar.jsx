@@ -8,27 +8,65 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 export const Navbar = ({ children, className }) => {
   const { scrollY } = useScroll();
-  const [visible, setVisible] = useState(false);
+  const [scrollVisible, setScrollVisible] = useState(false);
+  const [isIdle, setIsIdle] = useState(false);
+  const timeoutRef = useRef(null);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (latest > 100) {
-      setVisible(true);
+      setScrollVisible(true);
     } else {
-      setVisible(false);
+      setScrollVisible(false);
     }
   });
 
+  useEffect(() => {
+    const handleActivity = () => {
+      setIsIdle(false);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        setIsIdle(true);
+      }, 7000);
+    };
+
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("keydown", handleActivity);
+    window.addEventListener("scroll", handleActivity);
+    window.addEventListener("mousedown", handleActivity);
+    window.addEventListener("touchstart", handleActivity);
+
+    handleActivity();
+
+    return () => {
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      window.removeEventListener("scroll", handleActivity);
+      window.removeEventListener("mousedown", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   return (
     <motion.div
-      className={cn("fixed inset-x-0 top-0 z-50 w-full", className)}
+      initial={{ y: 0, opacity: 1 }}
+      animate={{
+        y: isIdle ? -100 : 0,
+        opacity: isIdle ? 0 : 1,
+      }}
+      transition={{
+        duration: 0.4,
+        ease: [0.23, 1, 0.32, 1]
+      }}
+      className={cn("fixed inset-x-0 top-0 z-50 w-full no-print", className)}
     >
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
-          ? React.cloneElement(child, { visible })
+          ? React.cloneElement(child, { visible: scrollVisible })
           : child,
       )}
     </motion.div>

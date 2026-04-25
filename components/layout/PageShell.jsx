@@ -6,7 +6,7 @@ export default function PageShell({ children, width = "wide" }) {
   return (
     <main
       className="min-h-screen px-4 py-6 sm:px-6 sm:py-8"
-      style={PAGE_BACKGROUND_STYLE}
+      style={{ ...PAGE_BACKGROUND_STYLE, overflowX: "hidden" }}
     >
       <div className={`mx-auto w-full ${widthClassName} space-y-5`}>
         {children}
