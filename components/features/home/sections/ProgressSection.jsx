@@ -50,9 +50,12 @@ export default function ProgressSection({
   totalHours,
   buttonConfig,
   isDayComplete,
+  hasAnyLog,
   estimatedFinishText,
   onToggleClock,
 }) {
+
+
   // Simple calculation for the tip - assuming 20 working days left as a placeholder or a rough estimate
   // In a real app, this would be calculated based on the actual working days between now and estimated finish
   const hoursPerDayNeeded = remaining > 0 ? (remaining / 20).toFixed(1) : 0;
@@ -138,7 +141,8 @@ export default function ProgressSection({
           {/* Action Button */}
           <button
             onClick={onToggleClock}
-            disabled={isDayComplete}
+            disabled={isDayComplete || hasAnyLog}
+
             className="w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: buttonConfig.background,
