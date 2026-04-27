@@ -41,34 +41,40 @@ export default function HomeDashboard() {
         totalHours={summary.totalHours}
         buttonConfig={sessions.buttonConfig}
         isDayComplete={sessions.isDayComplete}
+        hasAnyLog={sessions.hasAnyLog}
         estimatedFinishText={progress.estimatedFinishText}
         onToggleClock={sessions.onToggleClock}
       />
 
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={() => setIsManualMode(!isManualMode)}
-          className="group flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95"
-        >
-          <div className={`w-2 h-2 rounded-full ${isManualMode ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-slate-600'}`} />
-          <span className="text-[11px] font-bold tracking-widest uppercase text-slate-400 group-hover:text-white transition-colors">
-            {isManualMode ? 'Disable Manual Input' : 'Enable Manual Input'}
-          </span>
-        </button>
-      </div>
+      {!sessions.hasAnyLog && (
+        <>
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => setIsManualMode(!isManualMode)}
+              className="group flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95"
+            >
+              <div className={`w-2 h-2 rounded-full ${isManualMode ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-slate-600'}`} />
+              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-400 group-hover:text-white transition-colors">
+                {isManualMode ? 'Disable Manual Input' : 'Enable Manual Input'}
+              </span>
+            </button>
+          </div>
 
-      {isManualMode && (
-        <SessionsSection
-          amSession={sessions.amSession}
-          pmSession={sessions.pmSession}
-          status={sessions.status}
-          isLoading={loading.isLoading}
-          isSaving={sessions.isSaving}
-          onManualSave={sessions.handleManualTimeChange}
-          onStatusChange={sessions.handleStatusChange}
-          onGlobalSave={sessions.handleGlobalSave}
-          onToggleClock={sessions.onToggleClock}
-        />
+          {isManualMode && (
+            <SessionsSection
+              amSession={sessions.amSession}
+              pmSession={sessions.pmSession}
+              status={sessions.status}
+              attendanceMode={sessions.attendanceMode}
+              isLoading={loading.isLoading}
+              isSaving={sessions.isSaving}
+              onManualSave={sessions.handleManualTimeChange}
+              onStatusChange={sessions.handleStatusChange}
+              onGlobalSave={sessions.handleGlobalSave}
+              onToggleClock={sessions.onToggleClock}
+            />
+          )}
+        </>
       )}
 
       {/* Error Toast */}

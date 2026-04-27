@@ -9,8 +9,23 @@ import {
 } from "@/lib/supabase-user-profiles";
 import { fetchDashboardInternHoursByUserId } from "@/lib/supabase-dashboard-hours";
 import { fetchAttendanceRecordByDate } from "@/lib/supabase-history";
+import { isResetStatus, isHalfDayStatus, calculateTotalHours } from "@/lib/dtr-time-validation";
+
+
 
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
+
+const STATUS_TO_ENUM = {
+  "Regular Duty Day": "REGULAR_DUTY_DAY",
+  "Sick Leave": "SICK_LEAVE",
+  "Vacation Leave": "VACATION_LEAVE",
+  "Absent": "ABSENT",
+  "Holiday": "HOLIDAY",
+  "Half Day": "HALF_DAY",
+  "Work From Home": "WORK_FROM_HOME",
+  "On Field": "ON_FIELD",
+};
+
 
 
 function formatNowClock(date) {
@@ -193,6 +208,12 @@ export default function useHomeDashboardLogic() {
 
 
   const handleStatusChange = (newStatus) => {
+    if (isResetStatus(newStatus)) {
+      setAmSession(EMPTY_SESSION);
+      setPmSession(EMPTY_SESSION);
+    } else if (isHalfDayStatus(newStatus)) {
+      setPmSession(EMPTY_SESSION);
+    }
     setStatus(newStatus);
   };
 
@@ -205,36 +226,84 @@ export default function useHomeDashboardLogic() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         setErrorMessage("Session expired. Please log in again.");
+        setIsSaving(false);
         return;
       }
 
-      let total = 0;
-      if (amSession.timeIn && amSession.timeOut) total += calculateDuration(amSession.timeIn, amSession.timeOut);
-      if (pmSession.timeIn && pmSession.timeOut) total += calculateDuration(pmSession.timeIn, pmSession.timeOut);
+      // Convert display time ("02:07 PM") back to 24-hour DB format ("14:07")
+      const to24h = (val) => {
+        if (!val) return null;
+        const trimmed = val.trim();
 
+        // Already in HH:MM 24-hour format
+        if (/^\d{2}:\d{2}$/.test(trimmed)) return trimmed;
+
+        // Convert 12-hour ("2:07 PM" or "02:07 PM") to 24-hour
+        const match = trimmed.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
+        if (!match) return null;
+
+        let h = Number(match[1]);
+        const m = match[2];
+        const period = match[3].toUpperCase();
+        if (period === "AM" && h === 12) h = 0;
+        if (period === "PM" && h !== 12) h += 12;
+        return `${h.toString().padStart(2, "0")}:${m}`;
+      };
+
+      const amIn = to24h(amSession.timeIn);
+      const amOut = to24h(amSession.timeOut);
+      const pmIn = to24h(pmSession.timeIn);
+      const pmOut = to24h(pmSession.timeOut);
+
+      // Match Encode Past: single mode only saves am_in (Time In) + pm_out (Time Out)
+      const isSingleMode = attendanceMode === "single";
+      const dbPayload = isSingleMode
+        ? { amIn: amIn || "", amOut: "", pmIn: "", pmOut: pmOut || "" }
+        : { amIn: amIn || "", amOut: amOut || "", pmIn: pmIn || "", pmOut: pmOut || "" };
+
+      const total = calculateTotalHours(dbPayload);
+
+      const dbStatus = STATUS_TO_ENUM[status] || "REGULAR_DUTY_DAY";
+
+      // Map attendance mode: DB only accepts "session" or "simple", not "dual"
+      const dbMode = isSingleMode ? "simple" : "session";
+
+      const finalRecord = {
+        user_id: user.id,
+        work_date: todayKey,
+        am_in: dbPayload.amIn || null,
+        am_out: dbPayload.amOut || null,
+        pm_in: dbPayload.pmIn || null,
+        pm_out: dbPayload.pmOut || null,
+        total_hours: total,
+        status: dbStatus,
+        source: "ENCODE_PAST",
+        mode: dbMode,
+      };
+
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Saving Attendance Payload:", finalRecord);
+      }
+
+      // Execute Upsert
       const { error: updateError } = await supabase
         .from("attendance_entries")
-        .upsert(
-          {
-            user_id: user.id,
-            work_date: todayKey,
-            am_in: amSession.timeIn,
-            am_out: amSession.timeOut,
-            pm_in: pmSession.timeIn,
-            pm_out: pmSession.timeOut,
-            total_hours: total,
-            status: status,
-          },
-          { onConflict: "user_id,work_date" }
-        );
+        .upsert(finalRecord, { onConflict: "user_id,work_date" });
 
       if (updateError) {
-        setErrorMessage("Failed to save all changes. Please try again.");
-      } else {
-        await refreshPersistedSummary(user.id);
+        throw updateError;
       }
+
+      // Success -> Refresh
+      await refreshPersistedSummary(user.id);
+      
     } catch (err) {
-      setErrorMessage("An error occurred while saving.");
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Dashboard Save Exception:", err);
+      }
+      
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setErrorMessage(`Save failed: ${msg}`);
     } finally {
       setIsSaving(false);
     }
@@ -347,7 +416,25 @@ export default function useHomeDashboardLogic() {
     return "done";
   }, [amSession, pmSession]);
 
+  const isDayComplete = currentStatus === "done";
+  const hasAnyLog = Boolean(
+    amSession.timeIn ||
+      amSession.timeOut ||
+      pmSession.timeIn ||
+      pmSession.timeOut,
+  );
+
   const buttonConfig = useMemo(() => {
+    // If any log exists for today, show as "Already Logged" and disable the automated flow
+    if (hasAnyLog) {
+      return {
+        label: "Already Logged",
+        background: "rgba(255, 255, 255, 0.05)",
+        color: "rgba(255, 255, 255, 0.3)",
+        shadow: "transparent",
+      };
+    }
+
     switch (currentStatus) {
       case "clock-in":
         return {
@@ -385,7 +472,7 @@ export default function useHomeDashboardLogic() {
           shadow: "transparent",
         };
     }
-  }, [currentStatus]);
+  }, [currentStatus, hasAnyLog]);
 
   const isClockIn =
     (amSession.timeIn && !amSession.timeOut) ||
@@ -433,13 +520,6 @@ export default function useHomeDashboardLogic() {
   }, [currentStatus, amSession, pmSession, attendanceMode, now]);
 
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
-  const isDayComplete = currentStatus === "done";
-  const hasAnyLog = Boolean(
-    amSession.timeIn ||
-      amSession.timeOut ||
-      pmSession.timeIn ||
-      pmSession.timeOut,
-  );
 
   // ─── CLOCK IN: Insert a new row with am_in = now ───
   const handleClockIn = async () => {
@@ -629,6 +709,7 @@ export default function useHomeDashboardLogic() {
       currentStatus,
       buttonConfig,
       isDayComplete,
+      hasAnyLog,
       onToggleClock,
       showClockOutModal,
       setShowClockOutModal,

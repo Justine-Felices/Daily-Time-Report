@@ -241,6 +241,7 @@ export default function SessionCard({
                   fontFamily: "'Inter',sans-serif",
                   cursor: disabled ? "not-allowed" : "text",
                   display: isLoading ? "none" : "block",
+                  colorScheme: "light",
                 }}
               />
 
