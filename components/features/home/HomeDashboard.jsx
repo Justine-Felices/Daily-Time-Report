@@ -4,7 +4,9 @@ import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
 import SummarySection from "@/components/features/home/sections/SummarySection";
+import SessionsSection from "@/components/features/home/sections/SessionsSection";
 import useHomeDashboardLogic from "@/components/features/home/hooks/useHomeDashboardLogic";
+import { useState } from "react";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 export default function HomeDashboard() {
   const {
@@ -15,6 +17,8 @@ export default function HomeDashboard() {
     sessions,
     summary,
   } = useHomeDashboardLogic();
+
+  const [isManualMode, setIsManualMode] = useState(false);
 
   return (
     <PageShell width="wide">
@@ -40,6 +44,32 @@ export default function HomeDashboard() {
         estimatedFinishText={progress.estimatedFinishText}
         onToggleClock={sessions.onToggleClock}
       />
+
+      <div className="flex justify-center mt-6">
+        <button
+          onClick={() => setIsManualMode(!isManualMode)}
+          className="group flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95"
+        >
+          <div className={`w-2 h-2 rounded-full ${isManualMode ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-slate-600'}`} />
+          <span className="text-[11px] font-bold tracking-widest uppercase text-slate-400 group-hover:text-white transition-colors">
+            {isManualMode ? 'Disable Manual Input' : 'Enable Manual Input'}
+          </span>
+        </button>
+      </div>
+
+      {isManualMode && (
+        <SessionsSection
+          amSession={sessions.amSession}
+          pmSession={sessions.pmSession}
+          status={sessions.status}
+          isLoading={loading.isLoading}
+          isSaving={sessions.isSaving}
+          onManualSave={sessions.handleManualTimeChange}
+          onStatusChange={sessions.handleStatusChange}
+          onGlobalSave={sessions.handleGlobalSave}
+          onToggleClock={sessions.onToggleClock}
+        />
+      )}
 
       {/* Error Toast */}
       {sessions.errorMessage && (
@@ -225,7 +255,7 @@ export default function HomeDashboard() {
               <button
                 onClick={sessions.handleConfirmClockOut}
                 disabled={sessions.isSaving}
-                className="w-full py-4 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/20 active:scale-[0.98]"
+                className="w-full py-4 bg-[#FB7185] hover:bg-[#E11D48] disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-rose-500/20 active:scale-[0.98]"
               >
                 {sessions.isSaving ? "Saving Entry..." : "Confirm Clock Out"}
               </button>

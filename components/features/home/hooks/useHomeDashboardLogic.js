@@ -113,6 +113,7 @@ export default function useHomeDashboardLogic() {
   const [attendanceMode, setAttendanceMode] = useState("dual");
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [status, setStatus] = useState("Regular Duty Day");
 
   // Auto-dismiss error after 5 seconds
   useEffect(() => {
@@ -172,13 +173,72 @@ export default function useHomeDashboardLogic() {
           timeIn: todayRecord.pmIn,
           timeOut: todayRecord.pmOut,
         });
+        setStatus(todayRecord.status || "Regular Duty Day");
       } else {
         setAmSession(EMPTY_SESSION);
         setPmSession(EMPTY_SESSION);
+        setStatus("Regular Duty Day");
       }
     },
     [supabase, todayKey],
   );
+
+  const handleManualTimeChange = useCallback((sessionType, field, value) => {
+    if (sessionType === "am") {
+      setAmSession((prev) => ({ ...prev, [field]: value }));
+    } else {
+      setPmSession((prev) => ({ ...prev, [field]: value }));
+    }
+  }, []);
+
+
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+  };
+
+  const handleGlobalSave = async () => {
+    if (!supabase || isSaving) return;
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setErrorMessage("Session expired. Please log in again.");
+        return;
+      }
+
+      let total = 0;
+      if (amSession.timeIn && amSession.timeOut) total += calculateDuration(amSession.timeIn, amSession.timeOut);
+      if (pmSession.timeIn && pmSession.timeOut) total += calculateDuration(pmSession.timeIn, pmSession.timeOut);
+
+      const { error: updateError } = await supabase
+        .from("attendance_entries")
+        .upsert(
+          {
+            user_id: user.id,
+            work_date: todayKey,
+            am_in: amSession.timeIn,
+            am_out: amSession.timeOut,
+            pm_in: pmSession.timeIn,
+            pm_out: pmSession.timeOut,
+            total_hours: total,
+            status: status,
+          },
+          { onConflict: "user_id,work_date" }
+        );
+
+      if (updateError) {
+        setErrorMessage("Failed to save all changes. Please try again.");
+      } else {
+        await refreshPersistedSummary(user.id);
+      }
+    } catch (err) {
+      setErrorMessage("An error occurred while saving.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (!supabase) {
@@ -292,23 +352,23 @@ export default function useHomeDashboardLogic() {
       case "clock-in":
         return {
           label: "Clock In",
-          background: "linear-gradient(135deg, #58D4D4 0%, #2AC9C9 100%)",
+          background: "linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)",
           color: "#0F172A",
-          shadow: "rgba(88, 212, 212, 0.3)",
+          shadow: "rgba(6, 182, 212, 0.3)",
         };
       case "clock-out-am":
         return {
           label: "Clock Out (AM)",
-          background: "linear-gradient(135deg, #FB923C 0%, #F59E0B 100%)",
+          background: "linear-gradient(135deg, #FB7185 0%, #E11D48 100%)",
           color: "#FFFFFF",
-          shadow: "rgba(245, 158, 11, 0.3)",
+          shadow: "rgba(225, 29, 72, 0.3)",
         };
       case "start-pm":
         return {
           label: "Start PM",
-          background: "linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)",
+          background: "linear-gradient(135deg, #06B6D4 0%, #38BDF8 100%)",
           color: "#FFFFFF",
-          shadow: "rgba(14, 165, 233, 0.3)",
+          shadow: "rgba(6, 182, 212, 0.3)",
         };
       case "clock-out-pm":
         return {
@@ -576,6 +636,10 @@ export default function useHomeDashboardLogic() {
       attendanceMode,
       modalHours,
       errorMessage,
+      status,
+      handleStatusChange,
+      handleGlobalSave,
+      handleManualTimeChange,
       clearError: () => setErrorMessage(null),
     },
     summary: {
