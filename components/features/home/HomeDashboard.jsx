@@ -225,7 +225,7 @@ export default function HomeDashboard() {
               <button
                 onClick={sessions.handleConfirmClockOut}
                 disabled={sessions.isSaving}
-                className="w-full py-4 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/20 active:scale-[0.98]"
+                className="w-full py-4 bg-[#FB7185] hover:bg-[#E11D48] disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-rose-500/20 active:scale-[0.98]"
               >
                 {sessions.isSaving ? "Saving Entry..." : "Confirm Clock Out"}
               </button>

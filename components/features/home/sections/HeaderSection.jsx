@@ -16,7 +16,7 @@ const TIME_TEXT_STYLE = {
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
   letterSpacing: "-0.04em",
   lineHeight: "1",
-  background: "linear-gradient(to right, #7C3AED, #2563EB, #06B6D4)",
+  backgroundImage: "linear-gradient(to right, #7C3AED, #2563EB, #06B6D4)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
@@ -45,8 +45,7 @@ export default memo(function HeaderSection({
 
   const isBreakTime = useMemo(() => {
     const hour = now.getHours();
-    // Temporarily set to 18 (6 PM) for testing
-    return hour === 18;
+    return hour === 12;
   }, [now]);
 
   const greeting = useMemo(() => {
@@ -74,93 +73,110 @@ export default memo(function HeaderSection({
     </div>
   );
 
+  // ─── Decorative accent line with dot ───
+  const AccentLine = ({ flip = false }) => (
+    <div className="flex items-center gap-0" style={{ direction: flip ? "rtl" : "ltr" }}>
+      <div
+        style={{
+          width: "6px",
+          height: "6px",
+          borderRadius: "50%",
+          background: "#38BDF8",
+          boxShadow: "0 0 8px rgba(56, 189, 248, 0.6)",
+          flexShrink: 0,
+        }}
+      />
+      <div
+        style={{
+          width: "clamp(40px, 8vw, 100px)",
+          height: "1px",
+          background: "linear-gradient(to right, rgba(56, 189, 248, 0.6), transparent)",
+          flexShrink: 0,
+        }}
+      />
+    </div>
+  );
+
   // ─── BREAK TIME: Full-width cinematic layout ───
   if (isBreakTime) {
     return (
-      <div 
+      <div
         className="relative flex items-center justify-center pt-16 pb-8 px-6"
-        style={{ 
-          width: '100vw', 
-          marginLeft: 'calc(-50vw + 50%)',
-          overflow: 'hidden' 
+        style={{
+          width: "100vw",
+          marginLeft: "calc(-50vw + 50%)",
+          overflow: "hidden",
         }}
       >
         {/* Left Video */}
-        <div className="absolute left-[25%] hidden lg:flex items-center">
+        <div className="absolute left-[20%] hidden lg:flex items-center">
           <VideoElement />
         </div>
 
         {/* Center Content */}
         <div className="flex flex-col items-center justify-center text-center z-10">
-          <div style={DATE_TEXT_STYLE}>{formatLongDate(now)}</div>
 
-          <div className="mt-6 flex flex-col items-center">
-            {/* Name — large cursive, light blue */}
+          {/* ── Date with decorative accents ── */}
+          <div className="flex items-center gap-3">
+            <AccentLine />
             <span
               style={{
-                fontFamily: "var(--font-dancing-script), 'Dancing Script', cursive",
-                fontSize: "clamp(72px, 12vw, 140px)",
-                lineHeight: 0.9,
-                fontWeight: 400,
-                color: "#5BB8F0",
-                textShadow: "0 2px 20px rgba(91, 184, 240, 0.3)",
+                ...DATE_TEXT_STYLE,
+                fontSize: "13px",
+                color: "rgba(255, 255, 255, 0.55)",
+                letterSpacing: "0.18em",
               }}
             >
-              {firstName}
+              {formatLongDate(now)}
             </span>
-
-            {/* "is" — small italic */}
-            <span
-              style={{
-                fontFamily: "var(--font-dancing-script), 'Dancing Script', cursive",
-                fontSize: "clamp(20px, 3vw, 32px)",
-                color: "rgba(255, 255, 255, 0.7)",
-                fontStyle: "italic",
-                marginTop: "-4px",
-                marginBottom: "4px",
-              }}
-            >
-              is
-            </span>
-
-            {/* "ON BREAK" — massive, bold, brush feel */}
-            <h2
-              style={{
-                fontFamily: "var(--font-dancing-script), 'Dancing Script', cursive",
-                fontSize: "clamp(64px, 11vw, 130px)",
-                fontWeight: 700,
-                lineHeight: 0.95,
-                color: "#FFFFFF",
-                letterSpacing: "0.02em",
-                textShadow: "0 4px 30px rgba(255, 255, 255, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3)",
-              }}
-            >
-              ON BREAK
-            </h2>
-
-            {/* Subtext */}
-            <p
-              style={{
-                fontFamily: "var(--font-dancing-script), 'Dancing Script', cursive",
-                fontSize: "clamp(16px, 2.5vw, 22px)",
-                color: "rgba(91, 184, 240, 0.7)",
-                fontStyle: "italic",
-                marginTop: "20px",
-                letterSpacing: "0.04em",
-              }}
-            >
-              Will be back shortly!
-            </p>
+            <AccentLine flip />
           </div>
 
-          {/* Time — small, subtle */}
+          {/* ── "JUSTINE IS" with decorative accents ── */}
+          <div className="flex items-center gap-3 mt-4">
+            {/* <AccentLine /> */}
+            <span
+              style={{
+                fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+                fontSize: "clamp(13px, 2vw, 16px)",
+                fontWeight: 600,
+                color: "rgba(255, 255, 255, 0.55)",
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+              }}
+            >
+              {firstName} is
+            </span>
+            {/* <AccentLine flip /> */}
+          </div>
+
+          {/* ── "ON BREAK" — massive ultra-bold ── */}
+          <h2
+            className="mt-2"
+            style={{
+              fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+              fontSize: "clamp(64px, 14vw, 120px)",
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+              backgroundImage: "linear-gradient(135deg, #06B6D4 0%, #38BDF8 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            ON BREAK
+          </h2>
+
+          {/* ── Time — small, subtle ── */}
           <div
             style={{
               fontFamily: "var(--font-geist-sans), Inter, sans-serif",
               fontSize: "18px",
               fontWeight: 600,
-              color: "rgba(255, 255, 255, 0.5)",
-              marginTop: "20px",
+              color: "rgba(255, 255, 255, 0.45)",
+              marginTop: "16px",
               letterSpacing: "0.1em",
             }}
           >
@@ -195,7 +211,7 @@ export default memo(function HeaderSection({
         </div>
 
         {/* Right Video */}
-        <div className="absolute right-[25%] hidden lg:flex items-center">
+        <div className="absolute right-[20%] hidden lg:flex items-center">
           <VideoElement flip />
         </div>
       </div>

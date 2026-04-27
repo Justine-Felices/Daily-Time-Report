@@ -14,8 +14,8 @@ const TITLE_TEXT_STYLE = {
 
 const PILL_STYLE = {
   background: "transparent",
-  border: "1px solid rgba(88, 212, 212, 0.3)",
-  color: "#58D4D4",
+  border: "1px solid rgba(6, 182, 212, 0.3)",
+  color: "#06B6D4",
   fontSize: "12px",
   fontWeight: 500,
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
@@ -32,7 +32,7 @@ const STAT_VALUE_STYLE = {
 };
 
 const STAT_LABEL_STYLE = {
-  color: "#58D4D4",
+  color: "#06B6D4",
   fontSize: "11px",
   fontWeight: 700,
   letterSpacing: "-0.01em",
@@ -79,8 +79,8 @@ export default function ProgressSection({
         <div
           className="flex h-8 w-8 items-center justify-center rounded-lg"
           style={{
-            background: "#58D4D4",
-            boxShadow: "0 0 8px rgba(88, 212, 212, 0.15)",
+            background: "#06B6D4",
+            boxShadow: "0 0 8px rgba(6, 182, 212, 0.15)",
           }}
         >
           <TrendingUp size={18} color="white" strokeWidth={2.5} />
@@ -127,11 +127,11 @@ export default function ProgressSection({
               border: "1px solid rgba(255, 255, 255, 0.05)",
             }}
           >
-            <div className="text-[#58D4D4]">
+            <div className="text-[#06B6D4]">
               <Lightbulb size={20} />
             </div>
             <p className="text-[13px] text-white/70 font-medium">
-              You need <span className="text-[#58D4D4] font-bold">{hoursPerDayNeeded} hrs/day</span> to finish on time.
+              You need <span className="text-[#06B6D4] font-bold">{hoursPerDayNeeded} hrs/day</span> to finish on time.
             </p>
           </div>
 
