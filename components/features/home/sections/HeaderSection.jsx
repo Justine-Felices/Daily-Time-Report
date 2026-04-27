@@ -45,7 +45,7 @@ export default memo(function HeaderSection({
 
   const isBreakTime = useMemo(() => {
     const hour = now.getHours();
-    return hour === 12;
+    return hour === 11;
   }, [now]);
 
   const greeting = useMemo(() => {
