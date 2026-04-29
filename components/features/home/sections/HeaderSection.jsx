@@ -43,16 +43,16 @@ export default memo(function HeaderSection({
     return userName.trim().split(/\s+/)[0];
   }, [userName]);
 
-  const isBreakTime = useMemo(() => {
-    const hour = now.getHours();
-    return hour === 11;
-  }, [now]);
-
   const greeting = useMemo(() => {
     const hour = now.getHours();
     if (hour < 12) return "Good Morning";
     if (hour < 18) return "Good Afternoon";
     return "Good Evening";
+  }, [now]);
+
+  const isBreakTime = useMemo(() => {
+    const hour = now.getHours();
+    return hour === 11;
   }, [now]);
 
   const VideoElement = ({ flip = false }) => (

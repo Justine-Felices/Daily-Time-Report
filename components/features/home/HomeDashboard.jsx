@@ -18,7 +18,6 @@ export default function HomeDashboard() {
     summary,
   } = useHomeDashboardLogic();
 
-  const [isManualMode, setIsManualMode] = useState(false);
 
   return (
     <PageShell width="wide">
@@ -44,23 +43,14 @@ export default function HomeDashboard() {
         hasAnyLog={sessions.hasAnyLog}
         estimatedFinishText={progress.estimatedFinishText}
         onToggleClock={sessions.onToggleClock}
+        isManualMode={sessions.isManualMode}
+        setIsManualMode={sessions.setIsManualMode}
       />
 
-      {!sessions.hasAnyLog && (
+      {!sessions.hasTodayRecord && (
         <>
-          <div className="flex justify-center mt-6">
-            <button
-              onClick={() => setIsManualMode(!isManualMode)}
-              className="group flex items-center gap-2 px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-all active:scale-95"
-            >
-              <div className={`w-2 h-2 rounded-full ${isManualMode ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]' : 'bg-slate-600'}`} />
-              <span className="text-[11px] font-bold tracking-widest uppercase text-slate-400 group-hover:text-white transition-colors">
-                {isManualMode ? 'Disable Manual Input' : 'Enable Manual Input'}
-              </span>
-            </button>
-          </div>
 
-          {isManualMode && (
+          {sessions.isManualMode && (
             <SessionsSection
               amSession={sessions.amSession}
               pmSession={sessions.pmSession}
@@ -169,66 +159,63 @@ export default function HomeDashboard() {
               <div className="space-y-3">
                 {/* Dual mode + late start: show PM-only rows */}
                 {sessions.attendanceMode === "dual" && isLateStart && (
-                  <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">PM Time In</span>
-                      <span className="text-white font-medium">
-                        {sessions.amSession?.timeIn || "—"}
-                      </span>
-                    </div>
-                  </>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-400">PM Time In</span>
+                    <input
+                      type="text"
+                      value={sessions.modalPmIn}
+                      onChange={(e) => sessions.setModalPmIn(e.target.value)}
+                      className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                    />
+                  </div>
                 )}
+                
                 {/* Dual mode + normal start: show all 4 rows */}
                 {sessions.attendanceMode === "dual" && !isLateStart && (
                   <>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between items-center text-sm">
                       <span className="text-slate-400">AM Time In</span>
-                      <span className="text-white font-medium">
-                        {sessions.amSession?.timeIn || "—"}
-                      </span>
+                      <input
+                        type="text"
+                        value={sessions.modalAmIn}
+                        onChange={(e) => sessions.setModalAmIn(e.target.value)}
+                        className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                      />
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between items-center text-sm">
                       <span className="text-slate-400">AM Time Out</span>
-                      <span className="text-white font-medium">
-                        {sessions.currentStatus === "clock-out-am" ? "11:00" : (sessions.amSession?.timeOut || "—")}
-                      </span>
+                      <input
+                        type="text"
+                        value={sessions.modalAmOut}
+                        onChange={(e) => sessions.setModalAmOut(e.target.value)}
+                        className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                      />
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between items-center text-sm">
                       <span className="text-slate-400">PM Time In</span>
-                      <span className="text-white font-medium">
-                        {sessions.currentStatus === "clock-out-am" ? "12:00" : (sessions.pmSession?.timeIn || "—")}
-                      </span>
+                      <input
+                        type="text"
+                        value={sessions.modalPmIn}
+                        onChange={(e) => sessions.setModalPmIn(e.target.value)}
+                        className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                      />
                     </div>
                   </>
                 )}
+                
                 {/* Single mode rows */}
                 {sessions.attendanceMode === "single" && (
-                  <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">AM Time In</span>
-                      <span className="text-white font-medium">
-                        {sessions.amSession?.timeIn || "—"}
-                      </span>
-                    </div>
-                    {sessions.currentStatus === "clock-out-pm" && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">AM Time Out</span>
-                        <span className="text-white font-medium">
-                          {sessions.amSession?.timeOut || "—"}
-                        </span>
-                      </div>
-                    )}
-                  </>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-400">Time In</span>
+                    <input
+                      type="text"
+                      value={sessions.modalAmIn}
+                      onChange={(e) => sessions.setModalAmIn(e.target.value)}
+                      className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                    />
+                  </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Current Time</span>
-                  <span className="text-white font-medium">
-                    {header.now.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
+                
               </div>
 
               {sessions.attendanceMode === "dual" &&
