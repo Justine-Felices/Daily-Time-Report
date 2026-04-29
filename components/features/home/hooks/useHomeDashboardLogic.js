@@ -129,6 +129,18 @@ export default function useHomeDashboardLogic() {
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [status, setStatus] = useState("Regular Duty Day");
+  const [hasTodayRecord, setHasTodayRecord] = useState(false);
+  const [isManualMode, setIsManualMode] = useState(false);
+
+  // Keep track of the last known DB state to allow reverting manual edits
+  const [persistedAmSession, setPersistedAmSession] = useState(EMPTY_SESSION);
+  const [persistedPmSession, setPersistedPmSession] = useState(EMPTY_SESSION);
+
+  // Modal-specific editable fields
+  const [modalAmIn, setModalAmIn] = useState("");
+  const [modalAmOut, setModalAmOut] = useState("");
+  const [modalPmIn, setModalPmIn] = useState("");
+  const [modalPmOut, setModalPmOut] = useState("");
 
   // Auto-dismiss error after 5 seconds
   useEffect(() => {
@@ -139,6 +151,76 @@ export default function useHomeDashboardLogic() {
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
+
+  // Revert manual edits when toggling back to Auto Mode
+  useEffect(() => {
+    if (!isManualMode) {
+      setAmSession(persistedAmSession);
+      setPmSession(persistedPmSession);
+    }
+  }, [isManualMode, persistedAmSession, persistedPmSession]);
+
+  // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
+  const currentStatus = useMemo(() => {
+    // Single Mode Flow
+    if (attendanceMode === "single") {
+      if (!amSession.timeIn) return "clock-in";
+      if (!pmSession.timeOut) return "clock-out-pm";
+      return "done";
+    }
+
+    // Dual Mode Flow
+    // PM-only session (late-start dual mode): AM is empty but PM is complete
+    if (!amSession.timeIn && pmSession.timeIn && pmSession.timeOut) return "done";
+    if (!amSession.timeIn) return "clock-in";
+    if (!amSession.timeOut) return "clock-out-am";
+    if (!pmSession.timeIn) return "start-pm";
+    if (!pmSession.timeOut) return "clock-out-pm";
+    return "done";
+  }, [amSession, pmSession, attendanceMode]);
+
+  const isDayComplete = currentStatus === "done";
+  const hasAnyLog = Boolean(
+    amSession.timeIn ||
+      amSession.timeOut ||
+      pmSession.timeIn ||
+      pmSession.timeOut,
+  );
+
+  // Sync modal state when it opens
+  useEffect(() => {
+    if (showClockOutModal) {
+      const timeNow = formatNowClock(now);
+      setModalAmIn(amSession.timeIn || "");
+      
+      if (currentStatus === "clock-out-am") {
+        if (attendanceMode === "dual") {
+          const amInMinutes = toMinutes(amSession.timeIn);
+          const amCutoff = toMinutes("11:00");
+          if (amInMinutes !== null && amInMinutes >= amCutoff) {
+            // Late start
+            setModalAmOut("");
+            setModalPmIn(amSession.timeIn || "");
+            setModalPmOut(timeNow);
+          } else {
+            // Normal dual
+            setModalAmOut("11:00");
+            setModalPmIn("12:00");
+            setModalPmOut(timeNow);
+          }
+        } else {
+          // Single
+          setModalAmOut("");
+          setModalPmIn("");
+          setModalPmOut(timeNow);
+        }
+      } else if (currentStatus === "clock-out-pm") {
+        setModalAmOut(amSession.timeOut || "");
+        setModalPmIn(pmSession.timeIn || "");
+        setModalPmOut(timeNow);
+      }
+    }
+  }, [showClockOutModal, amSession, pmSession, currentStatus, attendanceMode, now]);
 
   const refreshPersistedSummary = useCallback(
     async (userId) => {
@@ -188,11 +270,23 @@ export default function useHomeDashboardLogic() {
           timeIn: todayRecord.pmIn,
           timeOut: todayRecord.pmOut,
         });
+        setPersistedAmSession({
+          timeIn: todayRecord.amIn,
+          timeOut: todayRecord.amOut,
+        });
+        setPersistedPmSession({
+          timeIn: todayRecord.pmIn,
+          timeOut: todayRecord.pmOut,
+        });
         setStatus(todayRecord.status || "Regular Duty Day");
+        setHasTodayRecord(true);
       } else {
         setAmSession(EMPTY_SESSION);
         setPmSession(EMPTY_SESSION);
+        setPersistedAmSession(EMPTY_SESSION);
+        setPersistedPmSession(EMPTY_SESSION);
         setStatus("Regular Duty Day");
+        setHasTodayRecord(false);
       }
     },
     [supabase, todayKey],
@@ -406,27 +500,10 @@ export default function useHomeDashboardLogic() {
     : formattedEstimatedFinish || "Not available";
 
   // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
-  const currentStatus = useMemo(() => {
-    // PM-only session (late-start dual mode): AM is empty but PM is complete
-    if (!amSession.timeIn && pmSession.timeIn && pmSession.timeOut) return "done";
-    if (!amSession.timeIn) return "clock-in";
-    if (!amSession.timeOut) return "clock-out-am";
-    if (!pmSession.timeIn) return "start-pm";
-    if (!pmSession.timeOut) return "clock-out-pm";
-    return "done";
-  }, [amSession, pmSession]);
-
-  const isDayComplete = currentStatus === "done";
-  const hasAnyLog = Boolean(
-    amSession.timeIn ||
-      amSession.timeOut ||
-      pmSession.timeIn ||
-      pmSession.timeOut,
-  );
 
   const buttonConfig = useMemo(() => {
-    // If any log exists for today, show as "Already Logged" and disable the automated flow
-    if (hasAnyLog) {
+    // If the day is complete, show as "Already Logged"
+    if (currentStatus === "done") {
       return {
         label: "Already Logged",
         background: "rgba(255, 255, 255, 0.05)",
@@ -474,15 +551,26 @@ export default function useHomeDashboardLogic() {
     }
   }, [currentStatus, hasAnyLog]);
 
-  const isClockIn =
-    (amSession.timeIn && !amSession.timeOut) ||
-    (pmSession.timeIn && !pmSession.timeOut);
+  const isClockIn = useMemo(() => {
+    if (attendanceMode === "single") {
+      return Boolean(amSession.timeIn && !pmSession.timeOut);
+    }
+    return Boolean(
+      (amSession.timeIn && !amSession.timeOut) ||
+      (pmSession.timeIn && !pmSession.timeOut)
+    );
+  }, [amSession, pmSession, attendanceMode]);
 
-  const activeSessionTimeIn = (amSession.timeIn && !amSession.timeOut) 
-    ? amSession.timeIn 
-    : (pmSession.timeIn && !pmSession.timeOut) 
-      ? pmSession.timeIn 
-      : null;
+  const activeSessionTimeIn = useMemo(() => {
+    if (attendanceMode === "single") {
+      return (amSession.timeIn && !pmSession.timeOut) ? amSession.timeIn : null;
+    }
+    return (amSession.timeIn && !amSession.timeOut)
+      ? amSession.timeIn
+      : (pmSession.timeIn && !pmSession.timeOut)
+        ? pmSession.timeIn
+        : null;
+  }, [amSession, pmSession, attendanceMode]);
 
   const currentSessionHours = useMemo(() => {
     if (!activeSessionTimeIn) return 0;
@@ -493,31 +581,26 @@ export default function useHomeDashboardLogic() {
   }, [activeSessionTimeIn, now]);
 
   const modalHours = useMemo(() => {
-    const timeNow = formatNowClock(now);
-    if (currentStatus === "clock-out-am") {
-      if (attendanceMode === "dual") {
-        const amInMinutes = toMinutes(amSession.timeIn);
-        const amCutoff = toMinutes("11:00");
+    if (!showClockOutModal) return 0;
+    
+    if (attendanceMode === "dual") {
+      const amInMinutes = toMinutes(modalAmIn);
+      const amCutoff = toMinutes("11:00");
 
-        if (amInMinutes !== null && amInMinutes >= amCutoff) {
-          // Late start (>= 11:00 AM): PM-only, duration = now - original am_in
-          return calculateDuration(amSession.timeIn, timeNow);
-        }
-
-        // Normal dual: morning (am_in → 11:00) + afternoon (12:00 → now)
-        const morning = calculateDuration(amSession.timeIn, "11:00");
-        const afternoon = calculateDuration("12:00", timeNow);
-        return morning + afternoon;
+      if (amInMinutes !== null && amInMinutes >= amCutoff) {
+        // Late start (treated as PM only)
+        return calculateDuration(modalPmIn, modalPmOut);
       }
-      return calculateDuration(amSession.timeIn, timeNow);
-    }
-    if (currentStatus === "clock-out-pm") {
-      const morning = calculateDuration(amSession.timeIn, amSession.timeOut);
-      const afternoon = calculateDuration(pmSession.timeIn, timeNow);
+      
+      // Normal dual
+      const morning = calculateDuration(modalAmIn, modalAmOut);
+      const afternoon = calculateDuration(modalPmIn, modalPmOut);
       return morning + afternoon;
     }
-    return 0;
-  }, [currentStatus, amSession, pmSession, attendanceMode, now]);
+    
+    // Single mode
+    return calculateDuration(modalAmIn, modalPmOut);
+  }, [showClockOutModal, modalAmIn, modalAmOut, modalPmIn, modalPmOut, attendanceMode]);
 
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
 
@@ -607,40 +690,86 @@ export default function useHomeDashboardLogic() {
         setErrorMessage("Session expired. Please log in again to save your clock out.");
         return;
       }
+
+      // --- VALIDATION ---
+      const amInMin = toMinutes(modalAmIn);
+      const amOutMin = toMinutes(modalAmOut);
+      const pmInMin = toMinutes(modalPmIn);
+      const pmOutMin = toMinutes(modalPmOut);
+
+      // 1. Basic Format Checks
+      if (modalAmIn && amInMin === null) { setErrorMessage("Invalid format for AM Time In"); setIsSaving(false); return; }
+      if (modalAmOut && amOutMin === null) { setErrorMessage("Invalid format for AM Time Out"); setIsSaving(false); return; }
+      if (modalPmIn && pmInMin === null) { setErrorMessage("Invalid format for PM Time In"); setIsSaving(false); return; }
+      if (modalPmOut && pmOutMin === null) { setErrorMessage("Invalid format for Current Time"); setIsSaving(false); return; }
+
+      // 2. Logical Sequence Checks
+      if (attendanceMode === "dual") {
+        const amCutoff = toMinutes("11:00");
+        const isLateStart = amInMin !== null && amInMin >= amCutoff;
+
+        if (isLateStart) {
+          // Validate PM-only flow
+          if (pmInMin === null) { setErrorMessage("PM Time In is required"); setIsSaving(false); return; }
+          if (pmOutMin <= pmInMin) { setErrorMessage("Current Time must be after PM Time In"); setIsSaving(false); return; }
+        } else {
+          // Validate normal Dual flow
+          if (amInMin === null) { setErrorMessage("AM Time In is required"); setIsSaving(false); return; }
+          if (amOutMin === null) { setErrorMessage("AM Time Out is required"); setIsSaving(false); return; }
+          if (pmInMin === null) { setErrorMessage("PM Time In is required"); setIsSaving(false); return; }
+          if (amOutMin <= amInMin) { setErrorMessage("AM Time Out must be after AM Time In"); setIsSaving(false); return; }
+          if (pmInMin < amOutMin) { setErrorMessage("PM Time In cannot be before AM Time Out"); setIsSaving(false); return; }
+          if (pmOutMin <= pmInMin) { setErrorMessage("Current Time must be after PM Time In"); setIsSaving(false); return; }
+        }
+      } else {
+        // Single Mode Validation
+        if (amInMin === null) { setErrorMessage("Time In is required"); setIsSaving(false); return; }
+        if (pmOutMin <= amInMin) { setErrorMessage("Current Time must be after Time In"); setIsSaving(false); return; }
+      }
+
       const timeNow = formatNowClock(new Date());
       let updates = {};
 
       if (currentStatus === "clock-out-am") {
         if (attendanceMode === "dual") {
-          const amInMinutes = toMinutes(amSession.timeIn);
+          const amInMinutes = toMinutes(modalAmIn);
           const amCutoff = toMinutes("11:00");
 
           if (amInMinutes !== null && amInMinutes >= amCutoff) {
             // CASE 2: Late start (am_in >= 11:00 AM) — treat as PM-only
-            // Move original am_in → pm_in, clear AM fields, set pm_out = now
             updates = {
               am_in: null,
               am_out: null,
-              pm_in: amSession.timeIn,
-              pm_out: timeNow,
+              pm_in: modalPmIn,
+              pm_out: modalPmOut,
               total_hours: modalHours,
             };
           } else {
-            // CASE 1: Normal dual mode (am_in < 11:00 AM)
-            // am_out = 11:00, pm_in = 12:00, pm_out = now
+            // CASE 1: Normal dual mode
             updates = {
-              am_out: "11:00",
-              pm_in: "12:00",
-              pm_out: timeNow,
+              am_in: modalAmIn,
+              am_out: modalAmOut,
+              pm_in: modalPmIn,
+              pm_out: modalPmOut,
               total_hours: modalHours,
             };
           }
         } else {
-          // Single mode: just set pm_out = now
-          updates = { pm_out: timeNow, total_hours: modalHours };
+          // Single mode
+          updates = { 
+            am_in: modalAmIn,
+            pm_out: modalPmOut, 
+            total_hours: modalHours 
+          };
         }
       } else if (currentStatus === "clock-out-pm") {
-        updates = { pm_out: timeNow, total_hours: modalHours };
+        updates = { 
+          am_in: modalAmIn,
+          am_out: modalAmOut,
+          pm_in: modalPmIn,
+          pm_out: modalPmOut, 
+          total_hours: modalHours 
+        };
       }
 
       const { error: updateError } = await supabase
@@ -710,6 +839,7 @@ export default function useHomeDashboardLogic() {
       buttonConfig,
       isDayComplete,
       hasAnyLog,
+      hasTodayRecord,
       onToggleClock,
       showClockOutModal,
       setShowClockOutModal,
@@ -721,6 +851,16 @@ export default function useHomeDashboardLogic() {
       handleStatusChange,
       handleGlobalSave,
       handleManualTimeChange,
+      modalAmIn,
+      setModalAmIn,
+      modalAmOut,
+      setModalAmOut,
+      modalPmIn,
+      setModalPmIn,
+      modalPmOut,
+      setModalPmOut,
+      isManualMode,
+      setIsManualMode,
       clearError: () => setErrorMessage(null),
     },
     summary: {

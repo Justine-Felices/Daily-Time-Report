@@ -53,11 +53,10 @@ export default function ProgressSection({
   hasAnyLog,
   estimatedFinishText,
   onToggleClock,
+  isManualMode,
+  setIsManualMode,
 }) {
-
-
   // Simple calculation for the tip - assuming 20 working days left as a placeholder or a rough estimate
-  // In a real app, this would be calculated based on the actual working days between now and estimated finish
   const hoursPerDayNeeded = remaining > 0 ? (remaining / 20).toFixed(1) : 0;
 
   const statItems = [
@@ -78,7 +77,7 @@ export default function ProgressSection({
   return (
     <GlassCard padding="24px" className="overflow-hidden">
       {/* Header */}
-      <div className="mb-8 flex items-center gap-3">
+      <div className="mb-8 flex items-center gap-3 relative">
         <div
           className="flex h-8 w-8 items-center justify-center rounded-lg"
           style={{
@@ -89,8 +88,24 @@ export default function ProgressSection({
           <TrendingUp size={18} color="white" strokeWidth={2.5} />
         </div>
         <span style={TITLE_TEXT_STYLE}>OJT PROGRESS</span>
-        <div className="ml-auto rounded-full px-4 py-1.5" style={PILL_STYLE}>
-          {totalHours?.toFixed(0) || 0} Hours Completed
+        
+        <div className="ml-auto flex items-center gap-4">
+          <div className="rounded-full px-4 py-1.5" style={PILL_STYLE}>
+            {totalHours?.toFixed(0) || 0} Hours Completed
+          </div>
+          
+          <button
+            onClick={() => setIsManualMode(!isManualMode)}
+            className="flex items-center gap-2 group transition-all"
+            title={isManualMode ? "Disable Manual Input" : "Enable Manual Input"}
+          >
+            <span className="text-[10px] font-bold text-white/30 group-hover:text-white/60 tracking-widest uppercase transition-colors">
+              Manual
+            </span>
+            <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${isManualMode ? 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)]' : 'bg-white/10'}`}>
+              <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all duration-300 ${isManualMode ? 'left-5' : 'left-1'}`} />
+            </div>
+          </button>
         </div>
       </div>
 
@@ -141,7 +156,7 @@ export default function ProgressSection({
           {/* Action Button */}
           <button
             onClick={onToggleClock}
-            disabled={isDayComplete || hasAnyLog}
+            disabled={isDayComplete}
 
             className="w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
