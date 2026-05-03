@@ -88,24 +88,12 @@ export default function ProgressSection({
           <TrendingUp size={18} color="white" strokeWidth={2.5} />
         </div>
         <span style={TITLE_TEXT_STYLE}>OJT PROGRESS</span>
-        
+
         <div className="ml-auto flex items-center gap-4">
           <div className="rounded-full px-4 py-1.5" style={PILL_STYLE}>
             {totalHours?.toFixed(0) || 0} Hours Completed
           </div>
-          
-          <button
-            onClick={() => setIsManualMode(!isManualMode)}
-            className="flex items-center gap-2 group transition-all"
-            title={isManualMode ? "Disable Manual Input" : "Enable Manual Input"}
-          >
-            <span className="text-[10px] font-bold text-white/30 group-hover:text-white/60 tracking-widest uppercase transition-colors">
-              Manual
-            </span>
-            <div className={`w-8 h-4 rounded-full relative transition-all duration-300 ${isManualMode ? 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.4)]' : 'bg-white/10'}`}>
-              <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all duration-300 ${isManualMode ? 'left-5' : 'left-1'}`} />
-            </div>
-          </button>
+
         </div>
       </div>
 
@@ -138,7 +126,7 @@ export default function ProgressSection({
           </div>
 
           {/* Tip Section */}
-          <div 
+          <div
             className="flex items-center gap-3 rounded-2xl p-4 w-full mb-4"
             style={{
               background: "rgba(255, 255, 255, 0.03)",
