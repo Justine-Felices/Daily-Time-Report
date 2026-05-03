@@ -89,11 +89,19 @@ export default function ProgressSection({
         </div>
         <span style={TITLE_TEXT_STYLE}>OJT PROGRESS</span>
 
-        <div className="ml-auto flex items-center gap-4">
-          <div className="rounded-full px-4 py-1.5" style={PILL_STYLE}>
-            {totalHours?.toFixed(0) || 0} Hours Completed
+        <div className="ml-auto">
+          <div 
+            className="rounded-full px-2.5 py-1 sm:px-4 sm:py-1.5 border border-[#06B6D4]/30 text-[#06B6D4]" 
+            style={{
+              background: "transparent",
+              fontWeight: 500,
+              fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+            }}
+          >
+            <span className="text-[10px] sm:text-[12px] whitespace-nowrap">
+              {totalHours?.toFixed(0) || 0} Hours Completed
+            </span>
           </div>
-
         </div>
       </div>
 
@@ -107,19 +115,29 @@ export default function ProgressSection({
         {/* Right: Stats and Tip */}
         <div className="flex flex-col flex-grow w-full">
           {/* Stats Row */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-y-6 sm:gap-x-0 mb-10 w-full">
+          <div className="flex flex-row items-center justify-between mb-10 w-full gap-1">
             {statItems.map((item, index) => (
               <React.Fragment key={item.label}>
                 <div className="flex flex-col items-center text-center flex-1">
                   {isLoading ? (
-                    <SkeletonBlock className="h-7 w-24 rounded-md mb-1" />
+                    <SkeletonBlock className="h-7 w-12 sm:w-24 rounded-md mb-1" />
                   ) : (
-                    <div style={STAT_VALUE_STYLE}>{item.value}</div>
+                    <div 
+                      className="text-[16px] sm:text-[21px]"
+                      style={{...STAT_VALUE_STYLE, fontSize: undefined}}
+                    >
+                      {item.value}
+                    </div>
                   )}
-                  <div style={STAT_LABEL_STYLE}>{item.label}</div>
+                  <div 
+                    className="text-[8px] sm:text-[11px] leading-tight"
+                    style={{...STAT_LABEL_STYLE, fontSize: undefined}}
+                  >
+                    {item.label}
+                  </div>
                 </div>
                 {index < statItems.length - 1 && (
-                  <div className="hidden sm:block h-10 w-[1px] bg-white/10" />
+                  <div className="h-8 sm:h-10 w-[1px] bg-white/10" />
                 )}
               </React.Fragment>
             ))}
