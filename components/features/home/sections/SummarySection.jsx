@@ -49,7 +49,7 @@ export default function SummarySection({
         <span style={TITLE_STYLE}>Summary</span>
       </div>
 
-      <div className="flex flex-row flex-wrap gap-3 pb-4 sm:grid sm:grid-cols-4 sm:overflow-visible lg:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2 pb-4 sm:gap-3">
         {summaryItems.map((item) => (
           <StatCard
             key={item.label}
