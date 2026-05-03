@@ -182,9 +182,9 @@ export default function useHomeDashboardLogic() {
   const isDayComplete = currentStatus === "done";
   const hasAnyLog = Boolean(
     amSession.timeIn ||
-      amSession.timeOut ||
-      pmSession.timeIn ||
-      pmSession.timeOut,
+    amSession.timeOut ||
+    pmSession.timeIn ||
+    pmSession.timeOut,
   );
 
   // Sync modal state when it opens
@@ -192,7 +192,7 @@ export default function useHomeDashboardLogic() {
     if (showClockOutModal) {
       const timeNow = formatNowClock(now);
       setModalAmIn(amSession.timeIn || "");
-      
+
       if (currentStatus === "clock-out-am") {
         if (attendanceMode === "dual") {
           const amInMinutes = toMinutes(amSession.timeIn);
@@ -390,12 +390,12 @@ export default function useHomeDashboardLogic() {
 
       // Success -> Refresh
       await refreshPersistedSummary(user.id);
-      
+
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
         console.error("Dashboard Save Exception:", err);
       }
-      
+
       const msg = err instanceof Error ? err.message : "Unknown error";
       setErrorMessage(`Save failed: ${msg}`);
     } finally {
@@ -582,7 +582,7 @@ export default function useHomeDashboardLogic() {
 
   const modalHours = useMemo(() => {
     if (!showClockOutModal) return 0;
-    
+
     if (attendanceMode === "dual") {
       const amInMinutes = toMinutes(modalAmIn);
       const amCutoff = toMinutes("11:00");
@@ -591,13 +591,13 @@ export default function useHomeDashboardLogic() {
         // Late start (treated as PM only)
         return calculateDuration(modalPmIn, modalPmOut);
       }
-      
+
       // Normal dual
       const morning = calculateDuration(modalAmIn, modalAmOut);
       const afternoon = calculateDuration(modalPmIn, modalPmOut);
       return morning + afternoon;
     }
-    
+
     // Single mode
     return calculateDuration(modalAmIn, modalPmOut);
   }, [showClockOutModal, modalAmIn, modalAmOut, modalPmIn, modalPmOut, attendanceMode]);
@@ -756,19 +756,19 @@ export default function useHomeDashboardLogic() {
           }
         } else {
           // Single mode
-          updates = { 
+          updates = {
             am_in: modalAmIn,
-            pm_out: modalPmOut, 
-            total_hours: modalHours 
+            pm_out: modalPmOut,
+            total_hours: modalHours
           };
         }
       } else if (currentStatus === "clock-out-pm") {
-        updates = { 
+        updates = {
           am_in: modalAmIn,
           am_out: modalAmOut,
           pm_in: modalPmIn,
-          pm_out: modalPmOut, 
-          total_hours: modalHours 
+          pm_out: modalPmOut,
+          total_hours: modalHours
         };
       }
 
