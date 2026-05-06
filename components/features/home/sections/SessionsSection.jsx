@@ -47,9 +47,9 @@ export default function SessionsSection({
           <span 
             className="rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest"
             style={{
-              background: isSingleMode ? "rgba(34,197,94,0.1)" : "rgba(6,182,212,0.1)",
-              color: isSingleMode ? "#22C55E" : "#06B6D4",
-              border: `1px solid ${isSingleMode ? "rgba(34,197,94,0.2)" : "rgba(6,182,212,0.2)"}`,
+              background: isSingleMode ? "rgba(6,148,148,0.1)" : "rgba(6,182,212,0.1)",
+              color: isSingleMode ? "#069494" : "#06B6D4",
+              border: `1px solid ${isSingleMode ? "rgba(6,148,148,0.2)" : "rgba(6,182,212,0.2)"}`,
             }}
           >
             {isSingleMode ? "Single" : "Dual"}
@@ -77,7 +77,7 @@ export default function SessionsSection({
           <button
             onClick={onGlobalSave}
             disabled={isSaving || hasValidationError}
-            className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+            className="flex items-center gap-2 px-6 py-2 bg-[#069494] hover:bg-[#057a7a] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-teal-500/20 transition-all active:scale-95"
           >
             <Save size={14} />
             {isSaving ? "SAVING..." : "SAVE ALL"}
@@ -91,15 +91,15 @@ export default function SessionsSection({
           <SessionCard
             title="DAILY ENTRY"
             icon={Clock}
-            iconColor="#22C55E"
+            iconColor="#069494"
             draftStorageKey="single-session-draft"
             session={singleSession}
             isLoading={isLoading}
             disabled={singleDisabled}
             inLabel="TIME IN"
             outLabel="TIME OUT"
-            inGrad="linear-gradient(135deg, #22C55E 0%, #16A34A 100%)"
-            inShadow="rgba(34, 197, 94, 0.2)"
+            inGrad="#069494"
+            inShadow="rgba(6, 148, 148, 0.2)"
             onValidationChange={setSingleError}
             onTimeIn={() => onToggleClock()}
             onTimeOut={() => onToggleClock()}
@@ -113,15 +113,15 @@ export default function SessionsSection({
           <SessionCard
             title="MORNING SESSION"
             icon={Sun}
-            iconColor="#F59E0B"
+            iconColor="#06B6D4"
             draftStorageKey="am-session-draft"
             session={amSession}
             isLoading={isLoading}
             disabled={amDisabled}
             inLabel="AM IN"
             outLabel="AM OUT"
-            inGrad="linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"
-            inShadow="rgba(245, 158, 11, 0.2)"
+            inGrad="#06B6D4"
+            inShadow="rgba(6, 182, 212, 0.2)"
             onValidationChange={setAmError}
             onTimeIn={() => onToggleClock()}
             onTimeOut={() => onToggleClock()}
@@ -132,15 +132,15 @@ export default function SessionsSection({
           <SessionCard
             title="AFTERNOON SESSION"
             icon={Coffee}
-            iconColor="#06B6D4"
+            iconColor="#069494"
             draftStorageKey="pm-session-draft"
             session={pmSession}
             isLoading={isLoading}
             disabled={pmDisabled}
             inLabel="PM IN"
             outLabel="PM OUT"
-            inGrad="linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)"
-            inShadow="rgba(6, 182, 212, 0.2)"
+            inGrad="#069494"
+            inShadow="rgba(6, 148, 148, 0.2)"
             onValidationChange={setPmError}
             earliestTime={pmEarliestTime}
             earliestLabel="Morning session"

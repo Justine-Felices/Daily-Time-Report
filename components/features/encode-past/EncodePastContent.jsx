@@ -24,9 +24,7 @@ import DateSection from "@/components/features/encode-past/components/DateSectio
 import BulkAddDtrModal from "@/components/features/encode-past/components/BulkAddDtrModal";
 import TimeSessionsSection from "@/components/features/encode-past/components/TimeSessionsSection";
 import TimeSessionsSkeleton from "@/components/features/encode-past/components/TimeSessionsSkeleton";
-import StatusNoteSection from "@/components/features/encode-past/components/StatusNoteSection";
 import ErrorMessage from "@/components/features/encode-past/components/ErrorMessage";
-import SaveButton from "@/components/features/encode-past/components/SaveButton";
 
 const INITIAL_FORM = {
   date: "2026-03-02",
@@ -345,17 +343,17 @@ export default function EncodePastContent() {
   };
 
   return (
-    <PageShell width="narrow">
+    <PageShell width="wide">
       <HeaderSection
         title="Encode Past Attendance"
         subtitle="Manually enter time records for a previous date"
       />
 
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2 mt-4">
         <button
           type="button"
           onClick={() => setShowBulkModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2"
+          className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 transition-all active:scale-95"
           style={{
             border: "1px solid var(--border-soft)",
             background: "var(--surface-muted)",
@@ -365,8 +363,8 @@ export default function EncodePastContent() {
             fontFamily: "'Inter',sans-serif",
           }}
         >
-          <CalendarRange size={13} color="var(--accent-strong)" />
-          Bulk Add
+          <CalendarRange size={13} color="#069494" />
+          Bulk Entry Mode
         </button>
       </div>
 
@@ -394,27 +392,39 @@ export default function EncodePastContent() {
           onSimpleInChange={(value) => updateField("simpleIn", value)}
           onSimpleOutChange={(value) => updateField("simpleOut", value)}
           onValidationChange={handleTimeValidation}
+          onStatusChange={handleStatusChange}
+          onSave={handleSave}
           status={form.status}
+          isLoading={isModeLoading}
+          isSaving={isLoading}
           sessionsLocked={sessionsLocked}
         />
       )}
 
-      <StatusNoteSection
-        status={form.status}
-        note={form.note}
-        statusOptions={STATUS_OPTIONS}
-        onStatusChange={handleStatusChange}
-        onNoteChange={(value) => updateField("note", value)}
-      />
+      <div className="mt-6">
+        <label 
+          className="block mb-2 text-[11px] font-bold tracking-widest text-slate-500 uppercase px-1"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+        >
+          Remarks / Note (Optional)
+        </label>
+        <textarea
+          rows={3}
+          value={form.note}
+          onChange={(e) => updateField("note", e.target.value)}
+          placeholder="Add any additional details about this record..."
+          className="w-full bg-slate-900/50 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-[#06B6D4]/30 transition-all resize-none"
+        />
+      </div>
 
       <ErrorMessage error={error} />
 
-      <SaveButton
-        saved={saved}
-        onSave={handleSave}
-        disabled={disableSave}
-        isLoading={isLoading}
-      />
+      {saved && (
+        <div className="mt-4 flex items-center justify-center gap-2 text-emerald-500 font-bold text-sm animate-bounce">
+          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+          Attendance record saved successfully!
+        </div>
+      )}
 
       <BulkAddDtrModal
         open={showBulkModal}

@@ -1,42 +1,60 @@
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
-import GlassCard from "@/components/ui/cards/GlassCard";
-import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import {
-  isValidClock,
-  toMinutes,
+  toEditorClock,
   validateTimeInput,
 } from "@/lib/dtr-time-validation";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 export default function TimeSessionCard({
   title,
-  color,
-  inValue,
-  outValue,
-  onInChange,
-  onOutChange,
-  onValidationChange,
+  icon: Icon,
+  iconColor,
+  session,
+  isLoading = false,
+  disabled = false,
   earliestTime,
   earliestLabel = "previous session",
-  disabled = false,
+  onValidationChange,
+  onTimeInChange,
+  onTimeOutChange,
+  inLabel,
+  outLabel,
+  inGrad,
+  inShadow,
 }) {
-  const [fieldErrors, setFieldErrors] = useState({ in: "", out: "" });
-  const hasFieldError = Boolean(fieldErrors.in || fieldErrors.out);
+  const [timeInDraft, setTimeInDraft] = useState(toEditorClock(session.timeIn));
+  const [timeOutDraft, setTimeOutDraft] = useState(toEditorClock(session.timeOut));
+  const [fieldErrors, setFieldErrors] = useState({ timeIn: "", timeOut: "" });
+  const hasFieldError = Boolean(fieldErrors.timeIn || fieldErrors.timeOut);
 
   useEffect(() => {
     onValidationChange?.(hasFieldError);
   }, [hasFieldError, onValidationChange]);
 
+  useEffect(() => {
+    setTimeInDraft(toEditorClock(session.timeIn));
+  }, [session.timeIn]);
+
+  useEffect(() => {
+    setTimeOutDraft(toEditorClock(session.timeOut));
+  }, [session.timeOut]);
+
+  const done = session.timeIn && session.timeOut;
+  const inProgress = session.timeIn && !session.timeOut;
+
   const commitTimeInput = (field, value, relatedValue, onChange) => {
-    if (!value) {
-      onChange("");
+    const trimmed = value?.trim();
+
+    if (!trimmed) {
+      onChange?.("");
       setFieldErrors((current) => ({ ...current, [field]: "" }));
       return;
     }
 
     const error = validateTimeInput(
-      field === "in" ? "timeIn" : "timeOut",
-      value,
+      field,
+      trimmed,
       relatedValue,
       earliestTime,
       {
@@ -50,112 +68,215 @@ export default function TimeSessionCard({
     }
 
     setFieldErrors((current) => ({ ...current, [field]: "" }));
-    onChange(value);
+    onChange?.(trimmed);
   };
 
-  const handleFieldChange = (field, value) => {
+  const handleTimeChange = (field, nextValue, setDraft) => {
     if (fieldErrors[field]) {
       setFieldErrors((current) => ({ ...current, [field]: "" }));
     }
+    setDraft(nextValue);
   };
+
+  const fields = [
+    {
+      label: "TIME IN",
+      field: "timeIn",
+      value: timeInDraft,
+      setValue: setTimeInDraft,
+      relatedValue: timeOutDraft,
+      onChange: onTimeInChange,
+    },
+    {
+      label: "TIME OUT",
+      field: "timeOut",
+      value: timeOutDraft,
+      setValue: setTimeOutDraft,
+      relatedValue: timeInDraft,
+      onChange: onTimeOutChange,
+    },
+  ];
 
   return (
     <div
+      className="rounded-2xl p-5"
       style={{
         opacity: disabled ? 0.5 : 1,
         pointerEvents: disabled ? "none" : "auto",
+        background: "var(--surface-card)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: done
+          ? "1.5px solid color-mix(in srgb, var(--accent-strong) 45%, transparent)"
+          : "1px solid var(--border-soft)",
+        boxShadow: "var(--shadow-soft)",
       }}
     >
-      <GlassCard padding="20px">
-        <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <div
-            className="h-2.5 w-2.5 rounded-full"
-            style={{
-              background: color,
-              boxShadow: `0 0 8px ${color}55`,
-            }}
-          />
+            className="flex h-7 w-7 items-center justify-center rounded-lg"
+            style={{ background: `${iconColor}18` }}
+          >
+            <Icon size={14} color={iconColor} />
+          </div>
           <span
             style={{
               color: "var(--text-primary)",
-              fontSize: "12px",
+              fontSize: "13px",
               fontWeight: 700,
-              letterSpacing: "0.06em",
               fontFamily: "'Inter',sans-serif",
             }}
           >
-            {title.toUpperCase()}
+            {title}
           </span>
         </div>
 
-        <div className="space-y-3">
-          {[
-            {
-              label: "TIME IN",
-              field: "in",
-              value: inValue,
-              relatedValue: outValue,
-              setter: onInChange,
-            },
-            {
-              label: "TIME OUT",
-              field: "out",
-              value: outValue,
-              relatedValue: inValue,
-              setter: onOutChange,
-            },
-          ].map(({ label, field, value, relatedValue, setter }) => (
-            <div key={label}>
+        <span
+          className="rounded-full px-2.5 py-0.5"
+          style={{
+            background: done
+              ? "rgba(34,197,94,0.12)"
+              : inProgress
+                ? "rgba(6,148,148,0.1)"
+                : "rgba(148,163,184,0.12)",
+            color: done ? "#16A34A" : inProgress ? "#069494" : "#94A3B8",
+            fontSize: "10px",
+            fontWeight: 700,
+            fontFamily: "'Inter',sans-serif",
+            letterSpacing: "0.06em",
+            border: `1px solid ${
+              done
+                ? "rgba(34,197,94,0.2)"
+                : inProgress
+                  ? "rgba(6,148,148,0.2)"
+                  : "rgba(148,163,184,0.2)"
+            }`,
+          }}
+        >
+          {done ? "COMPLETED" : inProgress ? "IN SESSION" : "PENDING"}
+        </span>
+      </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-2">
+        {fields.map(
+          ({ label, field, value, setValue, relatedValue, onChange }) => (
+            <div
+              key={label}
+              className="rounded-xl p-3"
+              style={{
+                background: "var(--surface-muted)",
+                border: fieldErrors[field]
+                  ? "1px solid rgba(244,63,94,0.45)"
+                  : "1px solid var(--border-soft)",
+              }}
+            >
               <div
                 style={{
-                  color: fieldErrors[field] ? "#DC2626" : "#069494",
-                  fontSize: "9px",
+                  color: "#069494",
+                  fontSize: "8px",
                   fontWeight: 700,
                   letterSpacing: "0.1em",
                   fontFamily: "'Inter',sans-serif",
                   marginBottom: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
                 }}
               >
-                <Clock
-                  size={9}
-                  color={fieldErrors[field] ? "#DC2626" : "#069494"}
-                />{" "}
                 {label}
-                {fieldErrors[field] && (
-                  <span style={{ color: "#DC2626" }}>
-                    — {fieldErrors[field]}
-                  </span>
-                )}
               </div>
 
               <input
                 type="time"
+                step={60}
+                disabled={disabled || isLoading}
                 value={value}
                 onChange={(event) => {
-                  handleFieldChange(field, event.target.value);
-                  setter(event.target.value);
+                  handleTimeChange(field, event.target.value, setValue);
                 }}
-                onBlur={() => {
-                  commitTimeInput(field, value, relatedValue, setter);
-                }}
-                className="w-full text-sm sm:text-[14px]"
+                onBlur={() =>
+                  commitTimeInput(field, value, relatedValue, onChange)
+                }
                 style={{
-                  ...GLASS_INPUT_STYLE,
-                  minHeight: "42px",
-                  padding: "9px 12px",
-                  border: fieldErrors[field]
-                    ? "1.5px solid #DC2626"
-                    : "1.5px solid rgba(6,148,148,0.24)",
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  padding: 0,
+                  color: disabled
+                    ? "#94A3B8"
+                    : fieldErrors[field]
+                      ? "#E11D48"
+                      : "var(--text-primary)",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  fontFamily: "'Inter',sans-serif",
+                  cursor: disabled ? "not-allowed" : "text",
+                  display: isLoading ? "none" : "block",
                   colorScheme: "light",
                 }}
               />
+
+              {isLoading && (
+                <SkeletonBlock className="h-5 w-full rounded-md" />
+              )}
+
+              {fieldErrors[field] && (
+                <div
+                  style={{
+                    marginTop: "4px",
+                    color: "#E11D48",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    fontFamily: "'Inter',sans-serif",
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {fieldErrors[field]}
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      </GlassCard>
+          ),
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          disabled
+          style={{
+            padding: "9px 0",
+            borderRadius: "10px",
+            background: "rgba(148,163,184,0.15)",
+            color: "#CBD5E1",
+            border: "none",
+            fontFamily: "'Inter',sans-serif",
+            fontSize: "12px",
+            fontWeight: 700,
+            cursor: "not-allowed",
+            letterSpacing: "0.03em",
+            opacity: 0.8,
+          }}
+        >
+          {inLabel}
+        </button>
+
+        <button
+          disabled
+          style={{
+            padding: "9px 0",
+            borderRadius: "10px",
+            background: "rgba(148,163,184,0.15)",
+            color: "#CBD5E1",
+            border: "none",
+            fontFamily: "'Inter',sans-serif",
+            fontSize: "12px",
+            fontWeight: 700,
+            cursor: "not-allowed",
+            letterSpacing: "0.03em",
+            opacity: 0.8,
+          }}
+        >
+          {outLabel}
+        </button>
+      </div>
     </div>
   );
 }

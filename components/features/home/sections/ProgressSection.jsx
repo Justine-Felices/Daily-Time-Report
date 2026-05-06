@@ -89,7 +89,9 @@ export default function ProgressSection({
         </div>
         <span style={TITLE_TEXT_STYLE}>OJT PROGRESS</span>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+
+
           <div 
             className="rounded-full px-2.5 py-1 sm:px-4 sm:py-1.5 border border-[#06B6D4]/30 text-[#06B6D4]" 
             style={{
