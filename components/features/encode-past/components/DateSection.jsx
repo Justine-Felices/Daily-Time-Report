@@ -1,6 +1,6 @@
 import { Calendar } from "lucide-react";
-import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import GlassCard from "@/components/ui/cards/GlassCard";
+import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 
 const LABEL_STYLE = {
   color: "var(--text-primary)",
@@ -27,7 +27,11 @@ export default function DateSection({ date, maxDate, onDateChange }) {
         onChange={(event) => onDateChange(event.target.value)}
         max={maxDate}
         className="w-full"
-        style={{ ...GLASS_INPUT_STYLE, padding: "10px 14px" }}
+        style={{ 
+          ...GLASS_INPUT_STYLE, 
+          padding: "10px 14px",
+          colorScheme: 'dark'
+        }}
       />
     </GlassCard>
   );

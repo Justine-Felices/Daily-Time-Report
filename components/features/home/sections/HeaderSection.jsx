@@ -200,7 +200,7 @@ export default memo(function HeaderSection({
 
           <div className="flex items-center justify-center gap-2 mt-3">
             <div
-              className="h-2 w-2 rounded-full"
+              className={`h-2 w-2 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
               style={{
                 background: isClockIn ? "#00F0FF" : "rgba(255,255,255,0.2)",
                 boxShadow: isClockIn ? "0 0 10px #00F0FF" : "none",
@@ -254,7 +254,7 @@ export default memo(function HeaderSection({
 
         <div className="flex items-center justify-center gap-2">
           <div
-            className="h-2 w-2 rounded-full"
+            className={`h-2 w-2 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
             style={{
               background: isClockIn ? "#00F0FF" : "rgba(255,255,255,0.2)",
               boxShadow: isClockIn

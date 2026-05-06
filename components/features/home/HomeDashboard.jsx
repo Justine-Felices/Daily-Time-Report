@@ -43,27 +43,23 @@ export default function HomeDashboard() {
         hasAnyLog={sessions.hasAnyLog}
         estimatedFinishText={progress.estimatedFinishText}
         onToggleClock={sessions.onToggleClock}
-        onToggleClock={sessions.onToggleClock}
+        isManualMode={sessions.isManualMode}
+        setIsManualMode={sessions.setIsManualMode}
       />
 
-      {!sessions.hasTodayRecord && (
-        <>
-
-          {sessions.isManualMode && (
-            <SessionsSection
-              amSession={sessions.amSession}
-              pmSession={sessions.pmSession}
-              status={sessions.status}
-              attendanceMode={sessions.attendanceMode}
-              isLoading={loading.isLoading}
-              isSaving={sessions.isSaving}
-              onManualSave={sessions.handleManualTimeChange}
-              onStatusChange={sessions.handleStatusChange}
-              onGlobalSave={sessions.handleGlobalSave}
-              onToggleClock={sessions.onToggleClock}
-            />
-          )}
-        </>
+      {sessions.isManualMode && (
+        <SessionsSection
+          amSession={sessions.amSession}
+          pmSession={sessions.pmSession}
+          status={sessions.status}
+          attendanceMode={sessions.attendanceMode}
+          isLoading={loading.isLoading}
+          isSaving={sessions.isSaving}
+          onManualSave={sessions.handleManualTimeChange}
+          onStatusChange={sessions.handleStatusChange}
+          onGlobalSave={sessions.handleGlobalSave}
+          onToggleClock={sessions.onToggleClock}
+        />
       )}
 
       {/* Error Toast */}
