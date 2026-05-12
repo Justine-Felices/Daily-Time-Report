@@ -53,8 +53,7 @@ export default function ProgressSection({
   hasAnyLog,
   estimatedFinishText,
   onToggleClock,
-  isManualMode,
-  setIsManualMode,
+  dashboardView,
 }) {
   // Simple calculation for the tip - assuming 20 working days left as a placeholder or a rough estimate
   const hoursPerDayNeeded = remaining > 0 ? (remaining / 20).toFixed(1) : 0;
@@ -90,8 +89,6 @@ export default function ProgressSection({
         <span style={TITLE_TEXT_STYLE}>OJT PROGRESS</span>
 
         <div className="ml-auto flex items-center gap-3">
-
-
           <div 
             className="rounded-full px-2.5 py-1 sm:px-4 sm:py-1.5 border border-[#06B6D4]/30 text-[#06B6D4]" 
             style={{
@@ -162,23 +159,24 @@ export default function ProgressSection({
           </div>
 
           {/* Action Button */}
-          <button
-            onClick={onToggleClock}
-            disabled={isDayComplete}
-
-            className="w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              background: buttonConfig.background,
-              color: buttonConfig.color,
-              boxShadow: isDayComplete
-                ? "none"
-                : `0 8px 25px ${buttonConfig.shadow}`,
-              fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-              border: isDayComplete ? "1px solid rgba(255,255,255,0.1)" : "none",
-            }}
-          >
-            {buttonConfig.label}
-          </button>
+          {dashboardView !== "manual" && (
+            <button
+              onClick={onToggleClock}
+              disabled={isDayComplete}
+              className="w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: buttonConfig.background,
+                color: buttonConfig.color,
+                boxShadow: isDayComplete
+                  ? "none"
+                  : `0 8px 25px ${buttonConfig.shadow}`,
+                fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+                border: isDayComplete ? "1px solid rgba(255,255,255,0.1)" : "none",
+              }}
+            >
+              {buttonConfig.label}
+            </button>
+          )}
         </div>
       </div>
     </GlassCard>

@@ -14,10 +14,13 @@ import ProfileHeaderCard from "@/components/features/profile/components/ProfileH
 import EditPersonalInfoModal from "@/components/features/profile/components/EditPersonalInfoModal";
 import ThemeModeCard from "@/components/features/profile/components/ThemeModeCard";
 import AttendanceFormatCard from "@/components/features/profile/components/AttendanceFormatCard";
+import DashboardViewCard from "@/components/features/profile/components/DashboardViewCard";
 import useThemeMode from "@/hooks/useThemeMode";
 import {
   normalizeAttendanceMode,
+  normalizeDashboardView,
   updateUserAttendanceModeByUserId,
+  updateUserDashboardViewByUserId,
 } from "@/lib/supabase-user-profiles";
 
 const EMPTY_PROFILE = {
@@ -76,6 +79,11 @@ export default function ProfileContent() {
   const [attendanceMode, setAttendanceMode] = useState("dual");
   const [isSavingAttendanceMode, setIsSavingAttendanceMode] = useState(false);
   const [attendanceModeSaved, triggerAttendanceModeSaved] = useTimedFlag(1800);
+
+  const [dashboardView, setDashboardView] = useState("live");
+  const [isSavingDashboardView, setIsSavingDashboardView] = useState(false);
+  const [dashboardViewSaved, triggerDashboardViewSaved] = useTimedFlag(1800);
+
   const { mode, resolvedMode, setMode } = useThemeMode();
 
   useEffect(() => {
@@ -94,7 +102,7 @@ export default function ProfileContent() {
       const { data, error } = await supabase
         .from("user_profiles")
         .select(
-          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours, attendance_mode",
+          "full_name, department, position, supervisor, company, ojt_start_date, ojt_end_date, target_hours, attendance_mode, dashboard_view",
         )
         .eq("user_id", user.id)
         .maybeSingle();
@@ -116,7 +124,8 @@ export default function ProfileContent() {
             ? ""
             : String(data.target_hours),
       }));
-          setAttendanceMode(normalizeAttendanceMode(data.attendance_mode));
+      setAttendanceMode(normalizeAttendanceMode(data.attendance_mode));
+      setDashboardView(normalizeDashboardView(data.dashboard_view));
     };
 
     loadProfile();
@@ -192,6 +201,49 @@ export default function ProfileContent() {
     }
   };
 
+  const handleDashboardViewChange = async (nextView) => {
+    const normalizedNextView = normalizeDashboardView(nextView);
+    if (!supabase || isSavingDashboardView || normalizedNextView === dashboardView) {
+      return;
+    }
+
+    setIsSavingDashboardView(true);
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        throw new Error("Unable to resolve signed-in user.");
+      }
+
+      const previousView = dashboardView;
+      setDashboardView(normalizedNextView);
+
+      const { data, error } = await updateUserDashboardViewByUserId({
+        supabase,
+        userId: user.id,
+        dashboardView: normalizedNextView,
+      });
+
+      if (error) {
+        setDashboardView(previousView);
+        throw new Error(error.message || "Failed to update dashboard view.");
+      }
+
+      setDashboardView(normalizeDashboardView(data?.dashboard_view));
+      triggerDashboardViewSaved();
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to update dashboard view", error);
+      }
+    } finally {
+      setIsSavingDashboardView(false);
+    }
+  };
+
   return (
     <PageShell width="narrow">
       <HeaderSection
@@ -224,6 +276,13 @@ export default function ProfileContent() {
         isSaving={isSavingAttendanceMode}
         saved={attendanceModeSaved}
         onModeChange={handleAttendanceModeChange}
+      />
+
+      <DashboardViewCard
+        view={dashboardView}
+        isSaving={isSavingDashboardView}
+        saved={dashboardViewSaved}
+        onViewChange={handleDashboardViewChange}
       />
 
       <LogoutButton onClick={handleLogout} />

@@ -130,7 +130,7 @@ export default function useHomeDashboardLogic() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [status, setStatus] = useState("Regular Duty Day");
   const [hasTodayRecord, setHasTodayRecord] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(false);
+  const [dashboardView, setDashboardView] = useState("live");
 
   // Keep track of the last known DB state to allow reverting manual edits
   const [persistedAmSession, setPersistedAmSession] = useState(EMPTY_SESSION);
@@ -152,13 +152,13 @@ export default function useHomeDashboardLogic() {
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
 
-  // Revert manual edits when toggling back to Auto Mode
+  // Revert manual edits when toggling back to Live Mode
   useEffect(() => {
-    if (!isManualMode) {
+    if (dashboardView === "live") {
       setAmSession(persistedAmSession);
       setPmSession(persistedPmSession);
     }
-  }, [isManualMode, persistedAmSession, persistedPmSession]);
+  }, [dashboardView, persistedAmSession, persistedPmSession]);
 
   // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
   const currentStatus = useMemo(() => {
@@ -238,13 +238,14 @@ export default function useHomeDashboardLogic() {
         }),
         supabase
           .from("user_profiles")
-          .select("attendance_mode")
+          .select("attendance_mode, dashboard_view")
           .eq("user_id", userId)
           .maybeSingle(),
       ]);
 
       if (profileResult?.data) {
         setAttendanceMode(profileResult.data.attendance_mode || "dual");
+        setDashboardView(profileResult.data.dashboard_view || "live");
       }
 
       if (!dashboardHours) {
@@ -835,6 +836,8 @@ export default function useHomeDashboardLogic() {
       isSaving,
       amSession,
       pmSession,
+      persistedAmSession,
+      persistedPmSession,
       currentStatus,
       buttonConfig,
       isDayComplete,
@@ -859,8 +862,7 @@ export default function useHomeDashboardLogic() {
       setModalPmIn,
       modalPmOut,
       setModalPmOut,
-      isManualMode,
-      setIsManualMode,
+      dashboardView,
       clearError: () => setErrorMessage(null),
     },
     summary: {

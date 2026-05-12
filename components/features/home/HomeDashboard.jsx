@@ -43,14 +43,15 @@ export default function HomeDashboard() {
         hasAnyLog={sessions.hasAnyLog}
         estimatedFinishText={progress.estimatedFinishText}
         onToggleClock={sessions.onToggleClock}
-        isManualMode={sessions.isManualMode}
-        setIsManualMode={sessions.setIsManualMode}
+        dashboardView={sessions.dashboardView}
       />
 
-      {sessions.isManualMode && (
+      {sessions.dashboardView === "manual" && !sessions.isDayComplete && (
         <SessionsSection
           amSession={sessions.amSession}
           pmSession={sessions.pmSession}
+          persistedAmSession={sessions.persistedAmSession}
+          persistedPmSession={sessions.persistedPmSession}
           status={sessions.status}
           attendanceMode={sessions.attendanceMode}
           isLoading={loading.isLoading}

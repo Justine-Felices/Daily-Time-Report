@@ -7,6 +7,8 @@ import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
 export default function SessionsSection({ 
   amSession, 
   pmSession, 
+  persistedAmSession,
+  persistedPmSession,
   status,
   attendanceMode = "dual",
   isLoading, 
@@ -34,6 +36,10 @@ export default function SessionsSection({
     timeIn: amSession?.timeIn || null,
     timeOut: pmSession?.timeOut || null,
   }), [amSession?.timeIn, pmSession?.timeOut]);
+
+  const isSinglePersistedDone = persistedAmSession?.timeIn && persistedPmSession?.timeOut;
+  const isAmPersistedDone = persistedAmSession?.timeIn && persistedAmSession?.timeOut;
+  const isPmPersistedDone = persistedPmSession?.timeIn && persistedPmSession?.timeOut;
 
   return (
     <div className="mt-8 space-y-6">
@@ -94,6 +100,7 @@ export default function SessionsSection({
             iconColor="#069494"
             draftStorageKey="single-session-draft"
             session={singleSession}
+            isPersistedDone={isSinglePersistedDone}
             isLoading={isLoading}
             disabled={singleDisabled}
             inLabel="TIME IN"
@@ -116,6 +123,7 @@ export default function SessionsSection({
             iconColor="#06B6D4"
             draftStorageKey="am-session-draft"
             session={amSession}
+            isPersistedDone={isAmPersistedDone}
             isLoading={isLoading}
             disabled={amDisabled}
             inLabel="AM IN"
@@ -135,6 +143,7 @@ export default function SessionsSection({
             iconColor="#069494"
             draftStorageKey="pm-session-draft"
             session={pmSession}
+            isPersistedDone={isPmPersistedDone}
             isLoading={isLoading}
             disabled={pmDisabled}
             inLabel="PM IN"

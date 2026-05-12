@@ -1,6 +1,35 @@
+import { useEffect, useState } from "react";
 import { SkeletonCircle } from "@/components/ui/Skeleton";
 
 export default function CircularProgress({ pct, isLoading = false }) {
+  const [displayPct, setDisplayPct] = useState(0);
+
+  // Animate the percentage number
+  useEffect(() => {
+    if (isLoading) return;
+    const duration = 1500;
+    const start = displayPct;
+    const end = pct;
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function (easeOutExpo)
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      
+      const currentVal = Math.floor(start + (end - start) * ease);
+      setDisplayPct(currentVal);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [pct, isLoading]);
+
   // SVG coordinate system constants (relative to viewBox 0 0 100 100)
   const strokeWidth = 8;
   const radius = 41; 
@@ -20,14 +49,60 @@ export default function CircularProgress({ pct, isLoading = false }) {
             <stop offset="0%" stopColor="#088A8A" />
             <stop offset="100%" stopColor="#00F0FF" />
           </linearGradient>
+
+          <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="50%" stopColor="white" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+          
           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="0.8" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+            <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+            <feComposite in="SourceGraphic" in2="coloredBlur" operator="over" />
           </filter>
+
+          <filter id="waveGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feFlood floodColor="#00F0FF" floodOpacity="1" result="color" />
+            <feComposite in="color" in2="blur" operator="in" result="glow" />
+            <feComposite in="SourceGraphic" in2="glow" operator="over" />
+          </filter>
+
+          <mask id="progressMask">
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="none"
+              stroke="white"
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              style={{ transition: "stroke-dashoffset 1s ease-in-out" }}
+            />
+          </mask>
         </defs>
+
+        <style>
+          {`
+            @keyframes wave-travel {
+              from { stroke-dashoffset: 0; }
+              to { stroke-dashoffset: -${circumference}; }
+            }
+            .wave-arc {
+              stroke-dasharray: ${circumference};
+              stroke-dashoffset: ${offset};
+              transition: stroke-dashoffset 1s ease-in-out;
+            }
+            .wave-highlight {
+              stroke-dasharray: 120 ${circumference - 120};
+              animation: wave-travel 4s linear infinite;
+              filter: drop-shadow(0 0 5px #00F0FF);
+              opacity: 0.8;
+            }
+          `}
+        </style>
 
         {/* Background Track (Thick) */}
         <circle
@@ -47,12 +122,29 @@ export default function CircularProgress({ pct, isLoading = false }) {
           fill="none"
           stroke="url(#progressGrad)"
           strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
           strokeLinecap="round"
           filter="url(#glow)"
-          style={{ transition: "stroke-dashoffset 0.9s ease" }}
+          className="wave-arc"
         />
+
+        {/* Traveling Wave Highlight */}
+        {!isLoading && pct > 0 && (
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke="#00F0FF"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            mask="url(#progressMask)"
+            filter="url(#waveGlow)"
+            className="wave-highlight"
+            style={{ 
+              mixBlendMode: "plus-lighter"
+            }}
+          />
+        )}
       </svg>
 
       {/* Inner Content Card */}
@@ -75,7 +167,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
                 style={{ background: "rgba(255, 255, 255, 0.1)" }}
               />
             ) : (
-              `${pct}%`
+              `${displayPct}%`
             )}
           </span>
           <span

@@ -14,6 +14,7 @@ export default function SessionCard({
   iconColor,
   draftStorageKey,
   session,
+  isPersistedDone = false,
   isLoading = false,
   disabled = false,
   earliestTime,
@@ -268,97 +269,99 @@ export default function SessionCard({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={onTimeIn}
-          disabled={disabled || hasFieldError || Boolean(session.timeIn) || isLoading}
-          style={{
-            padding: "9px 0",
-            borderRadius: "10px",
-            background:
-              disabled || hasFieldError || session.timeIn || isLoading
-                ? "rgba(148,163,184,0.15)"
-                : inGrad,
-            color:
-              disabled || hasFieldError || session.timeIn || isLoading
-                ? "#CBD5E1"
-                : "#fff",
-            border: "none",
-            fontFamily: "'Inter',sans-serif",
-            fontSize: "12px",
-            fontWeight: 700,
-            cursor:
-              disabled || hasFieldError || session.timeIn || isLoading
-                ? "not-allowed"
-                : "pointer",
-            boxShadow:
-              disabled || hasFieldError || session.timeIn || isLoading
-                ? "none"
-                : `0 3px 12px ${inShadow}`,
-            letterSpacing: "0.03em",
-            transition: "all 0.15s",
-            opacity: isLoading ? 0.65 : 1,
-          }}
-        >
-          {inLabel}
-        </button>
+      {!isPersistedDone && (
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={onTimeIn}
+            disabled={disabled || hasFieldError || Boolean(session.timeIn) || isLoading}
+            style={{
+              padding: "9px 0",
+              borderRadius: "10px",
+              background:
+                disabled || hasFieldError || session.timeIn || isLoading
+                  ? "rgba(148,163,184,0.15)"
+                  : inGrad,
+              color:
+                disabled || hasFieldError || session.timeIn || isLoading
+                  ? "#CBD5E1"
+                  : "#fff",
+              border: "none",
+              fontFamily: "'Inter',sans-serif",
+              fontSize: "12px",
+              fontWeight: 700,
+              cursor:
+                disabled || hasFieldError || session.timeIn || isLoading
+                  ? "not-allowed"
+                  : "pointer",
+              boxShadow:
+                disabled || hasFieldError || session.timeIn || isLoading
+                  ? "none"
+                  : `0 3px 12px ${inShadow}`,
+              letterSpacing: "0.03em",
+              transition: "all 0.15s",
+              opacity: isLoading ? 0.65 : 1,
+            }}
+          >
+            {inLabel}
+          </button>
 
-        <button
-          onClick={onTimeOut}
-          disabled={
-            disabled ||
-            hasFieldError ||
-            !session.timeIn ||
-            Boolean(session.timeOut) ||
-            isLoading
-          }
-          style={{
-            padding: "9px 0",
-            borderRadius: "10px",
-            background:
+          <button
+            onClick={onTimeOut}
+            disabled={
               disabled ||
               hasFieldError ||
               !session.timeIn ||
-              session.timeOut ||
+              Boolean(session.timeOut) ||
               isLoading
-                ? "rgba(148,163,184,0.15)"
-                : "linear-gradient(135deg,#069494,#0aacac)",
-            color:
-              disabled ||
-              hasFieldError ||
-              !session.timeIn ||
-              session.timeOut ||
-              isLoading
-                ? "#CBD5E1"
-                : "#fff",
-            border: "none",
-            fontFamily: "'Inter',sans-serif",
-            fontSize: "12px",
-            fontWeight: 700,
-            cursor:
-              disabled ||
-              hasFieldError ||
-              !session.timeIn ||
-              session.timeOut ||
-              isLoading
-                ? "not-allowed"
-                : "pointer",
-            boxShadow:
-              disabled ||
-              hasFieldError ||
-              !session.timeIn ||
-              session.timeOut ||
-              isLoading
-                ? "none"
-                : "0 4px 14px rgba(6,148,148,0.32)",
-            letterSpacing: "0.03em",
-            transition: "all 0.15s",
-            opacity: isLoading ? 0.65 : 1,
-          }}
-        >
-          {outLabel}
-        </button>
-      </div>
+            }
+            style={{
+              padding: "9px 0",
+              borderRadius: "10px",
+              background:
+                disabled ||
+                hasFieldError ||
+                !session.timeIn ||
+                session.timeOut ||
+                isLoading
+                  ? "rgba(148,163,184,0.15)"
+                  : "linear-gradient(135deg,#069494,#0aacac)",
+              color:
+                disabled ||
+                hasFieldError ||
+                !session.timeIn ||
+                session.timeOut ||
+                isLoading
+                  ? "#CBD5E1"
+                  : "#fff",
+              border: "none",
+              fontFamily: "'Inter',sans-serif",
+              fontSize: "12px",
+              fontWeight: 700,
+              cursor:
+                disabled ||
+                hasFieldError ||
+                !session.timeIn ||
+                session.timeOut ||
+                isLoading
+                  ? "not-allowed"
+                  : "pointer",
+              boxShadow:
+                disabled ||
+                hasFieldError ||
+                !session.timeIn ||
+                session.timeOut ||
+                isLoading
+                  ? "none"
+                  : "0 4px 14px rgba(6,148,148,0.32)",
+              letterSpacing: "0.03em",
+              transition: "all 0.15s",
+              opacity: isLoading ? 0.65 : 1,
+            }}
+          >
+            {outLabel}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
