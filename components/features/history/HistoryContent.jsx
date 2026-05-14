@@ -18,7 +18,7 @@ import HistoryListSection from "@/components/features/history/components/History
 import PaginationSection from "@/components/features/history/components/PaginationSection";
 import PrintableDTR from "@/components/features/history/components/PrintableDTR";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 7;
 
 function filterHistoryRecords(records, search, filterStatus) {
   const searchValue = search.toLowerCase();

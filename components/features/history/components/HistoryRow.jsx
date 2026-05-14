@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { formatHistoryDate } from "@/lib/dtr-formatters";
 import HistoryDetailsDrawer from "@/components/features/history/components/HistoryDetailsDrawer";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
+import { CheckCircle2, XCircle, AlertCircle, Clock } from "lucide-react";
 
 function toMinutesFromDisplayTime(value) {
   if (!value || typeof value !== "string") return null;
@@ -33,15 +33,7 @@ function toCompactDisplay(minutes) {
   return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
 }
 
-function computeRange(record) {
-  const allTimes = [record.amIn, record.amOut, record.pmIn, record.pmOut]
-    .map(toMinutesFromDisplayTime)
-    .filter((value) => value !== null);
-
-  if (allTimes.length === 0) {
-    return "No time logs";
-  }
-
+function getDisplayTimes(record) {
   const startCandidates = [record.amIn, record.pmIn]
     .map(toMinutesFromDisplayTime)
     .filter((value) => value !== null);
@@ -50,20 +42,13 @@ function computeRange(record) {
     .map(toMinutesFromDisplayTime)
     .filter((value) => value !== null);
 
-  const firstIn =
-    startCandidates.length > 0
-      ? Math.min(...startCandidates)
-      : Math.min(...allTimes);
-  const lastOut =
-    endCandidates.length > 0
-      ? Math.max(...endCandidates)
-      : Math.max(...allTimes);
+  const firstIn = startCandidates.length > 0 ? Math.min(...startCandidates) : null;
+  const lastOut = endCandidates.length > 0 ? Math.max(...endCandidates) : null;
 
-  if (lastOut < firstIn) {
-    return toCompactDisplay(firstIn);
-  }
-
-  return `${toCompactDisplay(firstIn)} - ${toCompactDisplay(lastOut)}`;
+  return {
+    firstIn: firstIn !== null ? toCompactDisplay(firstIn) : "--",
+    lastOut: lastOut !== null ? toCompactDisplay(lastOut) : "--",
+  };
 }
 
 export default function HistoryRow({
@@ -74,7 +59,6 @@ export default function HistoryRow({
   onDeleteRecord,
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const rangeLabel = isLoading ? "" : computeRange(record);
   const dateObject = !isLoading
     ? new Date(`${record.date}T12:00:00`)
     : new Date();
@@ -82,128 +66,85 @@ export default function HistoryRow({
   const dateMonth = !isLoading
     ? dateObject.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
     : "---";
+  const dateYear = !isLoading ? dateObject.getFullYear() : "";
+  const dayName = !isLoading
+    ? dateObject.toLocaleDateString("en-US", { weekday: "short" })
+    : "---";
+
+  const { firstIn, lastOut } = !isLoading
+    ? getDisplayTimes(record)
+    : { firstIn: "--", lastOut: "--" };
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
 
   return (
     <>
-      <button
-        type="button"
-        className="rounded-2xl p-4 transition-all"
-        style={{
-          background: "var(--surface-card)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-          border: "1.5px solid var(--border-soft)",
-          boxShadow: "var(--shadow-soft)",
-          cursor: "pointer",
-          width: "100%",
-          textAlign: "left",
-        }}
+      <tr
         onClick={isLoading || isPending ? undefined : openDrawer}
-        onMouseEnter={(event) => {
-          if (isLoading) return;
-          event.currentTarget.style.background = "var(--surface-muted)";
-          event.currentTarget.style.borderColor = "rgba(6,148,148,0.24)";
-          event.currentTarget.style.boxShadow =
-            "0 8px 26px rgba(6,148,148,0.12)";
-        }}
-        onMouseLeave={(event) => {
-          if (isLoading) return;
-          event.currentTarget.style.background = "var(--surface-card)";
-          event.currentTarget.style.borderColor = "var(--border-soft)";
-          event.currentTarget.style.boxShadow = "var(--shadow-soft)";
-        }}
-        disabled={isLoading || isPending}
+        className="group transition-colors cursor-pointer border-b border-white/10 last:border-b-0 hover:bg-white/5"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md sm:h-12 sm:w-12 bg-[#27A5AA]">
-              <div
-                style={{
-                  color: "#ECFEFF",
-                  fontSize: "20px",
-                  fontWeight: 800,
-                  fontFamily: "'Inter',sans-serif",
-                  lineHeight: 1.3,
-                }}
-              >
+        <td className="pl-4 py-4">
+          <div className="flex items-center gap-3">
+            {/* Date Indicator Group */}
+            <div 
+              className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-center border border-white/5"
+              style={{
+                background: "#0891B2",
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              <div style={{ color: "#FFFFFF", fontSize: "20px", fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em" }}>
                 {dateDay}
               </div>
-              <div
-                style={{
-                  color: "rgba(236,254,255,0.92)",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  lineHeight: 1,
-                  letterSpacing: "0.08em",
-                }}
-              >
+              <div style={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "9px", fontWeight: 800, lineHeight: 1, letterSpacing: "0.12em", marginTop: "2px", textTransform: "uppercase" }}>
                 {dateMonth}
               </div>
             </div>
 
-            <div className="min-w-0">
+            {/* Combined Details Group */}
+            <div className="flex flex-col items-start text-left ml-1">
               {isLoading ? (
-                <div className="space-y-1">
-                  <SkeletonBlock className="h-3.5 w-36 rounded-md" />
-                  <SkeletonBlock className="h-3 w-28 rounded-md" />
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-5 w-48 rounded-md" />
+                  <SkeletonBlock className="h-4 w-32 rounded-md opacity-40" />
                 </div>
               ) : (
                 <>
-                  <div
-                    style={{
-                      color: "var(--text-secondary)",
-                      fontSize: "clamp(14px, 1.8vw, 14px)",
-                      fontWeight: 700,
-                      fontFamily: "'Inter',sans-serif",
-                      lineHeight: 1.08,
-                    }}
+                  <div 
+                    className="text-[18px] font-bold text-slate-100 tracking-tight leading-tight"
+                    style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
                   >
-                    {formatHistoryDate(record.date)}
+                    {dayName}, {dateMonth.charAt(0) + dateMonth.slice(1).toLowerCase()} {dateDay}, {dateYear}
                   </div>
-                  <div
-                    style={{
-                      color: "var(--text-muted)",
-                      fontSize: "clamp(13px, 1.6vw, 13px)",
-                      fontWeight: 500,
-                      fontFamily: "'Inter',sans-serif",
-                      marginTop: "2px",
-                      lineHeight: 1.15,
-                    }}
+                  <div 
+                    className="text-[14px] font-medium text-slate-500 mt-1"
+                    style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
                   >
-                    {rangeLabel}
+                    {firstIn.toLowerCase()} - {lastOut.toLowerCase()}
                   </div>
                 </>
               )}
             </div>
           </div>
+        </td>
 
-          <div className="flex items-center gap-2 self-end sm:self-center">
+        {/* Total Hours Cell - Sibling */}
+        <td className="py-4 pr-6 text-right w-[120px]">
+          <div className="flex flex-col items-end">
             {isLoading ? (
-              <SkeletonBlock className="h-6 w-14 rounded-full" />
+              <SkeletonBlock className="h-8 w-20 rounded-md opacity-40" />
             ) : (
-              <div
-                className="text-right"
-                style={{
-                  color:
-                    record.totalHours > 0
-                      ? "var(--accent-strong)"
-                      : "var(--text-muted)",
-                  fontSize: "clamp(18px, 2.2vw, 18px)",
-                  fontWeight: 600,
-                  fontFamily: "'Inter',sans-serif",
-                  lineHeight: 1,
-                }}
+              <div 
+                className="text-[24px] font-semibold text-cyan-400 tracking-tighter leading-none"
+                style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
               >
-                {record.totalHours}hrs
+                {Number(parseFloat(record.totalHours || 0).toFixed(2))}hrs
               </div>
             )}
           </div>
-        </div>
-      </button>
+        </td>
+      </tr>
 
       {!isLoading ? (
         <HistoryDetailsDrawer

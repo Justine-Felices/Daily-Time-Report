@@ -1,22 +1,4 @@
-import { CheckCircle, Clock, History as HistoryIcon } from "lucide-react";
-import GlassCard from "@/components/ui/cards/GlassCard";
-import { SkeletonBlock } from "@/components/ui/Skeleton";
-
-const LABEL_STYLE = {
-  color: "var(--text-muted)",
-  fontSize: "8px",
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  fontFamily: "'Inter',sans-serif",
-};
-
-const VALUE_STYLE = {
-  color: "var(--text-primary)",
-  fontSize: "20px",
-  fontWeight: 800,
-  fontFamily: "'Inter',sans-serif",
-  letterSpacing: "-0.02em",
-};
+import StatCard from "@/components/features/home/components/StatCard";
 
 export default function StatsSection({
   totalRecords,
@@ -25,43 +7,36 @@ export default function StatsSection({
   isLoading = false,
 }) {
   const hoursLoggedText =
-    typeof hoursLogged === "number" ? `${hoursLogged.toFixed(1)}h` : "...";
+    typeof hoursLogged === "number" ? `${hoursLogged.toFixed(1)}h` : "0.0h";
 
-  const cards = [
+  const stats = [
     {
       label: "TOTAL RECORDS",
       value: totalRecords,
-      icon: HistoryIcon,
-      color: "#069494",
+      sub: "entries found",
     },
     {
       label: "PRESENT DAYS",
       value: presentDays,
-      icon: CheckCircle,
-      color: "#16A34A",
+      sub: "days worked",
     },
     {
       label: "HOURS LOGGED",
       value: hoursLoggedText,
-      icon: Clock,
-      color: "#FF69B4",
+      sub: "total time",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {cards.map(({ label, value, icon: Icon, color }) => (
-        <GlassCard key={label} padding="16px">
-          <div className="mb-2 flex items-center gap-1.5">
-            <Icon size={12} color={color} />
-            <span style={LABEL_STYLE}>{label}</span>
-          </div>
-          {isLoading ? (
-            <SkeletonBlock className="h-6 w-20 rounded-md" />
-          ) : (
-            <div style={VALUE_STYLE}>{value}</div>
-          )}
-        </GlassCard>
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      {stats.map((stat) => (
+        <StatCard
+          key={stat.label}
+          isLoading={isLoading}
+          label={stat.label}
+          value={stat.value}
+          sub={stat.sub}
+        />
       ))}
     </div>
   );

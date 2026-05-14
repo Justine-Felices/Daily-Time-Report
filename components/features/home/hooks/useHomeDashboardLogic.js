@@ -131,6 +131,8 @@ export default function useHomeDashboardLogic() {
   const [status, setStatus] = useState("Regular Duty Day");
   const [hasTodayRecord, setHasTodayRecord] = useState(false);
   const [dashboardView, setDashboardView] = useState("live");
+  const [note, setNote] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Keep track of the last known DB state to allow reverting manual edits
   const [persistedAmSession, setPersistedAmSession] = useState(EMPTY_SESSION);
@@ -149,6 +151,13 @@ export default function useHomeDashboardLogic() {
     return () => clearTimeout(timer);
   }, [errorMessage]);
 
+  // Auto-dismiss success after 3 seconds
+  useEffect(() => {
+    if (!showSuccess) return;
+    const timer = setTimeout(() => setShowSuccess(false), 3000);
+    return () => clearTimeout(timer);
+  }, [showSuccess]);
+
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
 
@@ -160,7 +169,7 @@ export default function useHomeDashboardLogic() {
     }
   }, [dashboardView, persistedAmSession, persistedPmSession]);
 
-  // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
+  // ─── 4-STATE ATTENDANCE LOGIC ───
   const currentStatus = useMemo(() => {
     // Single Mode Flow
     if (attendanceMode === "single") {
@@ -170,7 +179,6 @@ export default function useHomeDashboardLogic() {
     }
 
     // Dual Mode Flow
-    // PM-only session (late-start dual mode): AM is empty but PM is complete
     if (!amSession.timeIn && pmSession.timeIn && pmSession.timeOut) return "done";
     if (!amSession.timeIn) return "clock-in";
     if (!amSession.timeOut) return "clock-out-am";
@@ -179,7 +187,22 @@ export default function useHomeDashboardLogic() {
     return "done";
   }, [amSession, pmSession, attendanceMode]);
 
-  const isDayComplete = currentStatus === "done";
+  // Persistence-based status to determine if the day is actually "finished" in DB
+  const persistedStatus = useMemo(() => {
+    if (attendanceMode === "single") {
+      if (!persistedAmSession.timeIn) return "clock-in";
+      if (!persistedPmSession.timeOut) return "clock-out-pm";
+      return "done";
+    }
+    if (!persistedAmSession.timeIn && persistedPmSession.timeIn && persistedPmSession.timeOut) return "done";
+    if (!persistedAmSession.timeIn) return "clock-in";
+    if (!persistedAmSession.timeOut) return "clock-out-am";
+    if (!persistedPmSession.timeIn) return "start-pm";
+    if (!persistedPmSession.timeOut) return "clock-out-pm";
+    return "done";
+  }, [persistedAmSession, persistedPmSession, attendanceMode]);
+
+  const isDayComplete = persistedStatus === "done";
   const hasAnyLog = Boolean(
     amSession.timeIn ||
     amSession.timeOut ||
@@ -280,6 +303,7 @@ export default function useHomeDashboardLogic() {
           timeOut: todayRecord.pmOut,
         });
         setStatus(todayRecord.status || "Regular Duty Day");
+        setNote(todayRecord.note || "");
         setHasTodayRecord(true);
       } else {
         setAmSession(EMPTY_SESSION);
@@ -287,6 +311,7 @@ export default function useHomeDashboardLogic() {
         setPersistedAmSession(EMPTY_SESSION);
         setPersistedPmSession(EMPTY_SESSION);
         setStatus("Regular Duty Day");
+        setNote("");
         setHasTodayRecord(false);
       }
     },
@@ -372,6 +397,7 @@ export default function useHomeDashboardLogic() {
         pm_out: dbPayload.pmOut || null,
         total_hours: total,
         status: dbStatus,
+        note: note.trim() || null,
         source: "ENCODE_PAST",
         mode: dbMode,
       };
@@ -391,6 +417,7 @@ export default function useHomeDashboardLogic() {
 
       // Success -> Refresh
       await refreshPersistedSummary(user.id);
+      setShowSuccess(true);
 
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
@@ -769,7 +796,8 @@ export default function useHomeDashboardLogic() {
           am_out: modalAmOut,
           pm_in: modalPmIn,
           pm_out: modalPmOut,
-          total_hours: modalHours
+          total_hours: modalHours,
+          note: note.trim() || null,
         };
       }
 
@@ -783,6 +811,7 @@ export default function useHomeDashboardLogic() {
         return;
       }
       await refreshPersistedSummary(user.id);
+      setShowSuccess(true);
       setShowClockOutModal(false);
     } catch (err) {
       setErrorMessage("Something went wrong while clocking out. Please try again.");
@@ -863,6 +892,10 @@ export default function useHomeDashboardLogic() {
       modalPmOut,
       setModalPmOut,
       dashboardView,
+      note,
+      setNote,
+      showSuccess,
+      setShowSuccess,
       clearError: () => setErrorMessage(null),
     },
     summary: {

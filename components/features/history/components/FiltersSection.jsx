@@ -1,5 +1,4 @@
 import { ChevronDown, Filter, Search, TrendingUp } from "lucide-react";
-import GlassCard from "@/components/ui/cards/GlassCard";
 
 const FIELD_STYLE = {
   background: "var(--surface-muted)",
@@ -7,16 +6,16 @@ const FIELD_STYLE = {
   borderRadius: "12px",
   color: "var(--text-primary)",
   fontFamily: "'Inter',sans-serif",
-  fontSize: "13px",
+  fontSize: "15px",
 };
 
 const SORT_BUTTON_STYLE = {
-  padding: "9px 14px",
+  padding: "11px 16px",
   background: "rgba(6,148,148,0.08)",
   border: "1.5px solid rgba(6,148,148,0.2)",
   color: "var(--accent-strong)",
   fontFamily: "'Inter',sans-serif",
-  fontSize: "13px",
+  fontSize: "15px",
   fontWeight: 600,
   cursor: "pointer",
   borderRadius: "12px",
@@ -32,13 +31,12 @@ export default function FiltersSection({
   onToggleSort,
 }) {
   return (
-    <GlassCard padding="16px">
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search
-            size={14}
+            size={16}
             color="rgba(6,148,148,0.5)"
-            className="absolute top-1/2 left-3 -translate-y-1/2"
+            className="absolute top-1/2 left-4 -translate-y-1/2"
           />
           <input
             type="text"
@@ -46,15 +44,15 @@ export default function FiltersSection({
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search by date, status, notes..."
             className="w-full outline-none"
-            style={{ ...FIELD_STYLE, padding: "9px 12px 9px 34px" }}
+            style={{ ...FIELD_STYLE, padding: "11px 14px 11px 42px" }}
           />
         </div>
 
         <div className="relative sm:w-48">
           <Filter
-            size={13}
+            size={15}
             color="rgba(6,148,148,0.5)"
-            className="absolute top-1/2 left-3 -translate-y-1/2"
+            className="absolute top-1/2 left-4 -translate-y-1/2"
           />
           <select
             value={filterStatus}
@@ -62,7 +60,7 @@ export default function FiltersSection({
             className="w-full appearance-none outline-none"
             style={{
               ...FIELD_STYLE,
-              padding: "9px 36px 9px 32px",
+              padding: "11px 36px 11px 38px",
               cursor: "pointer",
             }}
           >
@@ -73,9 +71,9 @@ export default function FiltersSection({
             ))}
           </select>
           <ChevronDown
-            size={14}
+            size={16}
             color="#069494"
-            className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
+            className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2"
           />
         </div>
 
@@ -84,10 +82,9 @@ export default function FiltersSection({
           className="flex items-center gap-2 rounded-xl transition-all"
           style={SORT_BUTTON_STYLE}
         >
-          <TrendingUp size={13} />
+          <TrendingUp size={15} />
           {sortDir === "desc" ? "Newest" : "Oldest"}
         </button>
       </div>
-    </GlassCard>
-  );
+    );
 }

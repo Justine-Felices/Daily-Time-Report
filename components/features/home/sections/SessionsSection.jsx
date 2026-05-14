@@ -16,7 +16,9 @@ export default function SessionsSection({
   onManualSave,
   onStatusChange,
   onGlobalSave,
-  onToggleClock 
+  onToggleClock,
+  note,
+  onNoteChange 
 }) {
   const [amError, setAmError] = useState(false);
   const [pmError, setPmError] = useState(false);
@@ -83,7 +85,7 @@ export default function SessionsSection({
           <button
             onClick={onGlobalSave}
             disabled={isSaving || hasValidationError}
-            className="flex items-center gap-2 px-6 py-2 bg-[#069494] hover:bg-[#057a7a] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-teal-500/20 transition-all active:scale-95"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#069494] to-[#0aacac] hover:from-[#057a7a] hover:to-[#099b9b] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-teal-500/20 transition-all active:scale-95 border border-white/10"
           >
             <Save size={14} />
             {isSaving ? "SAVING..." : "SAVE ALL"}
@@ -112,6 +114,8 @@ export default function SessionsSection({
             onTimeOut={() => onToggleClock()}
             onTimeInChange={(val) => onManualSave("am", "timeIn", val)}
             onTimeOutChange={(val) => onManualSave("pm", "timeOut", val)}
+            onGlobalSave={onGlobalSave}
+            isSaving={isSaving}
           />
         </div>
       ) : (
@@ -135,6 +139,8 @@ export default function SessionsSection({
             onTimeOut={() => onToggleClock()}
             onTimeInChange={(val) => onManualSave("am", "timeIn", val)}
             onTimeOutChange={(val) => onManualSave("am", "timeOut", val)}
+            onGlobalSave={onGlobalSave}
+            isSaving={isSaving}
           />
           
           <SessionCard
@@ -157,9 +163,41 @@ export default function SessionsSection({
             onTimeOut={() => onToggleClock()}
             onTimeInChange={(val) => onManualSave("pm", "timeIn", val)}
             onTimeOutChange={(val) => onManualSave("pm", "timeOut", val)}
+            onGlobalSave={onGlobalSave}
+            isSaving={isSaving}
           />
         </div>
       )}
+
+      {/* Note / Remarks Field */}
+      <div className="px-1">
+        <div 
+          className="rounded-2xl p-5"
+          style={{
+            background: "var(--surface-card)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            border: "1px solid var(--border-soft)",
+            boxShadow: "var(--shadow-soft)",
+          }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-500/10">
+              <Save size={14} className="text-teal-500" />
+            </div>
+            <span className="text-[13px] font-bold text-white uppercase tracking-wider">
+              Notes & Remarks
+            </span>
+          </div>
+          
+          <textarea
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            placeholder="Add any notes or remarks for today (optional)..."
+            className="w-full bg-slate-900/40 border border-white/5 rounded-xl p-4 text-[14px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/30 transition-all min-h-[100px] resize-none"
+          />
+        </div>
+      </div>
     </div>
   );
 }

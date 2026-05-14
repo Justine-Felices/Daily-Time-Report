@@ -24,6 +24,8 @@ export default function SessionCard({
   onTimeOut,
   onTimeInChange,
   onTimeOutChange,
+  onGlobalSave,
+  isSaving,
   inLabel,
   outLabel,
   inGrad,

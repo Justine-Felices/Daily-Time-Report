@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 
@@ -200,9 +201,12 @@ export default function HistoryDetailsDrawer({
     });
   }, [workDate]);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  return (
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 px-3 pb-3 sm:px-4 sm:pb-4"
       role="dialog"
@@ -638,6 +642,7 @@ export default function HistoryDetailsDrawer({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
