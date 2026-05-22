@@ -71,16 +71,17 @@ export default function TimeSessionCard({
     onChange?.(trimmed);
   };
 
-  const handleTimeChange = (field, nextValue, setDraft) => {
+  const handleTimeChange = (field, nextValue, setDraft, relatedValue, onChange) => {
     if (fieldErrors[field]) {
       setFieldErrors((current) => ({ ...current, [field]: "" }));
     }
     setDraft(nextValue);
+    commitTimeInput(field, nextValue, relatedValue, onChange);
   };
 
   const fields = [
     {
-      label: "TIME IN",
+      label: inLabel || "TIME IN",
       field: "timeIn",
       value: timeInDraft,
       setValue: setTimeInDraft,
@@ -88,7 +89,7 @@ export default function TimeSessionCard({
       onChange: onTimeInChange,
     },
     {
-      label: "TIME OUT",
+      label: outLabel || "TIME OUT",
       field: "timeOut",
       value: timeOutDraft,
       setValue: setTimeOutDraft,
@@ -190,7 +191,7 @@ export default function TimeSessionCard({
                 disabled={disabled || isLoading}
                 value={value}
                 onChange={(event) => {
-                  handleTimeChange(field, event.target.value, setValue);
+                  handleTimeChange(field, event.target.value, setValue, relatedValue, onChange);
                 }}
                 onBlur={() =>
                   commitTimeInput(field, value, relatedValue, onChange)

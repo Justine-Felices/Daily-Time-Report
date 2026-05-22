@@ -74,9 +74,10 @@ export default function SessionCard({
 
   const done = session.timeIn && session.timeOut;
   const inProgress = session.timeIn && !session.timeOut;
+  const showActions = Boolean(onTimeIn || onTimeOut);
 
   const commitTimeInput = (field, value, relatedValue, onChange) => {
-    const trimmed = value.trim();
+    const trimmed = value?.trim();
 
     if (!trimmed) {
       onChange?.(null);
@@ -103,17 +104,18 @@ export default function SessionCard({
     onChange?.(trimmed);
   };
 
-  const handleTimeChange = (field, nextValue, setDraft) => {
+  const handleTimeChange = (field, nextValue, setDraft, relatedValue, onChange) => {
     if (fieldErrors[field]) {
       setFieldErrors((current) => ({ ...current, [field]: "" }));
     }
 
     setDraft(nextValue);
+    commitTimeInput(field, nextValue, relatedValue, onChange);
   };
 
   const fields = [
     {
-      label: "TIME IN",
+      label: inLabel || "TIME IN",
       field: "timeIn",
       value: timeInDraft,
       setValue: setTimeInDraft,
@@ -121,7 +123,7 @@ export default function SessionCard({
       onChange: onTimeInChange,
     },
     {
-      label: "TIME OUT",
+      label: outLabel || "TIME OUT",
       field: "timeOut",
       value: timeOutDraft,
       setValue: setTimeOutDraft,
@@ -223,7 +225,7 @@ export default function SessionCard({
                 disabled={disabled || isLoading}
                 value={value}
                 onChange={(event) => {
-                  handleTimeChange(field, event.target.value, setValue);
+                  handleTimeChange(field, event.target.value, setValue, relatedValue, onChange);
                 }}
                 onBlur={() =>
                   commitTimeInput(field, value, relatedValue, onChange)
@@ -271,7 +273,7 @@ export default function SessionCard({
         )}
       </div>
 
-      {!isPersistedDone && (
+      {!isPersistedDone && showActions && (
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onTimeIn}

@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Coffee, Sun, Clock, Save, ClipboardList } from "lucide-react";
 import TimeSessionCard from "./TimeSessionCard";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
-import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
+import { isResetStatus, isHalfDayStatus, calculateTotalHours } from "@/lib/dtr-time-validation";
 
 export default function TimeSessionsSection({
   mode = "session",
@@ -10,12 +10,16 @@ export default function TimeSessionsSection({
   amOut,
   pmIn,
   pmOut,
+  otIn,
+  otOut,
   simpleIn,
   simpleOut,
   onAmInChange,
   onAmOutChange,
   onPmInChange,
   onPmOutChange,
+  onOtInChange,
+  onOtOutChange,
   onSimpleInChange,
   onSimpleOutChange,
   onValidationChange,
@@ -28,29 +32,81 @@ export default function TimeSessionsSection({
 }) {
   const [amError, setAmError] = useState(false);
   const [pmError, setPmError] = useState(false);
+  const [otError, setOtError] = useState(false);
   const [simpleError, setSimpleError] = useState(false);
+  const [showOt, setShowOt] = useState(Boolean(otIn || otOut));
 
   const isSimpleMode = mode === "simple";
-  const hasValidationError = isSimpleMode ? simpleError : (amError || pmError);
+  const hasValidationError = isSimpleMode
+    ? simpleError
+    : amError || pmError || (showOt && otError);
 
   // Notify parent of validation state
   useEffect(() => {
-    onValidationChange?.(hasValidationError);
-  }, [hasValidationError, onValidationChange]);
+    onValidationChange?.({
+      am: amError,
+      pm: pmError,
+      ot: showOt ? otError : false,
+      simple: simpleError,
+    });
+  }, [amError, pmError, otError, simpleError, showOt, onValidationChange]);
+
+  useEffect(() => {
+    if (otIn || otOut) {
+      setShowOt(true);
+    }
+  }, [otIn, otOut]);
 
   const pmEarliestTime = amOut || amIn;
   const amDisabled = sessionsLocked;
   const pmDisabled = sessionsLocked || isHalfDayStatus(status);
   const simpleDisabled = sessionsLocked;
+  const otDisabled = sessionsLocked;
+  const otEarliestTime = pmOut || pmIn || amOut || amIn;
 
   const amSession = useMemo(() => ({ timeIn: amIn, timeOut: amOut }), [amIn, amOut]);
   const pmSession = useMemo(() => ({ timeIn: pmIn, timeOut: pmOut }), [pmIn, pmOut]);
+  const otSession = useMemo(() => ({ timeIn: otIn, timeOut: otOut }), [otIn, otOut]);
   const simpleSession = useMemo(() => ({ timeIn: simpleIn, timeOut: simpleOut }), [simpleIn, simpleOut]);
+
+  const totalHours = useMemo(() => {
+    const payload = isSimpleMode
+      ? {
+          amIn: simpleIn || "",
+          amOut: "",
+          pmIn: "",
+          pmOut: simpleOut || "",
+          otIn: "",
+          otOut: "",
+        }
+      : {
+          amIn: amIn || "",
+          amOut: amOut || "",
+          pmIn: pmIn || "",
+          pmOut: pmOut || "",
+          otIn: showOt ? otIn || "" : "",
+          otOut: showOt ? otOut || "" : "",
+        };
+    return calculateTotalHours(payload);
+  }, [isSimpleMode, simpleIn, simpleOut, amIn, amOut, pmIn, pmOut, otIn, otOut, showOt]);
+
+  const handleToggleOt = () => {
+    if (showOt) {
+      onOtInChange?.("");
+      onOtOutChange?.("");
+      setOtError(false);
+    }
+    setShowOt((current) => !current);
+  };
+
+  const sessionGridClass = showOt
+    ? "grid grid-cols-1 gap-4 lg:grid-cols-3"
+    : "grid grid-cols-1 gap-4 lg:grid-cols-2";
 
   return (
     <div className="mt-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ClipboardList size={18} className="text-slate-400" />
           <h3 className="text-sm font-bold tracking-widest text-slate-400 uppercase">
             Session Entries
@@ -64,6 +120,11 @@ export default function TimeSessionsSection({
             }}
           >
             {isSimpleMode ? "Single" : "Dual"}
+          </span>
+          <span 
+            className="rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+          >
+            Total: {totalHours.toFixed(2)} hrs
           </span>
         </div>
         
@@ -85,6 +146,23 @@ export default function TimeSessionsSection({
               </svg>
             </div>
           </div>
+
+          {!isSimpleMode && (
+            <button
+              type="button"
+              onClick={handleToggleOt}
+              disabled={isLoading || isSaving}
+              className="rounded-xl px-4 py-2 text-[12px] font-bold uppercase tracking-widest transition-all"
+              style={{
+                border: "1px solid rgba(249, 115, 22, 0.35)",
+                background: showOt ? "rgba(249, 115, 22, 0.18)" : "rgba(15, 23, 42, 0.6)",
+                color: showOt ? "#FB923C" : "#F97316",
+                opacity: isLoading || isSaving ? 0.6 : 1,
+              }}
+            >
+              {showOt ? "Remove OT" : "Add OT"}
+            </button>
+          )}
 
           <button
             onClick={onSave}
@@ -116,7 +194,7 @@ export default function TimeSessionsSection({
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className={sessionGridClass}>
           <TimeSessionCard
             title="MORNING SESSION"
             icon={Sun}
@@ -150,6 +228,25 @@ export default function TimeSessionsSection({
             onTimeInChange={onPmInChange}
             onTimeOutChange={onPmOutChange}
           />
+          {showOt && (
+            <TimeSessionCard
+              title="OVERTIME SESSION"
+              icon={Clock}
+              iconColor="#F97316"
+              session={otSession}
+              isLoading={isLoading}
+              disabled={otDisabled}
+              inLabel="OT IN"
+              outLabel="OT OUT"
+              inGrad="#F97316"
+              inShadow="rgba(249, 115, 22, 0.2)"
+              onValidationChange={setOtError}
+              earliestTime={otEarliestTime}
+              earliestLabel="PM session"
+              onTimeInChange={onOtInChange}
+              onTimeOutChange={onOtOutChange}
+            />
+          )}
         </div>
       )}
     </div>

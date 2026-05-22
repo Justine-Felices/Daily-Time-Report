@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Coffee, Sun, Clock, Save, ClipboardList } from "lucide-react";
 import SessionCard from "../components/SessionCard";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
@@ -7,8 +7,10 @@ import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
 export default function SessionsSection({ 
   amSession, 
   pmSession, 
+  otSession,
   persistedAmSession,
   persistedPmSession,
+  persistedOtSession,
   status,
   attendanceMode = "dual",
   isLoading, 
@@ -22,15 +24,21 @@ export default function SessionsSection({
 }) {
   const [amError, setAmError] = useState(false);
   const [pmError, setPmError] = useState(false);
+  const [otError, setOtError] = useState(false);
   const [singleError, setSingleError] = useState(false);
+  const [showOt, setShowOt] = useState(Boolean(otSession?.timeIn || otSession?.timeOut));
 
   const isSingleMode = attendanceMode === "single";
 
-  const hasValidationError = isSingleMode ? singleError : (amError || pmError);
+  const hasValidationError = isSingleMode
+    ? singleError
+    : amError || pmError || (showOt && otError);
   const pmEarliestTime = amSession?.timeOut || amSession?.timeIn;
+  const otEarliestTime = pmSession?.timeOut || pmSession?.timeIn || amSession?.timeOut || amSession?.timeIn;
   
   const amDisabled = isResetStatus(status);
   const pmDisabled = isResetStatus(status) || isHalfDayStatus(status);
+  const otDisabled = isResetStatus(status);
   const singleDisabled = isResetStatus(status);
 
   // For single mode: combine am.timeIn + pm.timeOut into one virtual session
@@ -42,6 +50,26 @@ export default function SessionsSection({
   const isSinglePersistedDone = persistedAmSession?.timeIn && persistedPmSession?.timeOut;
   const isAmPersistedDone = persistedAmSession?.timeIn && persistedAmSession?.timeOut;
   const isPmPersistedDone = persistedPmSession?.timeIn && persistedPmSession?.timeOut;
+  const isOtPersistedDone = persistedOtSession?.timeIn && persistedOtSession?.timeOut;
+
+  useEffect(() => {
+    if (otSession?.timeIn || otSession?.timeOut) {
+      setShowOt(true);
+    }
+  }, [otSession?.timeIn, otSession?.timeOut]);
+
+  const handleToggleOt = () => {
+    if (showOt) {
+      onManualSave?.("ot", "timeIn", null);
+      onManualSave?.("ot", "timeOut", null);
+      setOtError(false);
+    }
+    setShowOt((current) => !current);
+  };
+
+  const sessionGridClass = showOt
+    ? "grid grid-cols-1 gap-4 lg:grid-cols-3"
+    : "grid grid-cols-1 gap-4 lg:grid-cols-2";
 
   return (
     <div className="mt-8 space-y-6">
@@ -82,6 +110,23 @@ export default function SessionsSection({
             </div>
           </div>
 
+          {!isSingleMode && (
+            <button
+              type="button"
+              onClick={handleToggleOt}
+              disabled={isSaving || otDisabled}
+              className="rounded-xl px-4 py-2 text-[12px] font-bold uppercase tracking-widest transition-all"
+              style={{
+                border: "1px solid rgba(249, 115, 22, 0.35)",
+                background: showOt ? "rgba(249, 115, 22, 0.18)" : "rgba(15, 23, 42, 0.6)",
+                color: showOt ? "#FB923C" : "#F97316",
+                opacity: isSaving || otDisabled ? 0.6 : 1,
+              }}
+            >
+              {showOt ? "Remove OT" : "Add OT"}
+            </button>
+          )}
+
           <button
             onClick={onGlobalSave}
             disabled={isSaving || hasValidationError}
@@ -120,7 +165,7 @@ export default function SessionsSection({
         </div>
       ) : (
         /* ─── Dual Mode: Two cards (Morning + Afternoon) ─── */
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className={sessionGridClass}>
           <SessionCard
             title="MORNING SESSION"
             icon={Sun}
@@ -166,6 +211,29 @@ export default function SessionsSection({
             onGlobalSave={onGlobalSave}
             isSaving={isSaving}
           />
+          {showOt && (
+            <SessionCard
+              title="OVERTIME SESSION"
+              icon={Clock}
+              iconColor="#F97316"
+              draftStorageKey="ot-session-draft"
+              session={otSession}
+              isPersistedDone={isOtPersistedDone}
+              isLoading={isLoading}
+              disabled={otDisabled}
+              inLabel="OT IN"
+              outLabel="OT OUT"
+              inGrad="#F97316"
+              inShadow="rgba(249, 115, 22, 0.2)"
+              onValidationChange={setOtError}
+              earliestTime={otEarliestTime}
+              earliestLabel="PM session"
+              onTimeInChange={(val) => onManualSave("ot", "timeIn", val)}
+              onTimeOutChange={(val) => onManualSave("ot", "timeOut", val)}
+              onGlobalSave={onGlobalSave}
+              isSaving={isSaving}
+            />
+          )}
         </div>
       )}
 
