@@ -56,6 +56,23 @@ function toMinutes(clock) {
   return hours * 60 + minutes;
 }
 
+function to24hClock(value) {
+  if (!value) return null;
+  const trimmed = value.trim();
+
+  if (/^\d{2}:\d{2}$/.test(trimmed)) return trimmed;
+
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
+  if (!match) return null;
+
+  let hours = Number(match[1]);
+  const minutes = match[2];
+  const period = match[3].toUpperCase();
+  if (period === "AM" && hours === 12) hours = 0;
+  if (period === "PM" && hours !== 12) hours += 12;
+  return `${hours.toString().padStart(2, "0")}:${minutes}`;
+}
+
 function calculateDuration(startTime, endTime) {
   if (!startTime || !endTime) return 0;
   const start = toMinutes(startTime);
@@ -115,6 +132,7 @@ export default function useHomeDashboardLogic() {
 
   const [amSession, setAmSession] = useState(EMPTY_SESSION);
   const [pmSession, setPmSession] = useState(EMPTY_SESSION);
+  const [otSession, setOtSession] = useState(EMPTY_SESSION);
   const [fullName, setFullName] = useState("");
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
@@ -133,10 +151,12 @@ export default function useHomeDashboardLogic() {
   const [dashboardView, setDashboardView] = useState("live");
   const [note, setNote] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [warningMessage, setWarningMessage] = useState(null);
 
   // Keep track of the last known DB state to allow reverting manual edits
   const [persistedAmSession, setPersistedAmSession] = useState(EMPTY_SESSION);
   const [persistedPmSession, setPersistedPmSession] = useState(EMPTY_SESSION);
+  const [persistedOtSession, setPersistedOtSession] = useState(EMPTY_SESSION);
 
   // Modal-specific editable fields
   const [modalAmIn, setModalAmIn] = useState("");
@@ -158,6 +178,13 @@ export default function useHomeDashboardLogic() {
     return () => clearTimeout(timer);
   }, [showSuccess]);
 
+  // Auto-dismiss warning after 8 seconds
+  useEffect(() => {
+    if (!warningMessage) return;
+    const timer = setTimeout(() => setWarningMessage(null), 8000);
+    return () => clearTimeout(timer);
+  }, [warningMessage]);
+
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
 
@@ -166,8 +193,9 @@ export default function useHomeDashboardLogic() {
     if (dashboardView === "live") {
       setAmSession(persistedAmSession);
       setPmSession(persistedPmSession);
+      setOtSession(persistedOtSession);
     }
-  }, [dashboardView, persistedAmSession, persistedPmSession]);
+  }, [dashboardView, persistedAmSession, persistedPmSession, persistedOtSession]);
 
   // ─── 4-STATE ATTENDANCE LOGIC ───
   const currentStatus = useMemo(() => {
@@ -207,7 +235,9 @@ export default function useHomeDashboardLogic() {
     amSession.timeIn ||
     amSession.timeOut ||
     pmSession.timeIn ||
-    pmSession.timeOut,
+    pmSession.timeOut ||
+    otSession.timeIn ||
+    otSession.timeOut,
   );
 
   // Sync modal state when it opens
@@ -294,6 +324,10 @@ export default function useHomeDashboardLogic() {
           timeIn: todayRecord.pmIn,
           timeOut: todayRecord.pmOut,
         });
+        setOtSession({
+          timeIn: todayRecord.otIn,
+          timeOut: todayRecord.otOut,
+        });
         setPersistedAmSession({
           timeIn: todayRecord.amIn,
           timeOut: todayRecord.amOut,
@@ -302,14 +336,20 @@ export default function useHomeDashboardLogic() {
           timeIn: todayRecord.pmIn,
           timeOut: todayRecord.pmOut,
         });
+        setPersistedOtSession({
+          timeIn: todayRecord.otIn,
+          timeOut: todayRecord.otOut,
+        });
         setStatus(todayRecord.status || "Regular Duty Day");
         setNote(todayRecord.note || "");
         setHasTodayRecord(true);
       } else {
         setAmSession(EMPTY_SESSION);
         setPmSession(EMPTY_SESSION);
+        setOtSession(EMPTY_SESSION);
         setPersistedAmSession(EMPTY_SESSION);
         setPersistedPmSession(EMPTY_SESSION);
+        setPersistedOtSession(EMPTY_SESSION);
         setStatus("Regular Duty Day");
         setNote("");
         setHasTodayRecord(false);
@@ -321,6 +361,8 @@ export default function useHomeDashboardLogic() {
   const handleManualTimeChange = useCallback((sessionType, field, value) => {
     if (sessionType === "am") {
       setAmSession((prev) => ({ ...prev, [field]: value }));
+    } else if (sessionType === "ot") {
+      setOtSession((prev) => ({ ...prev, [field]: value }));
     } else {
       setPmSession((prev) => ({ ...prev, [field]: value }));
     }
@@ -331,6 +373,7 @@ export default function useHomeDashboardLogic() {
     if (isResetStatus(newStatus)) {
       setAmSession(EMPTY_SESSION);
       setPmSession(EMPTY_SESSION);
+      setOtSession(EMPTY_SESSION);
     } else if (isHalfDayStatus(newStatus)) {
       setPmSession(EMPTY_SESSION);
     }
@@ -350,36 +393,32 @@ export default function useHomeDashboardLogic() {
         return;
       }
 
-      // Convert display time ("02:07 PM") back to 24-hour DB format ("14:07")
-      const to24h = (val) => {
-        if (!val) return null;
-        const trimmed = val.trim();
-
-        // Already in HH:MM 24-hour format
-        if (/^\d{2}:\d{2}$/.test(trimmed)) return trimmed;
-
-        // Convert 12-hour ("2:07 PM" or "02:07 PM") to 24-hour
-        const match = trimmed.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
-        if (!match) return null;
-
-        let h = Number(match[1]);
-        const m = match[2];
-        const period = match[3].toUpperCase();
-        if (period === "AM" && h === 12) h = 0;
-        if (period === "PM" && h !== 12) h += 12;
-        return `${h.toString().padStart(2, "0")}:${m}`;
-      };
-
-      const amIn = to24h(amSession.timeIn);
-      const amOut = to24h(amSession.timeOut);
-      const pmIn = to24h(pmSession.timeIn);
-      const pmOut = to24h(pmSession.timeOut);
+      const amIn = to24hClock(amSession.timeIn);
+      const amOut = to24hClock(amSession.timeOut);
+      const pmIn = to24hClock(pmSession.timeIn);
+      const pmOut = to24hClock(pmSession.timeOut);
+      const otIn = to24hClock(otSession.timeIn);
+      const otOut = to24hClock(otSession.timeOut);
 
       // Match Encode Past: single mode only saves am_in (Time In) + pm_out (Time Out)
       const isSingleMode = attendanceMode === "single";
       const dbPayload = isSingleMode
-        ? { amIn: amIn || "", amOut: "", pmIn: "", pmOut: pmOut || "" }
-        : { amIn: amIn || "", amOut: amOut || "", pmIn: pmIn || "", pmOut: pmOut || "" };
+        ? {
+            amIn: amIn || "",
+            amOut: "",
+            pmIn: "",
+            pmOut: pmOut || "",
+            otIn: otIn || "",
+            otOut: otOut || "",
+          }
+        : {
+            amIn: amIn || "",
+            amOut: amOut || "",
+            pmIn: pmIn || "",
+            pmOut: pmOut || "",
+            otIn: otIn || "",
+            otOut: otOut || "",
+          };
 
       const total = calculateTotalHours(dbPayload);
 
@@ -395,6 +434,8 @@ export default function useHomeDashboardLogic() {
         am_out: dbPayload.amOut || null,
         pm_in: dbPayload.pmIn || null,
         pm_out: dbPayload.pmOut || null,
+        ot_in: dbPayload.otIn || null,
+        ot_out: dbPayload.otOut || null,
         total_hours: total,
         status: dbStatus,
         note: note.trim() || null,
@@ -407,12 +448,20 @@ export default function useHomeDashboardLogic() {
       }
 
       // Execute Upsert
-      const { error: updateError } = await supabase
+      const { data: savedData, error: updateError } = await supabase
         .from("attendance_entries")
-        .upsert(finalRecord, { onConflict: "user_id,work_date" });
+        .upsert(finalRecord, { onConflict: "user_id,work_date" })
+        .select()
+        .single();
 
       if (updateError) {
         throw updateError;
+      }
+
+      const otSent = Boolean(finalRecord.ot_in || finalRecord.ot_out);
+      const otSaved = Boolean(savedData?.ot_in || savedData?.ot_out);
+      if (otSent && !otSaved) {
+        setWarningMessage("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
       }
 
       // Success -> Refresh
@@ -601,12 +650,13 @@ export default function useHomeDashboardLogic() {
   }, [amSession, pmSession, attendanceMode]);
 
   const currentSessionHours = useMemo(() => {
-    if (!activeSessionTimeIn) return 0;
+    const otHours = calculateDuration(otSession.timeIn, otSession.timeOut);
+    if (!activeSessionTimeIn) return otHours;
     const startMinutes = toMinutes(activeSessionTimeIn);
     const nowMinutes = toMinutes(formatNowClock(now));
-    if (startMinutes === null || nowMinutes === null) return 0;
-    return Math.max(0, (nowMinutes - startMinutes) / 60);
-  }, [activeSessionTimeIn, now]);
+    if (startMinutes === null || nowMinutes === null) return otHours;
+    return Math.max(0, (nowMinutes - startMinutes) / 60) + otHours;
+  }, [activeSessionTimeIn, now, otSession]);
 
   const modalHours = useMemo(() => {
     if (!showClockOutModal) return 0;
@@ -617,18 +667,23 @@ export default function useHomeDashboardLogic() {
 
       if (amInMinutes !== null && amInMinutes >= amCutoff) {
         // Late start (treated as PM only)
-        return calculateDuration(modalPmIn, modalPmOut);
+        const pm = calculateDuration(modalPmIn, modalPmOut);
+        const ot = calculateDuration(otSession.timeIn, otSession.timeOut);
+        return Math.min(8, pm) + ot;
       }
 
       // Normal dual
       const morning = calculateDuration(modalAmIn, modalAmOut);
       const afternoon = calculateDuration(modalPmIn, modalPmOut);
-      return morning + afternoon;
+      const ot = calculateDuration(otSession.timeIn, otSession.timeOut);
+      return Math.min(8, morning + afternoon) + ot;
     }
 
     // Single mode
-    return calculateDuration(modalAmIn, modalPmOut);
-  }, [showClockOutModal, modalAmIn, modalAmOut, modalPmIn, modalPmOut, attendanceMode]);
+    const base = calculateDuration(modalAmIn, modalPmOut);
+    const ot = calculateDuration(otSession.timeIn, otSession.timeOut);
+    return Math.min(8, base) + ot;
+  }, [showClockOutModal, modalAmIn, modalAmOut, modalPmIn, modalPmOut, attendanceMode, otSession]);
 
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
 
@@ -756,6 +811,8 @@ export default function useHomeDashboardLogic() {
       }
 
       const timeNow = formatNowClock(new Date());
+      const otInValue = to24hClock(otSession.timeIn);
+      const otOutValue = to24hClock(otSession.timeOut);
       let updates = {};
 
       if (currentStatus === "clock-out-am") {
@@ -770,6 +827,8 @@ export default function useHomeDashboardLogic() {
               am_out: null,
               pm_in: modalPmIn,
               pm_out: modalPmOut,
+              ot_in: otInValue || null,
+              ot_out: otOutValue || null,
               total_hours: modalHours,
             };
           } else {
@@ -779,6 +838,8 @@ export default function useHomeDashboardLogic() {
               am_out: modalAmOut,
               pm_in: modalPmIn,
               pm_out: modalPmOut,
+              ot_in: otInValue || null,
+              ot_out: otOutValue || null,
               total_hours: modalHours,
             };
           }
@@ -787,6 +848,8 @@ export default function useHomeDashboardLogic() {
           updates = {
             am_in: modalAmIn,
             pm_out: modalPmOut,
+            ot_in: otInValue || null,
+            ot_out: otOutValue || null,
             total_hours: modalHours
           };
         }
@@ -796,20 +859,31 @@ export default function useHomeDashboardLogic() {
           am_out: modalAmOut,
           pm_in: modalPmIn,
           pm_out: modalPmOut,
+          ot_in: otInValue || null,
+          ot_out: otOutValue || null,
           total_hours: modalHours,
           note: note.trim() || null,
         };
       }
 
-      const { error: updateError } = await supabase
+      const { data: savedData, error: updateError } = await supabase
         .from("attendance_entries")
         .update(updates)
         .eq("user_id", user.id)
-        .eq("work_date", todayKey);
+        .eq("work_date", todayKey)
+        .select()
+        .single();
       if (updateError) {
         setErrorMessage("Unable to save your clock out. Please check your connection.");
         return;
       }
+
+      const otSent = Boolean(updates.ot_in || updates.ot_out);
+      const otSaved = Boolean(savedData?.ot_in || savedData?.ot_out);
+      if (otSent && !otSaved) {
+        setWarningMessage("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
+      }
+
       await refreshPersistedSummary(user.id);
       setShowSuccess(true);
       setShowClockOutModal(false);
@@ -837,6 +911,7 @@ export default function useHomeDashboardLogic() {
   const resetSessionLogs = () => {
     setAmSession(EMPTY_SESSION);
     setPmSession(EMPTY_SESSION);
+    setOtSession(EMPTY_SESSION);
   };
 
   return {
@@ -865,8 +940,10 @@ export default function useHomeDashboardLogic() {
       isSaving,
       amSession,
       pmSession,
+      otSession,
       persistedAmSession,
       persistedPmSession,
+      persistedOtSession,
       currentStatus,
       buttonConfig,
       isDayComplete,
@@ -896,6 +973,8 @@ export default function useHomeDashboardLogic() {
       setNote,
       showSuccess,
       setShowSuccess,
+      warningMessage,
+      setWarningMessage,
       clearError: () => setErrorMessage(null),
     },
     summary: {

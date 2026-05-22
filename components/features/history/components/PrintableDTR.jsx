@@ -179,6 +179,16 @@ export default function PrintableDTR({ records, totalHours }) {
               P.M.
             </th>
             <th
+              colSpan={2}
+              style={{
+                border: "1px solid #000",
+                padding: "6px 4px",
+                textAlign: "center",
+              }}
+            >
+              O.T.
+            </th>
+            <th
               style={{
                 border: "1px solid #000",
                 padding: "6px 4px",
@@ -202,6 +212,26 @@ export default function PrintableDTR({ records, totalHours }) {
           <tr style={{ background: "#f8f8f8" }}>
             <th style={{ border: "1px solid #000", padding: "3px 4px" }}></th>
             <th style={{ border: "1px solid #000", padding: "3px 4px" }}></th>
+            <th
+              style={{
+                border: "1px solid #000",
+                padding: "3px 4px",
+                textAlign: "center",
+                fontSize: "8pt",
+              }}
+            >
+              IN
+            </th>
+            <th
+              style={{
+                border: "1px solid #000",
+                padding: "3px 4px",
+                textAlign: "center",
+                fontSize: "8pt",
+              }}
+            >
+              OUT
+            </th>
             <th
               style={{
                 border: "1px solid #000",
@@ -311,6 +341,24 @@ export default function PrintableDTR({ records, totalHours }) {
                   border: "1px solid #000",
                   padding: "4px",
                   textAlign: "center",
+                }}
+              >
+                {record.otIn || ""}
+              </td>
+              <td
+                style={{
+                  border: "1px solid #000",
+                  padding: "4px",
+                  textAlign: "center",
+                }}
+              >
+                {record.otOut || ""}
+              </td>
+              <td
+                style={{
+                  border: "1px solid #000",
+                  padding: "4px",
+                  textAlign: "center",
                   fontWeight: record.totalHours > 0 ? "bold" : "normal",
                 }}
               >
@@ -339,7 +387,7 @@ export default function PrintableDTR({ records, totalHours }) {
 
           <tr style={{ background: "#f0f0f0", fontWeight: "bold" }}>
             <td
-              colSpan={6}
+              colSpan={8}
               style={{
                 border: "1px solid #000",
                 padding: "6px 4px",

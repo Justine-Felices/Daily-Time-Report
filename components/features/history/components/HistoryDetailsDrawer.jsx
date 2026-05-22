@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
+import { calculateTotalHours } from "@/lib/dtr-time-validation";
 
 const INPUT_STYLE = {
   width: "100%",
@@ -53,6 +54,8 @@ export default function HistoryDetailsDrawer({
   const [amOut, setAmOut] = useState("");
   const [pmIn, setPmIn] = useState("");
   const [pmOut, setPmOut] = useState("");
+  const [otIn, setOtIn] = useState("");
+  const [otOut, setOtOut] = useState("");
   const [status, setStatus] = useState(STATUS_OPTIONS[0]);
   const [totalHours, setTotalHours] = useState("0");
   const [note, setNote] = useState("");
@@ -67,12 +70,30 @@ export default function HistoryDetailsDrawer({
     setAmOut(displayTimeToInputTime(record.amOut));
     setPmIn(displayTimeToInputTime(record.pmIn));
     setPmOut(displayTimeToInputTime(record.pmOut));
+    setOtIn(displayTimeToInputTime(record.otIn));
+    setOtOut(displayTimeToInputTime(record.otOut));
     setStatus(record.status || STATUS_OPTIONS[0]);
     setTotalHours(String(Number(record.totalHours || 0)));
     setNote(record.note || "");
     setErrorText("");
     setShowDeleteConfirm(false);
   }, [isOpen, record]);
+
+  // Auto-calculate hours when time fields change
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const calculated = calculateTotalHours({
+      amIn: amIn || null,
+      amOut: amOut || null,
+      pmIn: pmIn || null,
+      pmOut: pmOut || null,
+      otIn: otIn || null,
+      otOut: otOut || null,
+    });
+
+    setTotalHours(String(calculated));
+  }, [isOpen, amIn, amOut, pmIn, pmOut, otIn, otOut]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -101,6 +122,8 @@ export default function HistoryDetailsDrawer({
     const amOutMinutes = toMinutes(amOut);
     const pmInMinutes = toMinutes(pmIn);
     const pmOutMinutes = toMinutes(pmOut);
+    const otInMinutes = toMinutes(otIn);
+    const otOutMinutes = toMinutes(otOut);
 
     if (
       amInMinutes !== null &&
@@ -126,13 +149,29 @@ export default function HistoryDetailsDrawer({
       return "PM In cannot be earlier than AM Out.";
     }
 
+    if (
+      otInMinutes !== null &&
+      otOutMinutes !== null &&
+      otOutMinutes <= otInMinutes
+    ) {
+      return "OT Out must be later than OT In.";
+    }
+
+    if (
+      pmOutMinutes !== null &&
+      otInMinutes !== null &&
+      otInMinutes < pmOutMinutes
+    ) {
+      return "OT In cannot be earlier than PM Out.";
+    }
+
     const parsedTotal = Number(totalHours);
     if (!Number.isFinite(parsedTotal) || parsedTotal < 0) {
       return "Total hours must be a valid non-negative number.";
     }
 
     return "";
-  }, [workDate, amIn, amOut, pmIn, pmOut, totalHours]);
+  }, [workDate, amIn, amOut, pmIn, pmOut, otIn, otOut, totalHours]);
 
   const isActionDisabled = Boolean(validationMessage) || isPending;
 
@@ -152,6 +191,8 @@ export default function HistoryDetailsDrawer({
       amOut: amOut || null,
       pmIn: pmIn || null,
       pmOut: pmOut || null,
+      otIn: otIn || null,
+      otOut: otOut || null,
       status,
       note,
       totalHours: Number(totalHours) || 0,
@@ -354,7 +395,7 @@ export default function HistoryDetailsDrawer({
                 lineHeight: 1,
               }}
             >
-              {Number(totalHours || 0)}h
+              {totalHours}h
             </div>
           </div>
 
@@ -486,6 +527,46 @@ export default function HistoryDetailsDrawer({
               />
             </label>
 
+            <label>
+              <div
+                style={{
+                  color: "var(--text-secondary)",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  fontFamily: "'Inter',sans-serif",
+                  marginBottom: "6px",
+                }}
+              >
+                OT In
+              </div>
+              <input
+                type="time"
+                value={otIn}
+                onChange={(event) => setOtIn(event.target.value)}
+                style={INPUT_STYLE}
+              />
+            </label>
+
+            <label>
+              <div
+                style={{
+                  color: "var(--text-secondary)",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  fontFamily: "'Inter',sans-serif",
+                  marginBottom: "6px",
+                }}
+              >
+                OT Out
+              </div>
+              <input
+                type="time"
+                value={otOut}
+                onChange={(event) => setOtOut(event.target.value)}
+                style={INPUT_STYLE}
+              />
+            </label>
+
             <label className="sm:col-span-2">
               <div
                 style={{
@@ -499,12 +580,15 @@ export default function HistoryDetailsDrawer({
                 Total Hours
               </div>
               <input
-                type="number"
-                min="0"
-                step="0.5"
+                type="text"
                 value={totalHours}
-                onChange={(event) => setTotalHours(event.target.value)}
-                style={INPUT_STYLE}
+                readOnly
+                style={{
+                  ...INPUT_STYLE,
+                  background: "rgba(148,163,184,0.05)",
+                  cursor: "not-allowed",
+                  opacity: 0.8
+                }}
               />
             </label>
 

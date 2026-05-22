@@ -34,11 +34,11 @@ function toCompactDisplay(minutes) {
 }
 
 function getDisplayTimes(record) {
-  const startCandidates = [record.amIn, record.pmIn]
+  const startCandidates = [record.amIn, record.pmIn, record.otIn]
     .map(toMinutesFromDisplayTime)
     .filter((value) => value !== null);
 
-  const endCandidates = [record.pmOut, record.amOut]
+  const endCandidates = [record.pmOut, record.amOut, record.otOut]
     .map(toMinutesFromDisplayTime)
     .filter((value) => value !== null);
 

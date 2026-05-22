@@ -3,6 +3,7 @@ import { CalendarRange, Loader2, X } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import { createBulkAttendanceRecords } from "@/lib/supabase-operations";
+import { calculateTotalHours } from "@/lib/dtr-time-validation";
 
 function toDateKey(date) {
   const year = date.getFullYear();
@@ -84,6 +85,8 @@ function buildEntryPayload({ entryType, mode, times, note, dates }) {
         am_out: null,
         pm_in: null,
         pm_out: null,
+        ot_in: null,
+        ot_out: null,
         total_hours: 0,
         mode,
         note,
@@ -105,25 +108,22 @@ function buildEntryPayload({ entryType, mode, times, note, dates }) {
         am_out: times.amOut || null,
         pm_in: null,
         pm_out: null,
+        ot_in: null,
+        ot_out: null,
         total_hours: Number(hours.toFixed(2)),
         mode,
         note,
       };
     }
 
-    const amInMinutes = toMinutes(times.amIn);
-    const amOutMinutes = toMinutes(times.amOut);
-    const pmInMinutes = toMinutes(times.pmIn);
-    const pmOutMinutes = toMinutes(times.pmOut);
-
-    let totalHours = 0;
-
-    if (amInMinutes !== null && amOutMinutes !== null) {
-      totalHours += Math.max(0, (amOutMinutes - amInMinutes) / 60);
-    }
-    if (pmInMinutes !== null && pmOutMinutes !== null) {
-      totalHours += Math.max(0, (pmOutMinutes - pmInMinutes) / 60);
-    }
+    const totalHours = calculateTotalHours({
+      amIn: times.amIn || null,
+      amOut: times.amOut || null,
+      pmIn: times.pmIn || null,
+      pmOut: times.pmOut || null,
+      otIn: times.otIn || null,
+      otOut: times.otOut || null,
+    });
 
     return {
       date,
@@ -132,7 +132,9 @@ function buildEntryPayload({ entryType, mode, times, note, dates }) {
       am_out: times.amOut || null,
       pm_in: times.pmIn || null,
       pm_out: times.pmOut || null,
-      total_hours: Number(totalHours.toFixed(2)),
+      ot_in: times.otIn || null,
+      ot_out: times.otOut || null,
+      total_hours: totalHours,
       mode,
       note,
     };
@@ -222,6 +224,8 @@ export default function BulkAddDtrModal({ open, onClose }) {
     amOut: "12:00",
     pmIn: "13:00",
     pmOut: "18:30",
+    otIn: "",
+    otOut: "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -235,7 +239,11 @@ export default function BulkAddDtrModal({ open, onClose }) {
   const previewRows = useMemo(() => {
     return selectedDates.map((date) => {
       if (entryType === "regular") {
-        return `${formatDatePreview(date)} - Regular (${formatTimePreview(times.amIn)} - ${formatTimePreview(times.pmOut)})`;
+        const otPreview =
+          times.otIn || times.otOut
+            ? `, OT (${formatTimePreview(times.otIn)} - ${formatTimePreview(times.otOut)})`
+            : "";
+        return `${formatDatePreview(date)} - Regular (${formatTimePreview(times.amIn)} - ${formatTimePreview(times.pmOut)}${otPreview})`;
       }
 
       if (entryType === "half_day") {
@@ -275,6 +283,23 @@ export default function BulkAddDtrModal({ open, onClose }) {
       ) {
         setError("Please use a valid time sequence (AM then PM). ");
         return;
+      }
+
+      if (times.otIn || times.otOut) {
+        if (!times.otIn || !times.otOut) {
+          setError("Please provide both OT In and OT Out.");
+          return;
+        }
+
+        if (toMinutes(times.otOut) <= toMinutes(times.otIn)) {
+          setError("OT Out must be later than OT In.");
+          return;
+        }
+
+        if (toMinutes(times.otIn) < toMinutes(times.pmOut)) {
+          setError("OT In must be after PM Out.");
+          return;
+        }
       }
     }
 
@@ -520,6 +545,32 @@ export default function BulkAddDtrModal({ open, onClose }) {
                     value={times.pmOut}
                     onChange={(event) =>
                       setTimes((current) => ({ ...current, pmOut: event.target.value }))
+                    }
+                    className="w-full"
+                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                  />
+                </div>
+
+                <div>
+                  <div style={SECTION_LABEL_STYLE}>OT IN</div>
+                  <input
+                    type="time"
+                    value={times.otIn}
+                    onChange={(event) =>
+                      setTimes((current) => ({ ...current, otIn: event.target.value }))
+                    }
+                    className="w-full"
+                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                  />
+                </div>
+
+                <div>
+                  <div style={SECTION_LABEL_STYLE}>OT OUT</div>
+                  <input
+                    type="time"
+                    value={times.otOut}
+                    onChange={(event) =>
+                      setTimes((current) => ({ ...current, otOut: event.target.value }))
                     }
                     className="w-full"
                     style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}

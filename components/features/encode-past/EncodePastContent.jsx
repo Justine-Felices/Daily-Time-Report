@@ -11,6 +11,7 @@ import {
   isResetStatus,
   isHalfDayStatus,
   validateRequiredTimeEntry,
+  calculateTotalHours,
 } from "@/lib/dtr-time-validation";
 import { createClient } from "@/lib/supabase/client";
 import { createAttendanceRecord } from "@/lib/supabase-operations";
@@ -33,6 +34,8 @@ const INITIAL_FORM = {
   amOut: "12:00",
   pmIn: "13:00",
   pmOut: "18:30",
+  otIn: "",
+  otOut: "",
   simpleIn: "",
   simpleOut: "",
   status: "Regular Duty Day",
@@ -45,68 +48,6 @@ function isFormDifferentFromInitial(form) {
   return Object.keys(INITIAL_FORM).some(
     (key) => form[key] !== INITIAL_FORM[key],
   );
-}
-
-function calculateTotalHours({ amIn, amOut, pmIn, pmOut }) {
-  const toMinutes = (time) => {
-    if (!time || typeof time !== "string") return null;
-    const [hourString, minuteString] = time.split(":");
-    const hour = Number.parseInt(hourString, 10);
-    const minute = Number.parseInt(minuteString, 10);
-
-    if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
-
-    return hour * 60 + minute;
-  };
-
-  const getSessionHours = (timeIn, timeOut) => {
-    const startMinutes = toMinutes(timeIn);
-    const endMinutes = toMinutes(timeOut);
-
-    if (startMinutes === null || endMinutes === null) return 0;
-
-    return Math.max(0, (endMinutes - startMinutes) / 60);
-  };
-
-  const amHours = getSessionHours(amIn, amOut);
-  const pmHours = getSessionHours(pmIn, pmOut);
-
-  const amInMinutes = toMinutes(amIn);
-  const amOutMinutes = toMinutes(amOut);
-  const pmInMinutes = toMinutes(pmIn);
-  const pmOutMinutes = toMinutes(pmOut);
-
-  const hasCompleteAM = amInMinutes !== null && amOutMinutes !== null;
-  const hasCompletePM = pmInMinutes !== null && pmOutMinutes !== null;
-
-  let rawHours = amHours + pmHours;
-
-  // Handle simple mode payload where only amIn and pmOut are provided.
-  if (
-    rawHours === 0 &&
-    amInMinutes !== null &&
-    pmOutMinutes !== null &&
-    amOutMinutes === null &&
-    pmInMinutes === null
-  ) {
-    rawHours = Math.max(0, (pmOutMinutes - amInMinutes) / 60);
-    if (amInMinutes < 12 * 60 && pmOutMinutes > 13 * 60) {
-      rawHours = Math.max(0, rawHours - 1);
-    }
-  }
-
-  // Auto-deduct lunch only for a single continuous shift that spans 12:00-13:00.
-  if (!hasCompleteAM && hasCompletePM) {
-    if (pmInMinutes < 12 * 60 && pmOutMinutes > 13 * 60) {
-      rawHours = Math.max(0, rawHours - 1);
-    }
-  } else if (hasCompleteAM && !hasCompletePM) {
-    if (amInMinutes < 12 * 60 && amOutMinutes > 13 * 60) {
-      rawHours = Math.max(0, rawHours - 1);
-    }
-  }
-
-  return Number(rawHours.toFixed(2));
 }
 
 export default function EncodePastContent() {
@@ -122,12 +63,14 @@ export default function EncodePastContent() {
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
   const [saved, triggerSaved] = useTimedFlag(2500);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [isModeLoading, setIsModeLoading] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({
     am: false,
     pm: false,
+    ot: false,
     simple: false,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -143,6 +86,8 @@ export default function EncodePastContent() {
       amOut: typeof draft.amOut === "string" ? draft.amOut : current.amOut,
       pmIn: typeof draft.pmIn === "string" ? draft.pmIn : current.pmIn,
       pmOut: typeof draft.pmOut === "string" ? draft.pmOut : current.pmOut,
+      otIn: typeof draft.otIn === "string" ? draft.otIn : current.otIn,
+      otOut: typeof draft.otOut === "string" ? draft.otOut : current.otOut,
       simpleIn:
         typeof draft.simpleIn === "string" ? draft.simpleIn : current.simpleIn,
       simpleOut:
@@ -228,10 +173,12 @@ export default function EncodePastContent() {
         amOut: "",
         pmIn: "",
         pmOut: "",
+        otIn: "",
+        otOut: "",
         simpleIn: "",
         simpleOut: "",
       }));
-      setFieldErrors({ am: false, pm: false, simple: false });
+      setFieldErrors({ am: false, pm: false, ot: false, simple: false });
       return;
     }
 
@@ -252,7 +199,7 @@ export default function EncodePastContent() {
   }, []);
 
   const hasTimeValidationErrors =
-    fieldErrors.am || fieldErrors.pm || fieldErrors.simple;
+    fieldErrors.am || fieldErrors.pm || fieldErrors.ot || fieldErrors.simple;
   const disableSave = hasTimeValidationErrors || isLoading || isModeLoading;
   const sessionsLocked = isResetStatus(form.status);
 
@@ -278,6 +225,7 @@ export default function EncodePastContent() {
     }
 
     setError("");
+    setWarning("");
     setIsLoading(true);
 
     try {
@@ -288,28 +236,40 @@ export default function EncodePastContent() {
               amOut: "",
               pmIn: "",
               pmOut: form.simpleOut || "",
+              otIn: "",
+              otOut: "",
             }
           : {
               amIn: form.amIn || "",
               amOut: form.amOut || "",
               pmIn: form.pmIn || "",
               pmOut: form.pmOut || "",
+              otIn: form.otIn || "",
+              otOut: form.otOut || "",
             };
 
       const totalHours = calculateTotalHours(savePayload);
 
       // Save to Supabase
-      await createAttendanceRecord({
+      const savedRecord = await createAttendanceRecord({
         date: form.date,
         am_in: savePayload.amIn || null,
         am_out: savePayload.amOut || null,
         pm_in: savePayload.pmIn || null,
         pm_out: savePayload.pmOut || null,
+        ot_in: savePayload.otIn || null,
+        ot_out: savePayload.otOut || null,
         mode: form.mode,
         status: form.status,
         note: form.note || null,
         total_hours: totalHours,
       });
+
+      const otSent = Boolean(savePayload.otIn || savePayload.otOut);
+      const otSaved = Boolean(savedRecord?.ot_in || savedRecord?.ot_out);
+      if (otSent && !otSaved) {
+        setWarning("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
+      }
 
       // Also save to localStorage for backup/history
       prependHistoryRecord({
@@ -319,6 +279,8 @@ export default function EncodePastContent() {
         amOut: toDisplayTime(savePayload.amOut),
         pmIn: toDisplayTime(savePayload.pmIn),
         pmOut: toDisplayTime(savePayload.pmOut),
+        otIn: toDisplayTime(savePayload.otIn),
+        otOut: toDisplayTime(savePayload.otOut),
         mode: form.mode,
         status: form.status,
         note: form.note,
@@ -383,12 +345,16 @@ export default function EncodePastContent() {
           amOut={form.amOut}
           pmIn={form.pmIn}
           pmOut={form.pmOut}
+          otIn={form.otIn}
+          otOut={form.otOut}
           simpleIn={form.simpleIn}
           simpleOut={form.simpleOut}
           onAmInChange={(value) => updateField("amIn", value)}
           onAmOutChange={(value) => updateField("amOut", value)}
           onPmInChange={(value) => updateField("pmIn", value)}
           onPmOutChange={(value) => updateField("pmOut", value)}
+          onOtInChange={(value) => updateField("otIn", value)}
+          onOtOutChange={(value) => updateField("otOut", value)}
           onSimpleInChange={(value) => updateField("simpleIn", value)}
           onSimpleOutChange={(value) => updateField("simpleOut", value)}
           onValidationChange={handleTimeValidation}
@@ -418,6 +384,24 @@ export default function EncodePastContent() {
       </div>
 
       <ErrorMessage error={error} />
+
+      {warning && (
+        <div 
+          className="mt-4 rounded-xl px-4 py-3 flex items-start gap-3" 
+          style={{ 
+            background: "rgba(245,158,11,0.1)", 
+            border: "1px solid rgba(245,158,11,0.25)", 
+            color: "#FB923C", 
+            fontSize: "13px", 
+            fontWeight: 500 
+          }}
+        >
+          <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{warning}</span>
+        </div>
+      )}
 
       {saved && (
         <div className="mt-4 flex items-center justify-center gap-2 text-emerald-500 font-bold text-sm animate-bounce">

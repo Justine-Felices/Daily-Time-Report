@@ -70,7 +70,7 @@ async function buildDtrPdf(records, totalHours, profile) {
   autoTable(pdf, {
     startY: 110,
     margin: { left: 40, right: 40 },
-    head: [["Date", "AM In", "AM Out", "PM In", "PM Out", "Status", "Hours"]],
+    head: [["Date", "AM In", "AM Out", "PM In", "PM Out", "OT In", "OT Out", "Status", "Hours"]],
     body: records.map((record) => {
       // Parse YYYY-MM-DD to avoid timezone shifts
       const [year, month, day] = record.date.split("-");
@@ -83,6 +83,8 @@ async function buildDtrPdf(records, totalHours, profile) {
         record.amOut || "",
         record.pmIn || "",
         record.pmOut || "",
+        record.otIn || "",
+        record.otOut || "",
         record.status || "",
         Number(record.totalHours || 0).toFixed(1),
       ];
@@ -102,13 +104,15 @@ async function buildDtrPdf(records, totalHours, profile) {
       fontStyle: "bold",
     },
     columnStyles: {
-      0: { cellWidth: 95 },
-      1: { cellWidth: 50 },
-      2: { cellWidth: 50 },
-      3: { cellWidth: 50 },
-      4: { cellWidth: 50 },
-      5: { cellWidth: 105 },
-      6: { cellWidth: 45, halign: "right" },
+      0: { cellWidth: 80 },
+      1: { cellWidth: 45 },
+      2: { cellWidth: 45 },
+      3: { cellWidth: 45 },
+      4: { cellWidth: 45 },
+      5: { cellWidth: 45 },
+      6: { cellWidth: 45 },
+      7: { cellWidth: 120 },
+      8: { cellWidth: 45, halign: "right" },
     },
   });
 
@@ -133,6 +137,14 @@ export default function HistoryContent() {
   const [sortDir, setSortDir] = useState("desc");
   const [page, setPage] = useState(1);
   const [pendingRecordId, setPendingRecordId] = useState(null);
+  const [warningMessage, setWarningMessage] = useState(null);
+
+  // Auto-dismiss warning after 8 seconds
+  useEffect(() => {
+    if (!warningMessage) return;
+    const timer = setTimeout(() => setWarningMessage(null), 8000);
+    return () => clearTimeout(timer);
+  }, [warningMessage]);
 
   useEffect(() => {
     let mounted = true;
@@ -238,6 +250,13 @@ export default function HistoryContent() {
         ),
       );
       setOverallHoursLogged(null);
+
+      const otSent = Boolean(payload.otIn || payload.otOut);
+      const otSaved = Boolean(savedRecord?.otIn || savedRecord?.otOut);
+      if (otSent && !otSaved) {
+        setWarningMessage("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
+      }
+
       return { ok: true };
     } catch (error) {
       const message =
@@ -321,6 +340,42 @@ export default function HistoryContent() {
       <div className="print-dtr">
         <PrintableDTR records={allSorted} totalHours={totalAllHours} />
       </div>
+
+      {warningMessage && (
+        <div
+          className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]"
+        >
+          <div
+            className="flex flex-col gap-1 rounded-3xl p-5 border shadow-2xl"
+            style={{
+              background: "rgba(30, 25, 15, 0.85)",
+              borderColor: "rgba(245, 158, 11, 0.3)",
+              backdropFilter: "blur(24px)",
+              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(245, 158, 11, 0.1)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <span className="text-white font-bold text-sm tracking-tight">Warning</span>
+              <button
+                onClick={() => setWarningMessage(null)}
+                className="ml-auto flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-slate-300 text-[13px] leading-relaxed mt-2 pl-11">
+              {warningMessage}
+            </p>
+          </div>
+        </div>
+      )}
     </PageShell>
   );
 }

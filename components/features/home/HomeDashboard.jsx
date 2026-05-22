@@ -50,8 +50,10 @@ export default function HomeDashboard() {
         <SessionsSection
           amSession={sessions.amSession}
           pmSession={sessions.pmSession}
+          otSession={sessions.otSession}
           persistedAmSession={sessions.persistedAmSession}
           persistedPmSession={sessions.persistedPmSession}
+          persistedOtSession={sessions.persistedOtSession}
           status={sessions.status}
           attendanceMode={sessions.attendanceMode}
           isLoading={loading.isLoading}
@@ -134,6 +136,43 @@ export default function HomeDashboard() {
             </div>
             <p className="text-slate-300 text-[13px] leading-relaxed mt-1 pl-11">
               Your attendance entry for today has been successfully updated.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Warning Toast */}
+      {sessions.warningMessage && (
+        <div
+          className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]"
+        >
+          <div
+            className="flex flex-col gap-1 rounded-3xl p-5 border shadow-2xl"
+            style={{
+              background: "rgba(30, 25, 15, 0.85)",
+              borderColor: "rgba(245, 158, 11, 0.3)",
+              backdropFilter: "blur(24px)",
+              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(245, 158, 11, 0.1)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <span className="text-white font-bold text-sm tracking-tight">Warning</span>
+              <button
+                onClick={() => sessions.setWarningMessage(null)}
+                className="ml-auto flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-slate-300 text-[13px] leading-relaxed mt-2 pl-11">
+              {sessions.warningMessage}
             </p>
           </div>
         </div>
