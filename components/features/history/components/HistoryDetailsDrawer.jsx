@@ -302,8 +302,8 @@ export default function HistoryDetailsDrawer({
             style={{
               background: isActionDisabled
                 ? "rgba(148,163,184,0.2)"
-                : "linear-gradient(135deg,#069494,#00B4B4)",
-              border: "1px solid rgba(6,148,148,0.2)",
+                : "linear-gradient(135deg,#3b82f6,#2563eb)",
+              border: "1px solid rgba(59,130,246,0.2)",
               color: isActionDisabled ? "var(--text-muted)" : "#FFFFFF",
               fontSize: "12px",
               fontWeight: 700,

@@ -20,22 +20,22 @@ export default function SignupAgreement({ agree, error, onToggle }) {
             borderRadius: "6px",
             flexShrink: 0,
             marginTop: "1px",
-            border: `1.5px solid ${agree ? "rgba(6,148,148,0.7)" : error ? "rgba(255,105,180,0.6)" : "rgba(6,148,148,0.3)"}`,
+            border: `1.5px solid ${agree ? "rgba(59,130,246,0.7)" : error ? "rgba(255,105,180,0.6)" : "rgba(59,130,246,0.3)"}`,
             background: agree
-              ? "linear-gradient(135deg,#069494,#0aacac)"
+              ? "linear-gradient(135deg,#3b82f6,#60a5fa)"
               : "rgba(240,253,253,0.7)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             transition: "all 0.15s",
-            boxShadow: agree ? "0 2px 8px rgba(6,148,148,0.3)" : "none",
+            boxShadow: agree ? "0 2px 8px rgba(37,99,235,0.3)" : "none",
           }}
         >
           {agree && <CheckCircle2 size={11} color="#fff" strokeWidth={2.5} />}
         </div>
         <span
           style={{
-            color: "#475569",
+            color: "rgba(255, 255, 255, 0.6)",
             fontSize: "12px",
             fontFamily: "'Inter',sans-serif",
             lineHeight: 1.5,
@@ -44,7 +44,7 @@ export default function SignupAgreement({ agree, error, onToggle }) {
           I agree to the{" "}
           <span
             style={{
-              color: "#069494",
+              color: "#3b82f6",
               fontWeight: 600,
               cursor: "pointer",
             }}

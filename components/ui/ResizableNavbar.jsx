@@ -60,7 +60,7 @@ export const Navbar = ({ children, className }) => {
       }}
       transition={{
         duration: 0.4,
-        ease: [0.23, 1, 0.32, 1]
+        ease: [0.23, 1, 0.32, 1],
       }}
       className={cn("fixed inset-x-0 top-0 z-50 w-full no-print", className)}
     >
@@ -114,7 +114,7 @@ export const NavItems = ({ items, className, onItemClick, pathname }) => {
             onClick={onItemClick}
             className={cn(
               "relative px-4 py-2 transition-colors duration-200 rounded-full",
-              isActive ? "text-white" : "text-white/60 hover:text-white"
+              isActive ? "text-white" : "text-white/60 hover:text-white",
             )}
             key={`link-${idx}`}
             href={item.to}
@@ -134,7 +134,7 @@ export const NavItems = ({ items, className, onItemClick, pathname }) => {
             {isActive && (
               <motion.div
                 layoutId="nav-active-dot"
-                className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-teal-400"
+                className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-blue-400"
               />
             )}
           </a>
@@ -171,7 +171,12 @@ export const MobileNav = ({ children, className, visible }) => {
 
 export const MobileNavHeader = ({ children, className }) => {
   return (
-    <div className={cn("flex w-full flex-row items-center justify-between px-4 py-2", className)}>
+    <div
+      className={cn(
+        "flex w-full flex-row items-center justify-between px-4 py-2",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -199,7 +204,10 @@ export const MobileNavMenu = ({ children, className, isOpen }) => {
 
 export const MobileNavToggle = ({ isOpen, onClick }) => {
   return (
-    <button onClick={onClick} className="p-2 text-white/80 hover:text-white transition-colors">
+    <button
+      onClick={onClick}
+      className="p-2 text-white/80 hover:text-white transition-colors"
+    >
       {isOpen ? <IconX size={24} /> : <IconMenu2 size={24} />}
     </button>
   );

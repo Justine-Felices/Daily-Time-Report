@@ -268,7 +268,9 @@ export default function EncodePastContent() {
       const otSent = Boolean(savePayload.otIn || savePayload.otOut);
       const otSaved = Boolean(savedRecord?.ot_in || savedRecord?.ot_out);
       if (otSent && !otSaved) {
-        setWarning("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
+        setWarning(
+          "Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.",
+        );
       }
 
       // Also save to localStorage for backup/history
@@ -325,7 +327,7 @@ export default function EncodePastContent() {
             fontFamily: "'Inter',sans-serif",
           }}
         >
-          <CalendarRange size={13} color="#069494" />
+          <CalendarRange size={13} color="#3b82f6" />
           Bulk Entry Mode
         </button>
       </div>
@@ -368,7 +370,7 @@ export default function EncodePastContent() {
       )}
 
       <div className="mt-6">
-        <label 
+        <label
           className="block mb-2 text-[11px] font-bold tracking-widest text-slate-500 uppercase px-1"
           style={{ fontFamily: "'Inter', sans-serif" }}
         >
@@ -386,18 +388,28 @@ export default function EncodePastContent() {
       <ErrorMessage error={error} />
 
       {warning && (
-        <div 
-          className="mt-4 rounded-xl px-4 py-3 flex items-start gap-3" 
-          style={{ 
-            background: "rgba(245,158,11,0.1)", 
-            border: "1px solid rgba(245,158,11,0.25)", 
-            color: "#FB923C", 
-            fontSize: "13px", 
-            fontWeight: 500 
+        <div
+          className="mt-4 rounded-xl px-4 py-3 flex items-start gap-3"
+          style={{
+            background: "rgba(245,158,11,0.1)",
+            border: "1px solid rgba(245,158,11,0.25)",
+            color: "#FB923C",
+            fontSize: "13px",
+            fontWeight: 500,
           }}
         >
-          <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg
+            className="w-5 h-5 text-amber-500 shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           <span>{warning}</span>
         </div>

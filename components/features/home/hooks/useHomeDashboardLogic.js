@@ -593,9 +593,9 @@ export default function useHomeDashboardLogic() {
       case "clock-in":
         return {
           label: "Clock In",
-          background: "linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)",
-          color: "#0F172A",
-          shadow: "rgba(6, 182, 212, 0.3)",
+          background: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)",
+          color: "#FFFFFF",
+          shadow: "rgba(59, 130, 246, 0.4)",
         };
       case "clock-out-am":
         return {
@@ -607,9 +607,9 @@ export default function useHomeDashboardLogic() {
       case "start-pm":
         return {
           label: "Start PM",
-          background: "linear-gradient(135deg, #06B6D4 0%, #38BDF8 100%)",
+          background: "linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)",
           color: "#FFFFFF",
-          shadow: "rgba(6, 182, 212, 0.3)",
+          shadow: "rgba(59, 130, 246, 0.4)",
         };
       case "clock-out-pm":
         return {

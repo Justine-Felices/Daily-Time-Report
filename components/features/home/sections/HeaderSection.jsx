@@ -11,16 +11,16 @@ const DATE_TEXT_STYLE = {
 };
 
 const TIME_TEXT_STYLE = {
-  fontSize: "48px",
-  fontWeight: 800,
+  fontSize: "clamp(64px, 12vw, 110px)",
+  fontWeight: 900,
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-  letterSpacing: "-0.04em",
-  lineHeight: "1",
-  backgroundImage: "linear-gradient(to right, #7C3AED, #2563EB, #06B6D4)",
+  letterSpacing: "-0.05em",
+  lineHeight: "0.9",
+  backgroundImage: "linear-gradient(to right, #3b82f6, #f472b6)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
-  marginBottom: "4px",
+  marginBottom: "12px",
 };
 
 const STATUS_TEXT_STYLE = {
@@ -81,8 +81,8 @@ export default memo(function HeaderSection({
           width: "6px",
           height: "6px",
           borderRadius: "50%",
-          background: "#38BDF8",
-          boxShadow: "0 0 8px rgba(56, 189, 248, 0.6)",
+          background: "#3b82f6",
+          boxShadow: "0 0 8px rgba(59, 130, 246, 0.6)",
           flexShrink: 0,
         }}
       />
@@ -90,7 +90,7 @@ export default memo(function HeaderSection({
         style={{
           width: "clamp(40px, 8vw, 100px)",
           height: "1px",
-          background: "linear-gradient(to right, rgba(56, 189, 248, 0.6), transparent)",
+          background: "linear-gradient(to right, rgba(59, 130, 246, 0.6), transparent)",
           flexShrink: 0,
         }}
       />
@@ -159,7 +159,7 @@ export default memo(function HeaderSection({
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: "-0.03em",
-              backgroundImage: "linear-gradient(135deg, #06B6D4 0%, #38BDF8 100%)",
+              backgroundImage: "linear-gradient(135deg, #3b82f6 0%, #f472b6 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -187,12 +187,12 @@ export default memo(function HeaderSection({
           {isClockIn && (
             <div className="flex items-center gap-4 text-white/50 text-[13px] font-medium tracking-wide mt-4">
               <div className="flex items-center gap-1.5">
-                <span className="text-[#00F0FF] opacity-80">TIME IN:</span>
+                <span className="text-[#3b82f6] opacity-80">TIME IN:</span>
                 <span className="text-white/80">{currentSessionTimeIn}</span>
               </div>
               <div className="h-3 w-[1px] bg-white/10" />
               <div className="flex items-center gap-1.5">
-                <span className="text-[#00F0FF] opacity-80">WORKED:</span>
+                <span className="text-[#3b82f6] opacity-80">WORKED:</span>
                 <span className="text-white/80">{currentSessionHours.toFixed(1)} hrs</span>
               </div>
             </div>
@@ -202,8 +202,8 @@ export default memo(function HeaderSection({
             <div
               className={`h-2 w-2 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
               style={{
-                background: isClockIn ? "#00F0FF" : "rgba(255,255,255,0.2)",
-                boxShadow: isClockIn ? "0 0 10px #00F0FF" : "none",
+                background: isClockIn ? "#3b82f6" : "rgba(255,255,255,0.2)",
+                boxShadow: isClockIn ? "0 0 10px #3b82f6" : "none",
               }}
             />
             <span style={STATUS_TEXT_STYLE}>{statusLabel}</span>
@@ -229,7 +229,7 @@ export default memo(function HeaderSection({
           style={{ fontFamily: "var(--font-dancing-script), cursive" }}
         >
           {greeting},{" "}
-          <span className="text-white font-bold bg-gradient-to-r from-[#7C3AED] to-[#06B6D4] bg-clip-text text-transparent">
+          <span className="text-white font-bold bg-gradient-to-r from-[#60a5fa] to-[#f472b6] bg-clip-text text-transparent">
             {firstName}
           </span>
         </span>
@@ -241,12 +241,12 @@ export default memo(function HeaderSection({
         {isClockIn && (
           <div className="flex items-center gap-4 text-white/50 text-[13px] font-medium tracking-wide">
             <div className="flex items-center gap-1.5">
-              <span className="text-[#00F0FF] opacity-80">TIME IN:</span>
+              <span className="text-[#3b82f6] opacity-80">TIME IN:</span>
               <span className="text-white/80">{currentSessionTimeIn}</span>
             </div>
             <div className="h-3 w-[1px] bg-white/10" />
             <div className="flex items-center gap-1.5">
-              <span className="text-[#00F0FF] opacity-80">WORKED:</span>
+              <span className="text-[#3b82f6] opacity-80">WORKED:</span>
               <span className="text-white/80">{currentSessionHours.toFixed(1)} hrs</span>
             </div>
           </div>
@@ -256,9 +256,9 @@ export default memo(function HeaderSection({
           <div
             className={`h-2 w-2 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
             style={{
-              background: isClockIn ? "#00F0FF" : "rgba(255,255,255,0.2)",
+              background: isClockIn ? "#3b82f6" : "rgba(255,255,255,0.2)",
               boxShadow: isClockIn
-                ? "0 0 10px #00F0FF"
+                ? "0 0 10px #3b82f6"
                 : "none",
             }}
           />

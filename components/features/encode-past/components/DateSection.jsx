@@ -18,7 +18,7 @@ export default function DateSection({ date, maxDate, onDateChange }) {
   return (
     <GlassCard padding="20px">
       <label style={LABEL_STYLE}>
-        <Calendar size={13} color="#069494" /> SELECT DATE
+        <Calendar size={13} color="#3b82f6" /> SELECT DATE
       </label>
 
       <input
@@ -27,10 +27,10 @@ export default function DateSection({ date, maxDate, onDateChange }) {
         onChange={(event) => onDateChange(event.target.value)}
         max={maxDate}
         className="w-full"
-        style={{ 
-          ...GLASS_INPUT_STYLE, 
+        style={{
+          ...GLASS_INPUT_STYLE,
           padding: "10px 14px",
-          colorScheme: 'dark'
+          colorScheme: "dark",
         }}
       />
     </GlassCard>

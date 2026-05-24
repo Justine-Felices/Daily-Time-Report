@@ -2,18 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import PageShell from "@/components/layout/PageShell";
-import OnboardingForm from "@/components/features/home/components/OnboardingForm";
-import OnboardingPageSkeleton from "@/components/features/home/components/OnboardingPageSkeleton";
+import OnboardingForm from "@/components/features/onboarding/OnboardingForm";
+import OnboardingPageLayout from "@/components/features/onboarding/OnboardingPageLayout";
+import OnboardingPageSkeleton from "@/components/features/onboarding/OnboardingPageSkeleton";
 import { createClient } from "@/lib/supabase/client";
 import {
   fetchUserProfileByUserId,
   isUserProfileOnboarded,
   mapUserProfileToOnboardingValues,
 } from "@/lib/supabase-user-profiles";
+import { PAGE_BACKGROUND_STYLE } from "@/lib/dtr-constants";
 
 export default function OnboardingPageContent() {
   const router = useRouter();
+  const [step, setStep] = useState(1);
   const hasSupabaseConfig =
     typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
     /^https?:\/\//.test(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -57,7 +59,7 @@ export default function OnboardingPageContent() {
       if (!mounted) return;
 
       if (isUserProfileOnboarded(profile)) {
-        router.replace("/");
+        router.replace("/dashboard");
         return;
       }
 
@@ -77,30 +79,35 @@ export default function OnboardingPageContent() {
 
   if (!supabase) {
     return (
-      <PageShell width="narrow">
-        <div className="rounded-2xl border border-white/45 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm backdrop-blur-md">
+      <div className="flex min-h-screen items-center justify-center px-4" style={PAGE_BACKGROUND_STYLE}>
+        <div
+          className="max-w-md rounded-2xl px-5 py-4 text-sm shadow-sm backdrop-blur-md"
+          style={{
+            background: "var(--surface-card)",
+            border: "1px solid var(--border-soft)",
+            color: "var(--text-muted)",
+          }}
+        >
           Supabase is not configured. Please set environment variables and
           refresh.
         </div>
-      </PageShell>
+      </div>
     );
   }
 
   if (isLoading || !userId) {
-    return (
-      <PageShell width="wide">
-        <OnboardingPageSkeleton />
-      </PageShell>
-    );
+    return <OnboardingPageSkeleton />;
   }
 
   return (
-    <PageShell width="wide">
+    <OnboardingPageLayout currentStep={step}>
       <OnboardingForm
         supabase={supabase}
         userId={userId}
         initialValues={initialValues}
+        step={step}
+        setStep={setStep}
       />
-    </PageShell>
+    </OnboardingPageLayout>
   );
 }

@@ -8,10 +8,17 @@ export default function StatCard({
 }) {
   return (
     <div
-      className="relative flex flex-col items-center justify-center gap-y-1 bg-[#1C1C1E] rounded-2xl sm:rounded-3xl p-2 sm:p-4 text-center border-t border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+      className="relative flex flex-col items-center justify-center gap-y-1 rounded-2xl sm:rounded-3xl p-2 sm:p-4 text-center"
+      style={{
+        background: "rgba(255, 255, 255, 0.03)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
+      }}
     >
       {/* Label */}
-      <span className="text-[#58D4d4] font-bold tracking-tight uppercase text-[8px] sm:text-[12px]">
+      <span className="text-[#3b82f6] font-bold tracking-tight uppercase text-[8px] sm:text-[12px]">
         {label}
       </span>
 

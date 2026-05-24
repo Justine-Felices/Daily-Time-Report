@@ -7,17 +7,10 @@ import SummarySection from "@/components/features/home/sections/SummarySection";
 import SessionsSection from "@/components/features/home/sections/SessionsSection";
 import useHomeDashboardLogic from "@/components/features/home/hooks/useHomeDashboardLogic";
 import { useState } from "react";
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 export default function HomeDashboard() {
-  const {
-    loading,
-    constants,
-    header,
-    progress,
-    sessions,
-    summary,
-  } = useHomeDashboardLogic();
-
+  const { loading, constants, header, progress, sessions, summary } =
+    useHomeDashboardLogic();
 
   return (
     <PageShell width="wide">
@@ -30,7 +23,6 @@ export default function HomeDashboard() {
         currentSessionHours={header.currentSessionHours}
         isDayComplete={header.isDayComplete}
       />
-
 
       <ProgressSection
         isLoading={loading.isLoading}
@@ -69,31 +61,52 @@ export default function HomeDashboard() {
 
       {/* Error Toast */}
       {sessions.errorMessage && (
-        <div
-          className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]"
-        >
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]">
           <div
             className="flex flex-col gap-1 rounded-3xl p-5 border shadow-2xl"
             style={{
               background: "rgba(20, 20, 30, 0.8)",
               borderColor: "rgba(239, 68, 68, 0.3)",
               backdropFilter: "blur(24px)",
-              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.1)",
+              boxShadow:
+                "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.1)",
             }}
           >
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30">
-                <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-4 h-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <span className="text-white font-bold text-sm tracking-tight">Action Required</span>
+              <span className="text-white font-bold text-sm tracking-tight">
+                Action Required
+              </span>
               <button
                 onClick={sessions.clearError}
                 className="ml-auto flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -106,31 +119,52 @@ export default function HomeDashboard() {
 
       {/* Success Toast */}
       {sessions.showSuccess && (
-        <div
-          className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]"
-        >
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]">
           <div
             className="flex flex-col gap-1 rounded-3xl p-5 border shadow-2xl"
             style={{
               background: "rgba(15, 23, 42, 0.8)",
               borderColor: "rgba(34, 197, 94, 0.3)",
               backdropFilter: "blur(24px)",
-              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(34, 197, 94, 0.1)",
+              boxShadow:
+                "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(34, 197, 94, 0.1)",
             }}
           >
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center border border-green-500/30">
-                <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-4 h-4 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
-              <span className="text-white font-bold text-sm tracking-tight">Changes Saved</span>
+              <span className="text-white font-bold text-sm tracking-tight">
+                Changes Saved
+              </span>
               <button
                 onClick={() => sessions.setShowSuccess(false)}
                 className="ml-auto flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -143,31 +177,52 @@ export default function HomeDashboard() {
 
       {/* Warning Toast */}
       {sessions.warningMessage && (
-        <div
-          className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]"
-        >
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-sm animate-[slideDown_0.4s_cubic-bezier(0.16,1,0.3,1)]">
           <div
             className="flex flex-col gap-1 rounded-3xl p-5 border shadow-2xl"
             style={{
               background: "rgba(30, 25, 15, 0.85)",
               borderColor: "rgba(245, 158, 11, 0.3)",
               backdropFilter: "blur(24px)",
-              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(245, 158, 11, 0.1)",
+              boxShadow:
+                "0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(245, 158, 11, 0.1)",
             }}
           >
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
-                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <svg
+                  className="w-4 h-4 text-amber-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
-              <span className="text-white font-bold text-sm tracking-tight">Warning</span>
+              <span className="text-white font-bold text-sm tracking-tight">
+                Warning
+              </span>
               <button
                 onClick={() => sessions.setWarningMessage(null)}
                 className="ml-auto flex-shrink-0 p-1 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -178,169 +233,208 @@ export default function HomeDashboard() {
         </div>
       )}
       {/* Clock Out Confirmation Modal */}
-      {sessions.showClockOutModal && (() => {
-        // Detect late clock-in for dual mode (am_in >= 11:00)
-        const amInTime = sessions.amSession?.timeIn;
-        const amInMinutes = amInTime
-          ? (() => {
-            const t = amInTime.trim().toUpperCase();
-            const m12 = t.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/);
-            if (m12) {
-              let h = Number(m12[1]);
-              const mm = Number(m12[2]);
-              if (m12[3] === "AM" && h === 12) h = 0;
-              if (m12[3] === "PM" && h !== 12) h += 12;
-              return h * 60 + mm;
-            }
-            const [h, m] = t.split(":").map(Number);
-            return h * 60 + m;
-          })()
-          : null;
-        const isLateStart = sessions.attendanceMode === "dual"
-          && sessions.currentStatus === "clock-out-am"
-          && amInMinutes !== null
-          && amInMinutes >= 660; // 11:00 = 660 minutes
+      {sessions.showClockOutModal &&
+        (() => {
+          // Detect late clock-in for dual mode (am_in >= 11:00)
+          const amInTime = sessions.amSession?.timeIn;
+          const amInMinutes = amInTime
+            ? (() => {
+                const t = amInTime.trim().toUpperCase();
+                const m12 = t.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/);
+                if (m12) {
+                  let h = Number(m12[1]);
+                  const mm = Number(m12[2]);
+                  if (m12[3] === "AM" && h === 12) h = 0;
+                  if (m12[3] === "PM" && h !== 12) h += 12;
+                  return h * 60 + mm;
+                }
+                const [h, m] = t.split(":").map(Number);
+                return h * 60 + m;
+              })()
+            : null;
+          const isLateStart =
+            sessions.attendanceMode === "dual" &&
+            sessions.currentStatus === "clock-out-am" &&
+            amInMinutes !== null &&
+            amInMinutes >= 660; // 11:00 = 660 minutes
 
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-            <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl">
-              <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
-                  <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {sessions.currentStatus === "clock-out-am"
-                    ? (isLateStart ? "Clock Out for the Day?" : "Finish Morning Session?")
-                    : "Clock Out for the Day?"}
-                </h3>
-                <p className="text-slate-400 text-sm">
-                  Review your session summary for today before saving.
-                </p>
-              </div>
-
-              <div className="bg-slate-800/50 rounded-2xl p-6 mb-8 border border-white/5 space-y-4">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 uppercase font-semibold">
-                    Attendance Mode
-                  </span>
-                  <span className="text-[#00F0FF] font-bold uppercase tracking-widest">
-                    {sessions.attendanceMode}
-                  </span>
-                </div>
-                <div className="h-px bg-white/5" />
-                <div className="space-y-3">
-                  {/* Dual mode + late start: show PM-only rows */}
-                  {sessions.attendanceMode === "dual" && isLateStart && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-400">PM Time In</span>
-                      <input
-                        type="text"
-                        value={sessions.modalPmIn}
-                        onChange={(e) => sessions.setModalPmIn(e.target.value)}
-                        className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+          return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl">
+              <div 
+                className="w-full max-w-md rounded-3xl p-8 shadow-2xl"
+                style={{
+                  background: "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(40px)",
+                  WebkitBackdropFilter: "blur(40px)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+                }}
+              >
+                <div className="flex flex-col items-center text-center mb-8">
+                  <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+                    <svg
+                      className="w-8 h-8 text-red-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                       />
-                    </div>
-                  )}
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    {sessions.currentStatus === "clock-out-am"
+                      ? isLateStart
+                        ? "Clock Out for the Day?"
+                        : "Finish Morning Session?"
+                      : "Clock Out for the Day?"}
+                  </h3>
+                  <p className="text-slate-400 text-sm">
+                    Review your session summary for today before saving.
+                  </p>
+                </div>
 
-                  {/* Dual mode + normal start: show all 4 rows */}
-                  {sessions.attendanceMode === "dual" && !isLateStart && (
-                    <>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-400">AM Time In</span>
-                        <input
-                          type="text"
-                          value={sessions.modalAmIn}
-                          onChange={(e) => sessions.setModalAmIn(e.target.value)}
-                          className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-400">AM Time Out</span>
-                        <input
-                          type="text"
-                          value={sessions.modalAmOut}
-                          onChange={(e) => sessions.setModalAmOut(e.target.value)}
-                          className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
-                        />
-                      </div>
+                <div 
+                  className="rounded-2xl p-6 mb-8 border border-white/5 space-y-4"
+                  style={{ background: "rgba(0, 0, 0, 0.2)" }}
+                >
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 uppercase font-semibold">
+                      Attendance Mode
+                    </span>
+                    <span className="text-[#3b82f6] font-bold uppercase tracking-widest">
+                      {sessions.attendanceMode}
+                    </span>
+                  </div>
+                  <div className="h-px bg-white/5" />
+                  <div className="space-y-3">
+                    {/* Dual mode + late start: show PM-only rows */}
+                    {sessions.attendanceMode === "dual" && isLateStart && (
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-400">PM Time In</span>
                         <input
                           type="text"
                           value={sessions.modalPmIn}
-                          onChange={(e) => sessions.setModalPmIn(e.target.value)}
+                          onChange={(e) =>
+                            sessions.setModalPmIn(e.target.value)
+                          }
                           className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
                         />
                       </div>
-                    </>
-                  )}
+                    )}
 
-                  {/* Single mode rows */}
-                  {sessions.attendanceMode === "single" && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-400">Time In</span>
-                      <input
-                        type="text"
-                        value={sessions.modalAmIn}
-                        onChange={(e) => sessions.setModalAmIn(e.target.value)}
-                        className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
-                      />
-                    </div>
-                  )}
+                    {/* Dual mode + normal start: show all 4 rows */}
+                    {sessions.attendanceMode === "dual" && !isLateStart && (
+                      <>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400">AM Time In</span>
+                          <input
+                            type="text"
+                            value={sessions.modalAmIn}
+                            onChange={(e) =>
+                              sessions.setModalAmIn(e.target.value)
+                            }
+                            className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                          />
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400">AM Time Out</span>
+                          <input
+                            type="text"
+                            value={sessions.modalAmOut}
+                            onChange={(e) =>
+                              sessions.setModalAmOut(e.target.value)
+                            }
+                            className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                          />
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400">PM Time In</span>
+                          <input
+                            type="text"
+                            value={sessions.modalPmIn}
+                            onChange={(e) =>
+                              sessions.setModalPmIn(e.target.value)
+                            }
+                            className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                          />
+                        </div>
+                      </>
+                    )}
 
+                    {/* Single mode rows */}
+                    {sessions.attendanceMode === "single" && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-400">Time In</span>
+                        <input
+                          type="text"
+                          value={sessions.modalAmIn}
+                          onChange={(e) =>
+                            sessions.setModalAmIn(e.target.value)
+                          }
+                          className="bg-white/5 text-white font-medium text-right outline-none focus:ring-1 focus:ring-[#00F0FF] rounded px-2 py-0.5 transition-all w-28"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {sessions.attendanceMode === "dual" &&
+                    sessions.currentStatus === "clock-out-am" && (
+                      <div
+                        className={`${isLateStart ? "bg-amber-500/5 border-amber-500/10" : "bg-blue-500/5 border-blue-500/10"} border rounded-xl p-3 mt-4`}
+                      >
+                        <p
+                          className={`text-[10px] ${isLateStart ? "text-amber-400" : "text-blue-400"} font-bold uppercase tracking-widest mb-1`}
+                        >
+                          {isLateStart
+                            ? "Late Start — PM Only"
+                            : "Dual Mode Automation"}
+                        </p>
+                        <p className="text-xs text-slate-300 italic">
+                          {isLateStart
+                            ? "You clocked in after 11:00 AM. AM fields will be cleared and your session will be recorded as PM only."
+                            : "This will auto-fill AM Out (11:00), PM In (12:00), and PM Out (current time)."}
+                        </p>
+                      </div>
+                    )}
+
+                  <div className="h-px bg-white/5" />
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-slate-400 font-medium text-sm">
+                      Total Logged Hours
+                    </span>
+                    <span className="text-2xl font-black text-blue-400 tracking-tight">
+                      {sessions.modalHours.toFixed(1)}{" "}
+                      <span className="text-xs uppercase ml-1">hrs</span>
+                    </span>
+                  </div>
                 </div>
 
-                {sessions.attendanceMode === "dual" &&
-                  sessions.currentStatus === "clock-out-am" && (
-                    <div className={`${isLateStart ? "bg-amber-500/5 border-amber-500/10" : "bg-cyan-500/5 border-cyan-500/10"} border rounded-xl p-3 mt-4`}>
-                      <p className={`text-[10px] ${isLateStart ? "text-amber-400" : "text-cyan-400"} font-bold uppercase tracking-widest mb-1`}>
-                        {isLateStart ? "Late Start — PM Only" : "Dual Mode Automation"}
-                      </p>
-                      <p className="text-xs text-slate-300 italic">
-                        {isLateStart
-                          ? "You clocked in after 11:00 AM. AM fields will be cleared and your session will be recorded as PM only."
-                          : "This will auto-fill AM Out (11:00), PM In (12:00), and PM Out (current time)."}
-                      </p>
-                    </div>
-                  )}
-
-                <div className="h-px bg-white/5" />
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-slate-400 font-medium text-sm">
-                    Total Logged Hours
-                  </span>
-                  <span className="text-2xl font-black text-teal-400 tracking-tight">
-                    {sessions.modalHours.toFixed(1)}{" "}
-                    <span className="text-xs uppercase ml-1">hrs</span>
-                  </span>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={sessions.handleConfirmClockOut}
+                    disabled={sessions.isSaving}
+                    className="w-full py-4 bg-[#FB7185] hover:bg-[#E11D48] disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-rose-500/20 active:scale-[0.98]"
+                  >
+                    {sessions.isSaving
+                      ? "Saving Entry..."
+                      : "Confirm Clock Out"}
+                  </button>
+                  <button
+                    onClick={() => sessions.setShowClockOutModal(false)}
+                    className="w-full py-4 bg-transparent hover:bg-white/5 text-slate-500 font-medium rounded-2xl transition-all active:scale-[0.98]"
+                  >
+                    Cancel
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={sessions.handleConfirmClockOut}
-                  disabled={sessions.isSaving}
-                  className="w-full py-4 bg-[#FB7185] hover:bg-[#E11D48] disabled:opacity-50 text-white font-bold rounded-2xl transition-all shadow-lg shadow-rose-500/20 active:scale-[0.98]"
-                >
-                  {sessions.isSaving ? "Saving Entry..." : "Confirm Clock Out"}
-                </button>
-                <button
-                  onClick={() => sessions.setShowClockOutModal(false)}
-                  className="w-full py-4 bg-transparent hover:bg-white/5 text-slate-500 font-medium rounded-2xl transition-all active:scale-[0.98]"
-                >
-                  Cancel
-                </button>
               </div>
             </div>
-          </div>
-        );
-      })()}
-
-
-
-
+          );
+        })()}
 
       <SummarySection
         isLoading={loading.isLoading}

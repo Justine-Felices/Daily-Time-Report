@@ -24,9 +24,9 @@ export default function ActionsSection({ onPrint }) {
       style={BUTTON_STYLE}
       onMouseEnter={(event) => {
         event.currentTarget.style.background =
-          "linear-gradient(135deg,#069494,#0aacac)";
+          "linear-gradient(135deg,#3b82f6,#2563eb)";
         event.currentTarget.style.color = "#fff";
-        event.currentTarget.style.boxShadow = "0 4px 16px rgba(6,148,148,0.38)";
+        event.currentTarget.style.boxShadow = "0 4px 16px rgba(59,130,246,0.38)";
       }}
       onMouseLeave={(event) => {
         event.currentTarget.style.background = "var(--surface-card)";

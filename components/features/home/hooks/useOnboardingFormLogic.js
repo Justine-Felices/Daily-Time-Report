@@ -25,15 +25,10 @@ function normalizeInitialValues(initialValues) {
 }
 
 export default function useOnboardingFormLogic({
-  isOpen,
   supabase,
   userId,
   initialValues,
   onComplete,
-  onCancel,
-  allowCancel,
-  modalRef,
-  trapFocus = true,
 }) {
   const router = useRouter();
   const [values, setValues] = useState(() =>
@@ -44,69 +39,12 @@ export default function useOnboardingFormLogic({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
-
     Promise.resolve().then(() => {
       setValues(normalizeInitialValues(initialValues));
       setErrors({});
       setFormError("");
     });
-  }, [isOpen, initialValues]);
-
-  useEffect(() => {
-    if (!trapFocus || !isOpen || !modalRef.current) return;
-
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const focusables = modalRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-
-    if (focusables.length > 0) {
-      focusables[0].focus();
-    }
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape" && allowCancel && !isSubmitting) {
-        onCancel?.();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const tabbableElements = Array.from(
-        modalRef.current.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((element) => !element.hasAttribute("disabled"));
-
-      if (tabbableElements.length === 0) {
-        event.preventDefault();
-        return;
-      }
-
-      const firstElement = tabbableElements[0];
-      const lastElement = tabbableElements[tabbableElements.length - 1];
-      const isShiftTab = event.shiftKey;
-      const activeElement = document.activeElement;
-
-      if (!isShiftTab && activeElement === lastElement) {
-        event.preventDefault();
-        firstElement.focus();
-      } else if (isShiftTab && activeElement === firstElement) {
-        event.preventDefault();
-        lastElement.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [allowCancel, isOpen, isSubmitting, modalRef, onCancel, trapFocus]);
+  }, [initialValues]);
 
   const requiredMissing =
     !values.full_name.trim() ||
@@ -173,7 +111,7 @@ export default function useOnboardingFormLogic({
     }
 
     onComplete?.(data);
-    router.replace("/");
+    router.replace("/dashboard");
   };
 
   return {

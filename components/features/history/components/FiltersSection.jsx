@@ -72,7 +72,7 @@ export default function FiltersSection({
           </select>
           <ChevronDown
             size={16}
-            color="#069494"
+            color="#3b82f6"
             className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2"
           />
         </div>

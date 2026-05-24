@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/ResizableNavbar";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home", icon: Home },
+  { to: "/dashboard", label: "Home", icon: Home },
   { to: "/encode-past", label: "Encode Past", icon: PenLine },
   { to: "/history", label: "Activity Logs", icon: History },
   { to: "/profile", label: "Profile", icon: User },
@@ -28,7 +28,10 @@ function toInitials(name) {
   if (!name) return "--";
   const tokens = name.trim().split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return "--";
-  return tokens.slice(0, 2).map((token) => token.charAt(0).toUpperCase()).join("");
+  return tokens
+    .slice(0, 2)
+    .map((token) => token.charAt(0).toUpperCase())
+    .join("");
 }
 
 export default function Navbar() {
@@ -42,8 +45,9 @@ export default function Navbar() {
   });
 
   const supabase = useMemo(() => {
-    const hasConfig = typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-                     Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+    const hasConfig =
+      typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+      Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
     return hasConfig ? createClient() : null;
   }, []);
 
@@ -55,7 +59,9 @@ export default function Navbar() {
     let mounted = true;
     const loadViewer = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         const user = session?.user ?? null;
         if (!mounted || !user) return;
 
@@ -67,8 +73,15 @@ export default function Navbar() {
 
         if (!mounted) return;
 
-        const resolvedName = profile?.full_name?.trim() || user.user_metadata?.full_name?.trim() || user.email?.split("@")[0] || "User";
-        const resolvedRole = profile?.position?.trim() || user.user_metadata?.role?.trim() || "Intern";
+        const resolvedName =
+          profile?.full_name?.trim() ||
+          user.user_metadata?.full_name?.trim() ||
+          user.email?.split("@")[0] ||
+          "User";
+        const resolvedRole =
+          profile?.position?.trim() ||
+          user.user_metadata?.role?.trim() ||
+          "Intern";
 
         setViewer({
           name: resolvedName,
@@ -80,25 +93,36 @@ export default function Navbar() {
       }
     };
     loadViewer();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [supabase]);
 
   return (
     <ResizableNavbar className="no-print">
       {/* Desktop Navigation */}
       <NavBody>
-        <Link href="/" className="flex items-center gap-3 no-underline z-20">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-700 via-teal-600 to-pink-500 shadow-lg shadow-teal-900/20">
-            <Clock4 size={16} color="#fff" />
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 no-underline z-20"
+        >
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl">
+            <img
+              src="/logo.jpg"
+              alt="Logo"
+              className="h-full w-full object-contain"
+            />
           </span>
-          <span className="text-xl font-bold tracking-tight text-white">TimeTrack</span>
+          <span className="text-xl font-bold tracking-tight text-white">
+            JustIn Time Report
+          </span>
         </Link>
 
         <NavItems items={NAV_LINKS} pathname={pathname} />
 
         <div className="flex items-center gap-2 z-20">
           <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1.5 text-left">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white bg-gradient-to-br from-teal-800 to-teal-500">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white bg-gradient-to-br from-blue-800 to-blue-500">
               {viewer.initials}
             </span>
             <div className="hidden sm:block leading-tight">
@@ -106,7 +130,9 @@ export default function Navbar() {
                 <SkeletonBlock className="h-4 w-24 rounded-md" />
               ) : (
                 <>
-                  <p className="text-sm font-semibold text-white">{viewer.name}</p>
+                  <p className="text-sm font-semibold text-white">
+                    {viewer.name}
+                  </p>
                   <p className="text-[10px] text-white/50">{viewer.role}</p>
                 </>
               )}
@@ -118,13 +144,25 @@ export default function Navbar() {
       {/* Mobile Navigation */}
       <MobileNav>
         <MobileNavHeader>
-          <Link href="/" className="flex items-center gap-2 no-underline">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-teal-700 to-teal-500">
-              <Clock4 size={12} color="#fff" />
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 no-underline"
+          >
+            <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-white/10">
+              <img
+                src="/logo.jpg"
+                alt="Logo"
+                className="h-full w-full object-contain"
+              />
             </span>
-            <span className="text-lg font-bold text-white">TimeTrack</span>
+            <span className="text-lg font-bold text-white whitespace-nowrap">
+              JustIn Time Report
+            </span>
           </Link>
-          <MobileNavToggle isOpen={mobileOpen} onClick={() => setMobileOpen(!mobileOpen)} />
+          <MobileNavToggle
+            isOpen={mobileOpen}
+            onClick={() => setMobileOpen(!mobileOpen)}
+          />
         </MobileNavHeader>
 
         <MobileNavMenu isOpen={mobileOpen}>
@@ -136,18 +174,18 @@ export default function Navbar() {
                 onClick={() => setMobileOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
-                  pathname === link.to 
-                    ? "bg-teal-600 text-white" 
-                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                  pathname === link.to
+                    ? "bg-blue-600 text-white"
+                    : "text-white/60 hover:bg-white/5 hover:text-white",
                 )}
               >
                 <link.icon size={18} />
                 {link.label}
               </Link>
             ))}
-            
+
             <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white bg-teal-600">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-white bg-blue-600">
                 {viewer.initials}
               </span>
               <div>

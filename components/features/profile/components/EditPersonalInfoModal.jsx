@@ -95,7 +95,7 @@ export default function EditPersonalInfoModal({
             onClick={handleSave}
             className="flex-1 px-4 py-2 rounded-lg text-white hover:opacity-90 transition-opacity"
             style={{
-              background: "linear-gradient(135deg, #069494 0%, #0a7a7a 100%)",
+              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
               fontSize: "13px",
               fontWeight: 600,
               fontFamily: "'Inter',sans-serif",

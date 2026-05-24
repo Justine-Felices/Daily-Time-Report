@@ -9,12 +9,12 @@ const NAME_STYLE = {
 };
 
 const POSITION_STYLE = {
-  background: "rgba(6,148,148,0.1)",
-  color: "#069494",
+  background: "rgba(59,130,246,0.1)",
+  color: "#3b82f6",
   fontSize: "11px",
   fontWeight: 600,
   fontFamily: "'Inter',sans-serif",
-  border: "1px solid rgba(6,148,148,0.2)",
+  border: "1px solid rgba(59,130,246,0.2)",
   padding: "2px 10px",
   borderRadius: "999px",
 };
@@ -37,7 +37,7 @@ export default function ProfileHeaderCard({
         style={{
           height: "96px",
           background:
-            "linear-gradient(135deg, #046060 0%, #069494 45%, #FF69B4 100%)",
+            "linear-gradient(135deg, #1e40af 0%, #3b82f6 45%, #FF69B4 100%)",
           position: "relative",
         }}
       >
@@ -69,7 +69,7 @@ export default function ProfileHeaderCard({
             width: "72px",
             height: "72px",
             borderRadius: "18px",
-            background: "linear-gradient(135deg,#FF69B4,#069494)",
+            background: "linear-gradient(135deg,#FF69B4,#3b82f6)",
             border: "3px solid #fff",
             display: "flex",
             alignItems: "center",

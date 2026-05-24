@@ -46,8 +46,8 @@ export default function CircularProgress({ pct, isLoading = false }) {
       >
         <defs>
           <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#088A8A" />
-            <stop offset="100%" stopColor="#00F0FF" />
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#f472b6" />
           </linearGradient>
 
           <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -63,7 +63,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
 
           <filter id="waveGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="4" result="blur" />
-            <feFlood floodColor="#00F0FF" floodOpacity="1" result="color" />
+            <feFlood floodColor="#3b82f6" floodOpacity="1" result="color" />
             <feComposite in="color" in2="blur" operator="in" result="glow" />
             <feComposite in="SourceGraphic" in2="glow" operator="over" />
           </filter>
@@ -98,7 +98,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
             .wave-highlight {
               stroke-dasharray: 120 ${circumference - 120};
               animation: wave-travel 4s linear infinite;
-              filter: drop-shadow(0 0 5px #00F0FF);
+              filter: drop-shadow(0 0 5px #3b82f6);
               opacity: 0.8;
             }
           `}
@@ -134,7 +134,7 @@ export default function CircularProgress({ pct, isLoading = false }) {
             cy="50"
             r={radius}
             fill="none"
-            stroke="#00F0FF"
+            stroke="#3b82f6"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             mask="url(#progressMask)"

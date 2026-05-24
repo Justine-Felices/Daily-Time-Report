@@ -4,15 +4,15 @@ const WRAPPER_STYLE = {
   borderRadius: "20px",
   padding: "20px",
   background:
-    "linear-gradient(135deg, rgba(6,148,148,0.1), rgba(0,240,255,0.08))",
+    "linear-gradient(135deg, rgba(59,130,246,0.1), rgba(0,240,255,0.08))",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(6,148,148,0.2)",
-  boxShadow: "0 4px 20px rgba(6,148,148,0.08)",
+  border: "1px solid rgba(59,130,246,0.2)",
+  boxShadow: "0 4px 20px rgba(59,130,246,0.08)",
 };
 
 const TITLE_STYLE = {
-  color: "#046060",
+  color: "#1e40af",
   fontSize: "12px",
   fontWeight: 700,
   letterSpacing: "0.06em",
@@ -29,7 +29,7 @@ const LABEL_STYLE = {
 };
 
 const VALUE_STYLE = {
-  color: "#046060",
+  color: "#1e40af",
   fontSize: "13px",
   fontWeight: 600,
   fontFamily: "'Inter',sans-serif",
@@ -39,7 +39,7 @@ export default function OJTDetailsSection({ details }) {
   return (
     <div style={WRAPPER_STYLE}>
       <div className="mb-3 flex items-center gap-2">
-        <GraduationCap size={14} color="#069494" />
+        <GraduationCap size={14} color="#3b82f6" />
         <span style={TITLE_STYLE}>OJT DETAILS</span>
       </div>
 

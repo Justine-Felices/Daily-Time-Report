@@ -8,7 +8,7 @@ export default function SaveButton({ saved, onSave }) {
       style={{
         background: saved
           ? "linear-gradient(135deg,#22C55E,#16A34A)"
-          : "linear-gradient(135deg,#069494,#0aacac)",
+          : "linear-gradient(135deg,#3b82f6,#60a5fa)",
         color: "#fff",
         border: "none",
         cursor: "pointer",
@@ -17,7 +17,7 @@ export default function SaveButton({ saved, onSave }) {
         fontWeight: 600,
         boxShadow: saved
           ? "0 4px 12px rgba(34,197,94,0.35)"
-          : "0 4px 14px rgba(6,148,148,0.35)",
+          : "0 4px 14px rgba(59,130,246,0.35)",
       }}
     >
       {saved ? (

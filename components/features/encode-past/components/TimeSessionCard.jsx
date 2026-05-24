@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
-import {
-  toEditorClock,
-  validateTimeInput,
-} from "@/lib/dtr-time-validation";
+import { toEditorClock, validateTimeInput } from "@/lib/dtr-time-validation";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 export default function TimeSessionCard({
@@ -24,7 +21,9 @@ export default function TimeSessionCard({
   inShadow,
 }) {
   const [timeInDraft, setTimeInDraft] = useState(toEditorClock(session.timeIn));
-  const [timeOutDraft, setTimeOutDraft] = useState(toEditorClock(session.timeOut));
+  const [timeOutDraft, setTimeOutDraft] = useState(
+    toEditorClock(session.timeOut),
+  );
   const [fieldErrors, setFieldErrors] = useState({ timeIn: "", timeOut: "" });
   const hasFieldError = Boolean(fieldErrors.timeIn || fieldErrors.timeOut);
 
@@ -71,7 +70,13 @@ export default function TimeSessionCard({
     onChange?.(trimmed);
   };
 
-  const handleTimeChange = (field, nextValue, setDraft, relatedValue, onChange) => {
+  const handleTimeChange = (
+    field,
+    nextValue,
+    setDraft,
+    relatedValue,
+    onChange,
+  ) => {
     if (fieldErrors[field]) {
       setFieldErrors((current) => ({ ...current, [field]: "" }));
     }
@@ -139,9 +144,9 @@ export default function TimeSessionCard({
             background: done
               ? "rgba(34,197,94,0.12)"
               : inProgress
-                ? "rgba(6,148,148,0.1)"
+                ? "rgba(59,130,246,0.1)"
                 : "rgba(148,163,184,0.12)",
-            color: done ? "#16A34A" : inProgress ? "#069494" : "#94A3B8",
+            color: done ? "#16A34A" : inProgress ? "#3b82f6" : "#94A3B8",
             fontSize: "10px",
             fontWeight: 700,
             fontFamily: "'Inter',sans-serif",
@@ -150,7 +155,7 @@ export default function TimeSessionCard({
               done
                 ? "rgba(34,197,94,0.2)"
                 : inProgress
-                  ? "rgba(6,148,148,0.2)"
+                  ? "rgba(59,130,246,0.2)"
                   : "rgba(148,163,184,0.2)"
             }`,
           }}
@@ -174,7 +179,7 @@ export default function TimeSessionCard({
             >
               <div
                 style={{
-                  color: "#069494",
+                  color: "#3b82f6",
                   fontSize: "8px",
                   fontWeight: 700,
                   letterSpacing: "0.1em",
@@ -191,7 +196,13 @@ export default function TimeSessionCard({
                 disabled={disabled || isLoading}
                 value={value}
                 onChange={(event) => {
-                  handleTimeChange(field, event.target.value, setValue, relatedValue, onChange);
+                  handleTimeChange(
+                    field,
+                    event.target.value,
+                    setValue,
+                    relatedValue,
+                    onChange,
+                  );
                 }}
                 onBlur={() =>
                   commitTimeInput(field, value, relatedValue, onChange)
@@ -216,9 +227,7 @@ export default function TimeSessionCard({
                 }}
               />
 
-              {isLoading && (
-                <SkeletonBlock className="h-5 w-full rounded-md" />
-              )}
+              {isLoading && <SkeletonBlock className="h-5 w-full rounded-md" />}
 
               {fieldErrors[field] && (
                 <div

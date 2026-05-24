@@ -20,7 +20,7 @@ export default function HeaderSection({ title, subtitle }) {
         <div
           className="flex h-8 w-8 items-center justify-center rounded-xl"
           style={{
-            background: "linear-gradient(135deg,#FF69B4,#069494)",
+            background: "linear-gradient(135deg,#FF69B4,#3b82f6)",
             boxShadow: "0 4px 12px rgba(255,105,180,0.35)",
           }}
         >

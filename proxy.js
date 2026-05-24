@@ -142,18 +142,20 @@ export async function proxy(request) {
 
   const isLoginRoute = pathname === "/login";
   const isOnboardingRoute = pathname === "/onboarding";
+  const isLandingRoute = pathname === "/";
+  const isPublicRoute = isLandingRoute || isLoginRoute;
 
-  if (!user && !isLoginRoute) {
+  if (!user) {
+    if (isPublicRoute) {
+      return response;
+    }
+
     return redirectWithCookies(request, response, "/login");
   }
 
-  if (!user) {
-    return response;
-  }
-
   if (!supabase) {
-    if (isLoginRoute) {
-      return redirectWithCookies(request, response, "/");
+    if (isLandingRoute || isLoginRoute) {
+      return redirectWithCookies(request, response, "/dashboard");
     }
 
     return response;
@@ -184,12 +186,8 @@ export async function proxy(request) {
     return redirectWithCookies(request, response, "/onboarding");
   }
 
-  if (onboarded && (isLoginRoute || isOnboardingRoute)) {
-    return redirectWithCookies(request, response, "/");
-  }
-
-  if (isLoginRoute) {
-    return redirectWithCookies(request, response, "/");
+  if (onboarded && (isLoginRoute || isOnboardingRoute || isLandingRoute)) {
+    return redirectWithCookies(request, response, "/dashboard");
   }
 
   response.headers.set("X-RateLimit-Limit", String(rateLimit.limit));
