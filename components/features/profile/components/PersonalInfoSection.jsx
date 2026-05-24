@@ -9,9 +9,9 @@ import {
 import GlassCard from "@/components/ui/cards/GlassCard";
 
 const TITLE_STYLE = {
-  color: "#1E293B",
+  color: "var(--text-primary)",
   fontSize: "12px",
-  fontWeight: 700,
+  fontWeight: 800,
   letterSpacing: "0.06em",
   fontFamily: "'Inter',sans-serif",
 };
@@ -33,57 +33,58 @@ export default function PersonalInfoSection({ profile, onEditClick }) {
     <GlassCard padding="20px">
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Shield size={13} color="#3b82f6" />
+          <Shield size={13} className="text-blue-500" />
           <span style={TITLE_STYLE}>PERSONAL INFORMATION</span>
         </div>
         <button
           onClick={onEditClick}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-surface-muted transition-colors border border-soft"
           style={{
-            color: "#3b82f6",
-            fontSize: "12px",
-            fontWeight: 600,
+            color: "var(--accent-strong)",
+            fontSize: "11px",
+            fontWeight: 700,
             fontFamily: "'Inter',sans-serif",
           }}
         >
-          <Edit3 size={14} />
+          <Edit3 size={13} />
           EDIT INFO
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {PERSONAL_FIELDS.map((field) => {
           const Icon = field.icon;
           return (
             <div key={field.key}>
               <label
                 style={{
-                  color: "#64748B",
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
+                  color: "var(--text-muted)",
+                  fontSize: "9px",
+                  fontWeight: 800,
+                  letterSpacing: "0.12em",
                   fontFamily: "'Inter',sans-serif",
                   display: "flex",
                   alignItems: "center",
-                  gap: "4px",
-                  marginBottom: "5px",
+                  gap: "6px",
+                  marginBottom: "6px",
                 }}
               >
-                <Icon size={10} color="#3b82f6" /> {field.label}
+                <Icon size={11} className="text-blue-500" /> {field.label}
               </label>
               <div
                 style={{
-                  padding: "10px 14px",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.7)",
-
-                  color: "#1E293B",
+                  padding: "12px 16px",
+                  borderRadius: "14px",
+                  background: "var(--surface-muted)",
+                  border: "1px solid var(--border-soft)",
+                  color: "var(--text-secondary)",
                   fontSize: "14px",
+                  fontWeight: 500,
                   fontFamily: "'Inter',sans-serif",
                   wordBreak: "break-word",
                 }}
               >
-                {profile[field.key]}
+                {profile[field.key] || "---"}
               </div>
             </div>
           );

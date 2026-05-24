@@ -1,5 +1,13 @@
 import { useMemo, useState, useEffect } from "react";
-import { Coffee, Sun, Clock, Save, ClipboardList } from "lucide-react";
+import {
+  Coffee,
+  Sun,
+  Clock,
+  Save,
+  ClipboardList,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import SessionCard from "../components/SessionCard";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
@@ -15,12 +23,15 @@ export default function SessionsSection({
   attendanceMode = "dual",
   isLoading,
   isSaving,
+  showSuccess,
+  errorMessage,
   onManualSave,
   onStatusChange,
   onGlobalSave,
   onToggleClock,
   note,
   onNoteChange,
+  sessions,
 }) {
   const [amError, setAmError] = useState(false);
   const [pmError, setPmError] = useState(false);
@@ -154,14 +165,67 @@ export default function SessionsSection({
             </button>
           )}
 
-          <button
-            onClick={onGlobalSave}
-            disabled={isSaving || hasValidationError}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 border border-white/10"
-          >
-            <Save size={14} />
-            {isSaving ? "SAVING..." : "SAVE ALL"}
-          </button>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              onClick={onGlobalSave}
+              disabled={isSaving || hasValidationError}
+              className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 border border-white/10"
+            >
+              <Save size={14} />
+              {isSaving ? "SAVING..." : "SAVE ALL"}
+            </button>
+
+            {(showSuccess || errorMessage || sessions?.warningMessage) && (
+              <div className="animate-in fade-in slide-in-from-top-1 duration-300 pr-1 flex flex-col items-end gap-1">
+                {showSuccess && (
+                  <div
+                    className="flex items-center gap-1.5 rounded-lg"
+                    style={{
+                      color: "#10b981",
+                      fontSize: "10px",
+                      fontWeight: 800,
+                      letterSpacing: "0.02em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    <CheckCircle2 size={12} />
+                    Changes Saved
+                  </div>
+                )}
+                {errorMessage && (
+                  <div
+                    className="flex items-center gap-1.5 rounded-lg"
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "10px",
+                      fontWeight: 800,
+                      letterSpacing: "0.02em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    {errorMessage}
+                  </div>
+                )}
+                {sessions?.warningMessage && (
+                  <div
+                    className="flex items-center gap-1.5 rounded-lg"
+                    style={{
+                      color: "#f59e0b",
+                      fontSize: "10px",
+                      fontWeight: 800,
+                      letterSpacing: "0.02em",
+                      textAlign: "right",
+                      maxWidth: "200px",
+                    }}
+                  >
+                    <AlertCircle size={12} />
+                    {sessions.warningMessage}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

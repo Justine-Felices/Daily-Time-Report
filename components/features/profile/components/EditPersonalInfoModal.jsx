@@ -35,37 +35,57 @@ export default function EditPersonalInfoModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
       <div
-        className="w-full max-w-md rounded-2xl border p-6"
+        className="w-full max-w-md rounded-[28px] border p-6 sm:p-7"
         style={{
-          background: "rgba(255,255,255,0.95)",
-          border: "1px solid rgba(6, 148, 148, 0.2)",
-          boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
+          background: "var(--surface-card)",
+          backdropFilter: "blur(32px)",
+          WebkitBackdropFilter: "blur(32px)",
+          borderColor: "var(--border-soft)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
         }}
       >
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <h2
-            style={{
-              color: "#1E293B",
-              fontSize: "16px",
-              fontWeight: 700,
-              fontFamily: "'Inter',sans-serif",
-            }}
-          >
-            Edit Personal Information
-          </h2>
+          <div>
+            <h2
+              style={{
+                color: "var(--text-primary)",
+                fontSize: "18px",
+                fontWeight: 800,
+                fontFamily: "'Inter', sans-serif",
+                lineHeight: 1.1,
+              }}
+            >
+              Edit Profile
+            </h2>
+            <p
+              style={{
+                color: "var(--text-muted)",
+                fontSize: "11px",
+                fontWeight: 500,
+                marginTop: "2px",
+              }}
+            >
+              Update your personal identification
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-xl transition-all active:scale-95"
+            style={{
+              background: "var(--surface-muted)",
+              border: "1px solid var(--border-soft)",
+              color: "var(--text-muted)",
+            }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Form Fields */}
-        <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+        <div className="space-y-5 mb-7 max-h-[60vh] overflow-y-auto px-1 custom-scrollbar">
           {PERSONAL_FIELDS.map((field) => (
             <ProfileInputField
               key={field.key}
@@ -79,29 +99,33 @@ export default function EditPersonalInfoModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-3 rounded-xl border transition-all active:scale-95"
             style={{
+              borderColor: "var(--border-soft)",
+              background: "var(--surface-muted)",
+              color: "var(--text-secondary)",
               fontSize: "13px",
-              fontWeight: 600,
-              fontFamily: "'Inter',sans-serif",
+              fontWeight: 700,
+              fontFamily: "'Inter', sans-serif",
             }}
           >
-            Cancel
+            CANCEL
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2 rounded-lg text-white hover:opacity-90 transition-opacity"
+            className="flex-1 px-4 py-3 rounded-xl text-white transition-all active:scale-95"
             style={{
-              background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+              background: "var(--accent-strong)",
               fontSize: "13px",
-              fontWeight: 600,
-              fontFamily: "'Inter',sans-serif",
+              fontWeight: 700,
+              fontFamily: "'Inter', sans-serif",
+              boxShadow: "0 8px 20px rgba(59, 130, 246, 0.25)",
             }}
           >
-            Save Changes
+            SAVE CHANGES
           </button>
         </div>
       </div>

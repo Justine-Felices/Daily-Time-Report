@@ -1,35 +1,34 @@
 import { GraduationCap } from "lucide-react";
 
 const WRAPPER_STYLE = {
-  borderRadius: "20px",
+  borderRadius: "24px",
   padding: "20px",
-  background:
-    "linear-gradient(135deg, rgba(59,130,246,0.1), rgba(0,240,255,0.08))",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(59,130,246,0.2)",
-  boxShadow: "0 4px 20px rgba(59,130,246,0.08)",
+  background: "var(--surface-card)",
+  backdropFilter: "blur(32px)",
+  WebkitBackdropFilter: "blur(32px)",
+  border: "1px solid var(--border-soft)",
+  boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
 };
 
 const TITLE_STYLE = {
-  color: "#1e40af",
+  color: "var(--text-primary)",
   fontSize: "12px",
-  fontWeight: 700,
+  fontWeight: 800,
   letterSpacing: "0.06em",
   fontFamily: "'Inter',sans-serif",
 };
 
 const LABEL_STYLE = {
-  color: "#FF69B4",
+  color: "var(--text-muted)",
   fontSize: "9px",
-  fontWeight: 700,
+  fontWeight: 800,
   letterSpacing: "0.1em",
   fontFamily: "'Inter',sans-serif",
-  marginBottom: "2px",
+  marginBottom: "4px",
 };
 
 const VALUE_STYLE = {
-  color: "#1e40af",
+  color: "var(--text-secondary)",
   fontSize: "13px",
   fontWeight: 600,
   fontFamily: "'Inter',sans-serif",
@@ -38,12 +37,12 @@ const VALUE_STYLE = {
 export default function OJTDetailsSection({ details }) {
   return (
     <div style={WRAPPER_STYLE}>
-      <div className="mb-3 flex items-center gap-2">
-        <GraduationCap size={14} color="#3b82f6" />
-        <span style={TITLE_STYLE}>OJT DETAILS</span>
+      <div className="mb-4 flex items-center gap-2">
+        <GraduationCap size={14} className="text-blue-500" />
+        <span style={TITLE_STYLE}>OJT PROGRAM DETAILS</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-y-5 gap-x-4">
         {details.map(({ label, value }) => (
           <div key={label}>
             <div style={LABEL_STYLE}>{label.toUpperCase()}</div>

@@ -14,7 +14,7 @@ export default function LandingNavbar() {
         <Link href="/" className="flex items-center gap-2.5 no-underline">
           <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl">
             <img
-              src="/logo.jpg"
+              src="/logo_no_bg.png"
               alt="Logo"
               className="h-full w-full object-contain"
             />

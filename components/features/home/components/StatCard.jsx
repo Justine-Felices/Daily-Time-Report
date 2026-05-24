@@ -1,11 +1,6 @@
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 
-export default function StatCard({
-  label,
-  value,
-  sub,
-  isLoading = false,
-}) {
+export default function StatCard({ label, value, sub, isLoading = false }) {
   return (
     <div
       className="relative flex flex-col items-center justify-center gap-y-1 rounded-2xl sm:rounded-3xl p-2 sm:p-4 text-center"
@@ -13,7 +8,7 @@ export default function StatCard({
         background: "rgba(255, 255, 255, 0.03)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        border: "1px solid var(--border-soft)",
         boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
       }}
     >
@@ -27,7 +22,7 @@ export default function StatCard({
         {isLoading ? (
           <SkeletonBlock className="h-6 w-12 sm:h-10 sm:w-24 rounded-lg bg-white/5" />
         ) : (
-          <span 
+          <span
             className="text-white text-lg sm:text-3xl font-semibold leading-none tracking-tight"
             style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
           >
@@ -43,7 +38,3 @@ export default function StatCard({
     </div>
   );
 }
-
-
-
-

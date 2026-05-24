@@ -42,7 +42,8 @@ function getDisplayTimes(record) {
     .map(toMinutesFromDisplayTime)
     .filter((value) => value !== null);
 
-  const firstIn = startCandidates.length > 0 ? Math.min(...startCandidates) : null;
+  const firstIn =
+    startCandidates.length > 0 ? Math.min(...startCandidates) : null;
   const lastOut = endCandidates.length > 0 ? Math.max(...endCandidates) : null;
 
   return {
@@ -82,22 +83,41 @@ export default function HistoryRow({
     <>
       <tr
         onClick={isLoading || isPending ? undefined : openDrawer}
-        className="group transition-colors cursor-pointer border-b border-white/10 last:border-b-0 hover:bg-white/5"
+        className="group transition-colors cursor-pointer border-b last:border-b-0 hover:bg-surface-muted"
+        style={{ borderColor: "var(--border-soft)" }}
       >
         <td className="pl-4 py-4">
           <div className="flex items-center gap-3">
             {/* Date Indicator Group */}
-            <div 
+            <div
               className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-center border border-white/5"
               style={{
                 background: "#0891B2",
                 boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
               }}
             >
-              <div style={{ color: "#FFFFFF", fontSize: "20px", fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em" }}>
+              <div
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: "20px",
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                }}
+              >
                 {dateDay}
               </div>
-              <div style={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "9px", fontWeight: 800, lineHeight: 1, letterSpacing: "0.12em", marginTop: "2px", textTransform: "uppercase" }}>
+              <div
+                style={{
+                  color: "rgba(255, 255, 255, 0.9)",
+                  fontSize: "9px",
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  letterSpacing: "0.12em",
+                  marginTop: "2px",
+                  textTransform: "uppercase",
+                }}
+              >
                 {dateMonth}
               </div>
             </div>
@@ -111,15 +131,21 @@ export default function HistoryRow({
                 </div>
               ) : (
                 <>
-                  <div 
+                  <div
                     className="text-[18px] font-bold text-slate-100 tracking-tight leading-tight"
-                    style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+                    style={{
+                      fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+                    }}
                   >
-                    {dayName}, {dateMonth.charAt(0) + dateMonth.slice(1).toLowerCase()} {dateDay}, {dateYear}
+                    {dayName},{" "}
+                    {dateMonth.charAt(0) + dateMonth.slice(1).toLowerCase()}{" "}
+                    {dateDay}, {dateYear}
                   </div>
-                  <div 
+                  <div
                     className="text-[14px] font-medium text-slate-500 mt-1"
-                    style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+                    style={{
+                      fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+                    }}
                   >
                     {firstIn.toLowerCase()} - {lastOut.toLowerCase()}
                   </div>
@@ -135,9 +161,11 @@ export default function HistoryRow({
             {isLoading ? (
               <SkeletonBlock className="h-8 w-20 rounded-md opacity-40" />
             ) : (
-              <div 
+              <div
                 className="text-[24px] font-semibold text-cyan-400 tracking-tighter leading-none"
-                style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+                style={{
+                  fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+                }}
               >
                 {Number(parseFloat(record.totalHours || 0).toFixed(2))}hrs
               </div>

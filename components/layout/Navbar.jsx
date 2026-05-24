@@ -108,7 +108,7 @@ export default function Navbar() {
         >
           <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl">
             <img
-              src="/logo.jpg"
+              src="/logo_no_bg.png"
               alt="Logo"
               className="h-full w-full object-contain"
             />
@@ -150,7 +150,7 @@ export default function Navbar() {
           >
             <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-white/10">
               <img
-                src="/logo.jpg"
+                src="/logo_no_bg.png"
                 alt="Logo"
                 className="h-full w-full object-contain"
               />

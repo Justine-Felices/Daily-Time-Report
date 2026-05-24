@@ -160,7 +160,11 @@ export default function ProfileContent() {
 
   const handleAttendanceModeChange = async (nextMode) => {
     const normalizedNextMode = normalizeAttendanceMode(nextMode);
-    if (!supabase || isSavingAttendanceMode || normalizedNextMode === attendanceMode) {
+    if (
+      !supabase ||
+      isSavingAttendanceMode ||
+      normalizedNextMode === attendanceMode
+    ) {
       return;
     }
 
@@ -203,7 +207,11 @@ export default function ProfileContent() {
 
   const handleDashboardViewChange = async (nextView) => {
     const normalizedNextView = normalizeDashboardView(nextView);
-    if (!supabase || isSavingDashboardView || normalizedNextView === dashboardView) {
+    if (
+      !supabase ||
+      isSavingDashboardView ||
+      normalizedNextView === dashboardView
+    ) {
       return;
     }
 
@@ -246,53 +254,55 @@ export default function ProfileContent() {
 
   return (
     <PageShell width="narrow">
-      <HeaderSection
-        title="My Profile"
-        subtitle="Manage your personal information"
-      />
+      <div className="pt-8 flex flex-col gap-6 pb-12">
+        <HeaderSection
+          title="My Profile"
+          subtitle="Manage your personal information"
+        />
 
-      <ProfileHeaderCard
-        name={profile.name}
-        position={profile.position}
-        department={profile.department}
-        initials={toInitials(profile.name)}
-      />
+        <ProfileHeaderCard
+          name={profile.name}
+          position={profile.position}
+          department={profile.department}
+          initials={toInitials(profile.name)}
+        />
 
-      <PersonalInfoSection
-        profile={profile}
-        onEditClick={() => setIsEditModalOpen(true)}
-      />
+        <PersonalInfoSection
+          profile={profile}
+          onEditClick={() => setIsEditModalOpen(true)}
+        />
 
-      <OJTDetailsSection details={ojtDetails} />
+        <OJTDetailsSection details={ojtDetails} />
 
-      <ThemeModeCard
-        mode={mode}
-        resolvedMode={resolvedMode}
-        onModeChange={setMode}
-      />
+        <ThemeModeCard
+          mode={mode}
+          resolvedMode={resolvedMode}
+          onModeChange={setMode}
+        />
 
-      <AttendanceFormatCard
-        mode={attendanceMode}
-        isSaving={isSavingAttendanceMode}
-        saved={attendanceModeSaved}
-        onModeChange={handleAttendanceModeChange}
-      />
+        <AttendanceFormatCard
+          mode={attendanceMode}
+          isSaving={isSavingAttendanceMode}
+          saved={attendanceModeSaved}
+          onModeChange={handleAttendanceModeChange}
+        />
 
-      <DashboardViewCard
-        view={dashboardView}
-        isSaving={isSavingDashboardView}
-        saved={dashboardViewSaved}
-        onViewChange={handleDashboardViewChange}
-      />
+        <DashboardViewCard
+          view={dashboardView}
+          isSaving={isSavingDashboardView}
+          saved={dashboardViewSaved}
+          onViewChange={handleDashboardViewChange}
+        />
 
-      <LogoutButton onClick={handleLogout} />
+        <LogoutButton onClick={handleLogout} />
 
-      <EditPersonalInfoModal
-        isOpen={isEditModalOpen}
-        profile={profile}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSaveProfile}
-      />
+        <EditPersonalInfoModal
+          isOpen={isEditModalOpen}
+          profile={profile}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleSaveProfile}
+        />
+      </div>
     </PageShell>
   );
 }

@@ -12,7 +12,7 @@ export default function LandingFooter() {
         <div className="flex items-center gap-3">
           <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg shadow-lg shadow-blue-500/10">
             <img
-              src="/logo.jpg"
+              src="/logo_no_bg.png"
               alt="Logo"
               className="h-full w-full object-contain"
             />

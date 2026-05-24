@@ -33,13 +33,12 @@ export default function BrandLogo({
         }}
       >
         <img
-          src="/logo.jpg"
+          src="/logo_no_bg.png"
           alt="JustIn Time Report Logo"
           style={{
             width: "100%",
             height: "100%",
             objectFit: "contain",
-            borderRadius: `${boxRadius}px`,
           }}
         />
       </div>

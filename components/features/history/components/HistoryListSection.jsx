@@ -10,7 +10,10 @@ export default function HistoryListSection({
 }) {
   if (isLoading) {
     return (
-      <div className="w-full overflow-x-auto rounded-2xl border border-white/10 bg-[#1C1C1E] backdrop-blur-md">
+      <div
+        className="w-full overflow-x-auto rounded-[20px] border bg-surface-card backdrop-blur-md"
+        style={{ borderColor: "var(--border-soft)" }}
+      >
         <table className="w-full border-collapse">
           <tbody>
             {Array.from({ length: 7 }).map((_, index) => (
@@ -31,7 +34,10 @@ export default function HistoryListSection({
   }
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-white/10 bg-[#1C1C1E] backdrop-blur-md">
+    <div
+      className="w-full overflow-x-auto rounded-[20px] border bg-surface-card backdrop-blur-md"
+      style={{ borderColor: "var(--border-soft)" }}
+    >
       <table className="w-full border-collapse">
         <tbody>
           {records.map((record) => (

@@ -272,9 +272,6 @@ export default function OnboardingForm({
           </section>
         )}
 
-        {stepError && <FieldError msg={stepError} />}
-        {formError && <FieldError msg={formError} />}
-
         <div className="mt-8 flex flex-wrap justify-between gap-2">
           <button
             type="button"
@@ -307,7 +304,7 @@ export default function OnboardingForm({
               type="button"
               onClick={handleFinalSubmit}
               disabled={isSubmitting}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl px-4 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-60 transition-all active:scale-95"
               style={{
                 background: isSubmitting
                   ? "rgba(148,163,184,0.22)"
@@ -321,6 +318,26 @@ export default function OnboardingForm({
             </button>
           )}
         </div>
+
+        {(stepError || formError) && (
+          <div className="mt-3 flex justify-end animate-in fade-in slide-in-from-top-1 duration-300">
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+              style={{
+                background: "rgba(220, 38, 38, 0.08)",
+                border: "1px solid rgba(220, 38, 38, 0.15)",
+                color: "#ef4444",
+                fontSize: "10px",
+                fontWeight: 800,
+                letterSpacing: "0.02em",
+                textTransform: "uppercase",
+              }}
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              {stepError || formError}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,27 +1,30 @@
 import GlassCard from "@/components/ui/cards/GlassCard";
 
 const NAME_STYLE = {
-  color: "#1E293B",
-  fontSize: "18px",
-  fontWeight: 700,
+  color: "var(--text-primary)",
+  fontSize: "20px",
+  fontWeight: 800,
   fontFamily: "'Inter',sans-serif",
   letterSpacing: "-0.02em",
 };
 
 const POSITION_STYLE = {
   background: "rgba(59,130,246,0.1)",
-  color: "#3b82f6",
-  fontSize: "11px",
-  fontWeight: 600,
+  color: "var(--accent-strong)",
+  fontSize: "10px",
+  fontWeight: 700,
   fontFamily: "'Inter',sans-serif",
-  border: "1px solid rgba(59,130,246,0.2)",
+  border: "1px solid var(--border-soft)",
   padding: "2px 10px",
   borderRadius: "999px",
+  textTransform: "uppercase",
+  letterSpacing: "0.02em",
 };
 
 const DEPARTMENT_STYLE = {
-  color: "#64748B",
+  color: "var(--text-muted)",
   fontSize: "12px",
+  fontWeight: 500,
   fontFamily: "'Inter',sans-serif",
 };
 
@@ -35,10 +38,11 @@ export default function ProfileHeaderCard({
     <GlassCard padding={0} style={{ overflow: "hidden" }}>
       <div
         style={{
-          height: "96px",
+          height: "100px",
           background:
-            "linear-gradient(135deg, #1e40af 0%, #3b82f6 45%, #FF69B4 100%)",
+            "linear-gradient(135deg, var(--accent-strong) 0%, var(--accent-pink) 100%)",
           position: "relative",
+          opacity: 0.9,
         }}
       >
         <div
@@ -46,19 +50,7 @@ export default function ProfileHeaderCard({
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            right: "24px",
-            top: "12px",
-            width: "80px",
-            height: "80px",
-            borderRadius: "50%",
-            background: "rgba(0,240,255,0.2)",
-            filter: "blur(20px)",
+              "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%)",
           }}
         />
       </div>
@@ -66,25 +58,26 @@ export default function ProfileHeaderCard({
       <div style={{ padding: "0 24px 20px", position: "relative" }}>
         <div
           style={{
-            width: "72px",
-            height: "72px",
-            borderRadius: "18px",
-            background: "linear-gradient(135deg,#FF69B4,#3b82f6)",
-            border: "3px solid #fff",
+            width: "80px",
+            height: "80px",
+            borderRadius: "22px",
+            background:
+              "linear-gradient(135deg, var(--accent-strong), var(--accent-pink))",
+            border: "4px solid var(--surface-card)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "absolute",
-            top: "-36px",
+            top: "-40px",
             left: "24px",
-            boxShadow: "0 8px 24px rgba(255,105,180,0.4)",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
           }}
         >
           <span
             style={{
               color: "#fff",
-              fontSize: "24px",
-              fontWeight: 800,
+              fontSize: "28px",
+              fontWeight: 900,
               fontFamily: "'Inter',sans-serif",
             }}
           >
@@ -92,9 +85,9 @@ export default function ProfileHeaderCard({
           </span>
         </div>
 
-        <div style={{ paddingTop: "46px" }}>
+        <div style={{ paddingTop: "50px" }}>
           <div style={NAME_STYLE}>{name}</div>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <span style={POSITION_STYLE}>{position}</span>
             <span style={DEPARTMENT_STYLE}>{department}</span>
           </div>

@@ -2,21 +2,34 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X, Calendar, Clock, Info } from "lucide-react";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { calculateTotalHours } from "@/lib/dtr-time-validation";
+import GlassCard from "@/components/ui/cards/GlassCard";
 
 const INPUT_STYLE = {
   width: "100%",
+  padding: "14px 18px",
+  borderRadius: "16px",
+  background: "rgba(255, 255, 255, 0.03)",
   border: "1px solid var(--border-soft)",
-  background: "var(--surface-muted)",
-  borderRadius: "12px",
-  padding: "10px 12px",
   color: "var(--text-primary)",
   fontSize: "14px",
-  fontWeight: 500,
-  fontFamily: "'Inter',sans-serif",
+  fontWeight: "600",
+  fontFamily: "'Inter', sans-serif",
   outline: "none",
+  transition: "all 0.2s ease",
+};
+
+const LABEL_STYLE = {
+  color: "var(--text-muted)",
+  fontSize: "10px",
+  fontWeight: 900,
+  fontFamily: "'Inter', sans-serif",
+  letterSpacing: "0.12em",
+  textTransform: "uppercase",
+  marginBottom: "4px",
+  display: "block",
 };
 
 function displayTimeToInputTime(value) {
@@ -243,100 +256,133 @@ export default function HistoryDetailsDrawer({
   }, [workDate]);
 
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!isOpen || !mounted) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 px-3 pb-3 sm:px-4 sm:pb-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 px-3 pb-3 sm:items-center sm:px-4 sm:pb-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-label="History entry details"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-3xl border px-4 pb-4 pt-3 sm:px-5 sm:pb-5 max-h-[88vh] overflow-y-auto"
+        className="w-full max-w-2xl rounded-[32px] border px-6 pb-6 pt-5 sm:px-7 sm:pb-7 max-h-[92vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-200"
         style={{
           background: "var(--surface-card)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
+          backdropFilter: "blur(40px) saturate(180%)",
+          WebkitBackdropFilter: "blur(40px) saturate(180%)",
           borderColor: "var(--border-soft)",
-          boxShadow: "0 20px 52px rgba(15,23,42,0.25)",
+          boxShadow: "0 25px 80px -12px rgba(0, 0, 0, 0.6)",
         }}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={onClose}
               aria-label="Back"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl sm:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl transition-all active:scale-90 hover:bg-white/5"
               style={{
                 color: "var(--text-primary)",
-                background: "rgba(148,163,184,0.12)",
+                background: "var(--surface-muted)",
                 border: "1px solid var(--border-soft)",
               }}
             >
-              <ArrowLeft size={18} strokeWidth={2.2} />
+              <ArrowLeft size={20} strokeWidth={2.5} />
             </button>
-            <div
-              style={{
-                color: "var(--text-primary)",
-                fontSize: "14px",
-                fontWeight: 600,
-                letterSpacing: "0.01em",
-                fontFamily: "'Inter',sans-serif",
-              }}
-            >
-              Edit Details
+            <div>
+              <div
+                style={{
+                  color: "var(--text-primary)",
+                  fontSize: "18px",
+                  fontWeight: 800,
+                  fontFamily: "'Inter', sans-serif",
+                  lineHeight: 1.1,
+                }}
+              >
+                Edit Attendance
+              </div>
+              <div
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  marginTop: "3px",
+                }}
+              >
+                Update record manual entries
+              </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isActionDisabled}
-            className="rounded-xl px-3 py-2"
-            style={{
-              background: isActionDisabled
-                ? "rgba(148,163,184,0.2)"
-                : "linear-gradient(135deg,#3b82f6,#2563eb)",
-              border: "1px solid rgba(59,130,246,0.2)",
-              color: isActionDisabled ? "var(--text-muted)" : "#FFFFFF",
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: "0.01em",
-              fontFamily: "'Inter',sans-serif",
-            }}
-          >
-            {isPending ? "Saving..." : "Save Changes"}
-          </button>
+          <div className="flex flex-col items-end gap-1.5">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isActionDisabled}
+              className="rounded-xl px-5 py-2.5 transition-all active:scale-95 hover:brightness-110"
+              style={{
+                background: isActionDisabled
+                  ? "rgba(148,163,184,0.1)"
+                  : "var(--accent-strong)",
+                color: isActionDisabled ? "var(--text-muted)" : "#FFFFFF",
+                fontSize: "13px",
+                fontWeight: 700,
+                fontFamily: "'Inter', sans-serif",
+                boxShadow: isActionDisabled
+                  ? "none"
+                  : "0 8px 24px rgba(59, 130, 246, 0.3)",
+              }}
+            >
+              {isPending ? "SAVING..." : "SAVE CHANGES"}
+            </button>
+
+            {errorText && (
+              <div
+                className="flex items-center gap-1.5 text-right"
+                style={{
+                  color: "#ef4444",
+                  fontSize: "10px",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                {errorText}
+              </div>
+            )}
+          </div>
         </div>
 
         <div
-          className="rounded-2xl border p-4 sm:p-5"
+          className="rounded-[24px] border p-6 sm:p-7"
           style={{
-            background: "var(--surface-muted)",
+            background: "rgba(255, 255, 255, 0.03)",
             borderColor: "var(--border-soft)",
           }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between gap-5">
+            <div className="flex items-center gap-5">
               <div
-                className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl"
+                className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-[20px]"
                 style={{
-                  background: "rgba(6,148,148,0.1)",
-                  border: "1px solid rgba(6,148,148,0.16)",
+                  background: "rgba(59, 130, 246, 0.15)",
+                  border: "1.5px solid rgba(59, 130, 246, 0.25)",
                 }}
               >
                 <div
                   style={{
-                    color: "var(--text-secondary)",
-                    fontSize: "18px",
-                    fontWeight: 700,
-                    fontFamily: "'Inter',sans-serif",
+                    color: "var(--accent-strong)",
+                    fontSize: "24px",
+                    fontWeight: 900,
+                    fontFamily: "'Inter', sans-serif",
                     lineHeight: 1,
                   }}
                 >
@@ -344,11 +390,12 @@ export default function HistoryDetailsDrawer({
                 </div>
                 <div
                   style={{
-                    color: "var(--text-muted)",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    fontFamily: "'Inter',sans-serif",
-                    letterSpacing: "0.06em",
+                    color: "var(--accent-strong)",
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    fontFamily: "'Inter', sans-serif",
+                    letterSpacing: "0.08em",
+                    opacity: 0.85,
                   }}
                 >
                   {renderedDate.month}
@@ -359,21 +406,21 @@ export default function HistoryDetailsDrawer({
                 <div
                   style={{
                     color: "var(--text-muted)",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    fontFamily: "'Inter',sans-serif",
+                    fontSize: "10px",
+                    fontWeight: 900,
+                    letterSpacing: "0.12em",
+                    fontFamily: "'Inter', sans-serif",
                     textTransform: "uppercase",
                   }}
                 >
-                  Entry Date
+                  RECORD DATE
                 </div>
                 <div
                   style={{
                     color: "var(--text-primary)",
-                    fontSize: "clamp(14px, 1.8vw, 16px)",
-                    fontWeight: 600,
-                    fontFamily: "'Inter',sans-serif",
+                    fontSize: "18px",
+                    fontWeight: 700,
+                    fontFamily: "'Inter', sans-serif",
                     lineHeight: 1.25,
                     marginTop: "4px",
                   }}
@@ -383,64 +430,75 @@ export default function HistoryDetailsDrawer({
               </div>
             </div>
 
-            <div
-              style={{
-                color:
-                  Number(totalHours) > 0
-                    ? "var(--accent-strong)"
-                    : "var(--text-muted)",
-                fontSize: "clamp(22px, 2.2vw, 30px)",
-                fontWeight: 600,
-                fontFamily: "'Inter',sans-serif",
-                lineHeight: 1,
-              }}
-            >
-              {totalHours}h
-            </div>
-          </div>
-
-          <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label>
+            <div className="text-right">
               <div
                 style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
+                  color: "var(--text-muted)",
+                  fontSize: "10px",
+                  fontWeight: 900,
+                  letterSpacing: "0.12em",
+                  fontFamily: "'Inter', sans-serif",
+                  textTransform: "uppercase",
                   marginBottom: "6px",
                 }}
               >
-                Date
+                TOTAL
               </div>
+              <div
+                style={{
+                  color:
+                    Number(totalHours) > 0
+                      ? "var(--accent-strong)"
+                      : "var(--text-muted)",
+                  fontSize: "36px",
+                  fontWeight: 900,
+                  fontFamily: "'Inter', sans-serif",
+                  lineHeight: 1,
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                {totalHours}
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    marginLeft: "4px",
+                    opacity: 0.5,
+                  }}
+                >
+                  hrs
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="my-6 h-px w-full"
+            style={{ background: "var(--border-soft)" }}
+          />
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <label>
+              <span style={LABEL_STYLE}>Date</span>
               <input
                 type="date"
                 value={workDate}
                 onChange={(event) => setWorkDate(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                Status
-              </div>
+              <span style={LABEL_STYLE}>Status</span>
               <select
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50 cursor-pointer"
               >
                 {STATUS_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
+                  <option key={option} value={option} className="bg-slate-900">
                     {option}
                   </option>
                 ))}
@@ -448,278 +506,158 @@ export default function HistoryDetailsDrawer({
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                AM In
-              </div>
+              <span style={LABEL_STYLE}>AM In</span>
               <input
                 type="time"
                 value={amIn}
                 onChange={(event) => setAmIn(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                AM Out
-              </div>
+              <span style={LABEL_STYLE}>AM Out</span>
               <input
                 type="time"
                 value={amOut}
                 onChange={(event) => setAmOut(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                PM In
-              </div>
+              <span style={LABEL_STYLE}>PM In</span>
               <input
                 type="time"
                 value={pmIn}
                 onChange={(event) => setPmIn(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                PM Out
-              </div>
+              <span style={LABEL_STYLE}>PM Out</span>
               <input
                 type="time"
                 value={pmOut}
                 onChange={(event) => setPmOut(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                OT In
-              </div>
+              <span style={LABEL_STYLE}>OT In</span>
               <input
                 type="time"
                 value={otIn}
                 onChange={(event) => setOtIn(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label>
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                OT Out
-              </div>
+              <span style={LABEL_STYLE}>OT Out</span>
               <input
                 type="time"
                 value={otOut}
                 onChange={(event) => setOtOut(event.target.value)}
                 style={INPUT_STYLE}
+                className="focus:border-blue-500/50"
               />
             </label>
 
             <label className="sm:col-span-2">
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                Total Hours
-              </div>
-              <input
-                type="text"
-                value={totalHours}
-                readOnly
-                style={{
-                  ...INPUT_STYLE,
-                  background: "rgba(148,163,184,0.05)",
-                  cursor: "not-allowed",
-                  opacity: 0.8
-                }}
-              />
-            </label>
-
-            <label className="sm:col-span-2">
-              <div
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "6px",
-                }}
-              >
-                Note
-              </div>
+              <span style={LABEL_STYLE}>Note</span>
               <textarea
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
                 rows={3}
-                style={{ ...INPUT_STYLE, resize: "vertical" }}
+                style={{ ...INPUT_STYLE, resize: "none" }}
+                className="focus:border-blue-500/50"
+                placeholder="Optional remarks..."
               />
             </label>
           </div>
 
-          {validationMessage ? (
-            <div
-              className="mt-3 rounded-xl px-3 py-2"
-              style={{
-                background: "rgba(245,158,11,0.12)",
-                border: "1px solid rgba(245,158,11,0.24)",
-                color: "#92400E",
-                fontSize: "12px",
-                fontWeight: 600,
-                fontFamily: "'Inter',sans-serif",
-              }}
-            >
-              {validationMessage}
-            </div>
-          ) : null}
-
-          {errorText ? (
-            <div
-              className="mt-3 rounded-xl px-3 py-2"
-              style={{
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.25)",
-                color: "#B91C1C",
-                fontSize: "12px",
-                fontWeight: 600,
-                fontFamily: "'Inter',sans-serif",
-              }}
-            >
-              {errorText}
-            </div>
-          ) : null}
-
-          <div className="my-3 h-px" style={{ background: "var(--border-soft)" }} />
+          <div
+            className="my-6 h-px w-full"
+            style={{ background: "var(--border-soft)" }}
+          />
 
           {!showDeleteConfirm ? (
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={isPending}
-              className="w-full rounded-2xl px-4 py-3"
+              className="w-full rounded-2xl px-4 py-4 transition-all active:scale-[0.98] group"
               style={{
-                background: isPending
-                  ? "rgba(148,163,184,0.14)"
-                  : "rgba(239,68,68,0.12)",
-                border: isPending
-                  ? "1px solid rgba(148,163,184,0.22)"
-                  : "1px solid rgba(239,68,68,0.22)",
-                color: isPending ? "var(--text-muted)" : "#BE123C",
-                fontSize: "15px",
-                fontWeight: 700,
-                fontFamily: "'Inter',sans-serif",
-                lineHeight: 1.1,
+                background: "rgba(239, 68, 68, 0.05)",
+                border: "1.5px dashed rgba(239, 68, 68, 0.2)",
+                color: "#ef4444",
+                fontSize: "14px",
+                fontWeight: 800,
+                letterSpacing: "0.04em",
+                fontFamily: "'Inter', sans-serif",
+                textTransform: "uppercase",
               }}
             >
-              {isPending ? "Working..." : "Delete Entry"}
+              {isPending ? "PROCESSING..." : "Delete Entry"}
             </button>
           ) : (
             <div
-              className="rounded-2xl p-4"
+              className="rounded-2xl p-6 border animate-in zoom-in-95 duration-200"
               style={{
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
+                background: "rgba(239, 68, 68, 0.08)",
+                borderColor: "rgba(239, 68, 68, 0.2)",
               }}
             >
               <p
                 style={{
                   color: "var(--text-primary)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  fontFamily: "'Inter',sans-serif",
-                  marginBottom: "12px",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  fontFamily: "'Inter', sans-serif",
+                  marginBottom: "16px",
+                  textAlign: "center",
                 }}
               >
-                Delete this entry permanently? This cannot be undone.
+                Delete record permanently?
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 rounded-xl px-3 py-2.5"
+                  className="flex-1 rounded-xl px-4 py-3 border transition-all active:scale-95"
                   style={{
-                    background: "rgba(148,163,184,0.16)",
-                    border: "1px solid var(--border-soft)",
+                    background: "var(--surface-muted)",
+                    borderColor: "var(--border-soft)",
                     color: "var(--text-secondary)",
                     fontSize: "13px",
                     fontWeight: 700,
-                    fontFamily: "'Inter',sans-serif",
+                    fontFamily: "'Inter', sans-serif",
                   }}
                 >
-                  Cancel
+                  KEEP IT
                 </button>
                 <button
                   type="button"
                   onClick={handleDelete}
                   disabled={isPending}
-                  className="flex-1 rounded-xl px-3 py-2.5"
+                  className="flex-1 rounded-xl px-4 py-3 text-white transition-all active:scale-95"
                   style={{
-                    background: "linear-gradient(135deg,#EF4444,#DC2626)",
-                    border: "1px solid rgba(220,38,38,0.28)",
-                    color: "#fff",
+                    background: "linear-gradient(135deg,#ef4444,#b91c1c)",
                     fontSize: "13px",
                     fontWeight: 700,
-                    fontFamily: "'Inter',sans-serif",
-                    boxShadow: "0 3px 12px rgba(220,38,38,0.3)",
+                    fontFamily: "'Inter', sans-serif",
+                    boxShadow: "0 8px 20px rgba(239, 68, 68, 0.3)",
                   }}
                 >
-                  {isPending ? "Deleting..." : "Yes, Delete"}
+                  {isPending ? "DELETING..." : "YES, DELETE"}
                 </button>
               </div>
             </div>
@@ -727,6 +665,6 @@ export default function HistoryDetailsDrawer({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

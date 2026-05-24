@@ -1,5 +1,17 @@
 import { useMemo, useState } from "react";
-import { CalendarRange, Loader2, X } from "lucide-react";
+import {
+  Calendar,
+  CalendarDays,
+  CalendarRange,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Globe,
+  Loader2,
+  ShieldCheck,
+  StickyNote,
+  X,
+} from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import { createBulkAttendanceRecords } from "@/lib/supabase-operations";
@@ -47,7 +59,11 @@ function buildDateRange(startDate, endDate, weekdaysOnly) {
   const start = new Date(`${startDate}T00:00:00`);
   const end = new Date(`${endDate}T00:00:00`);
 
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    start > end
+  ) {
     return [];
   }
 
@@ -231,6 +247,8 @@ export default function BulkAddDtrModal({ open, onClose }) {
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
 
+  const todayKey = useMemo(() => toDateKey(new Date()), []);
+
   const selectedDates = useMemo(
     () => buildDateRange(startDate, endDate, weekdaysOnly),
     [startDate, endDate, weekdaysOnly],
@@ -267,6 +285,16 @@ export default function BulkAddDtrModal({ open, onClose }) {
 
     if (selectedDates.length === 0) {
       setError("Select a valid date range first.");
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const startObj = new Date(`${startDate}T00:00:00`);
+    const endObj = new Date(`${endDate}T00:00:00`);
+
+    if (startObj > today || endObj > today) {
+      setError("Bulk entries cannot be added for future dates.");
       return;
     }
 
@@ -350,7 +378,10 @@ export default function BulkAddDtrModal({ open, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/55 p-3 sm:items-center sm:p-4">
-      <GlassCard padding="16px" className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <GlassCard
+        padding="16px"
+        className="w-full max-w-5xl max-h-[90vh] overflow-y-auto"
+      >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <h3
@@ -395,322 +426,705 @@ export default function BulkAddDtrModal({ open, onClose }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <div>
-            <div style={SECTION_LABEL_STYLE}>ENTRY TYPE</div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                ["regular", "Regular Duty Day"],
-                ["absent", "Absent"],
-                ["leave", "Leave"],
-                ["half_day", "Half Day"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setEntryType(value)}
-                  style={{
-                    ...OPTION_BUTTON_STYLE,
-                    background:
-                      entryType === value
-                        ? "var(--accent-strong)"
-                        : "var(--surface-muted)",
-                    color:
-                      entryType === value ? "#ffffff" : "var(--text-secondary)",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr_1fr]">
+          {/* Left Column: Configuration */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <div style={SECTION_LABEL_STYLE}>ENTRY TYPE</div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    ["regular", "Regular Duty Day"],
+                    ["absent", "Absent"],
+                    ["leave", "Leave"],
+                    ["half_day", "Half Day"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setEntryType(value)}
+                      style={{
+                        ...OPTION_BUTTON_STYLE,
+                        background:
+                          entryType === value
+                            ? "var(--accent-strong)"
+                            : "var(--surface-muted)",
+                        color:
+                          entryType === value
+                            ? "#ffffff"
+                            : "var(--text-secondary)",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <div style={SECTION_LABEL_STYLE}>DUPLICATE HANDLING</div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                ["skip", "Skip existing"],
-                ["replace", "Replace existing"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setOnDuplicate(value)}
-                  style={{
-                    ...OPTION_BUTTON_STYLE,
-                    background:
-                      onDuplicate === value
-                        ? "var(--accent-strong)"
-                        : "var(--surface-muted)",
-                    color:
-                      onDuplicate === value
-                        ? "#ffffff"
-                        : "var(--text-secondary)",
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <div style={SECTION_LABEL_STYLE}>START DATE</div>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
-              className="w-full"
-              style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-            />
-          </div>
-
-          <div>
-            <div style={SECTION_LABEL_STYLE}>END DATE</div>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(event) => setEndDate(event.target.value)}
-              className="w-full"
-              style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-            />
-          </div>
-        </div>
-
-        <label
-          className="mt-3 inline-flex items-center gap-2"
-          style={{
-            color: "var(--text-secondary)",
-            fontSize: "12px",
-            fontFamily: "'Inter',sans-serif",
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={weekdaysOnly}
-            onChange={(event) => setWeekdaysOnly(event.target.checked)}
-          />
-          Weekdays only
-        </label>
-
-        {(shouldShowFullTimes || shouldShowHalfDayTimes) && (
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div>
-              <div style={SECTION_LABEL_STYLE}>AM IN</div>
-              <input
-                type="time"
-                value={times.amIn}
-                onChange={(event) =>
-                  setTimes((current) => ({ ...current, amIn: event.target.value }))
-                }
-                className="w-full"
-                style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-              />
+              <div>
+                <div style={SECTION_LABEL_STYLE}>DUPLICATE HANDLING</div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    ["skip", "Skip existing"],
+                    ["replace", "Replace existing"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setOnDuplicate(value)}
+                      style={{
+                        ...OPTION_BUTTON_STYLE,
+                        background:
+                          onDuplicate === value
+                            ? "var(--accent-strong)"
+                            : "var(--surface-muted)",
+                        color:
+                          onDuplicate === value
+                            ? "#ffffff"
+                            : "var(--text-secondary)",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div>
-              <div style={SECTION_LABEL_STYLE}>AM OUT</div>
-              <input
-                type="time"
-                value={times.amOut}
-                onChange={(event) =>
-                  setTimes((current) => ({ ...current, amOut: event.target.value }))
-                }
-                className="w-full"
-                style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-              />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <div style={SECTION_LABEL_STYLE}>START DATE</div>
+                <input
+                  type="date"
+                  value={startDate}
+                  max={todayKey}
+                  onChange={(event) => setStartDate(event.target.value)}
+                  className="w-full"
+                  style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                />
+              </div>
+
+              <div>
+                <div style={SECTION_LABEL_STYLE}>END DATE</div>
+                <input
+                  type="date"
+                  value={endDate}
+                  max={todayKey}
+                  onChange={(event) => setEndDate(event.target.value)}
+                  className="w-full"
+                  style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                />
+              </div>
             </div>
 
-            {shouldShowFullTimes && (
-              <>
-                <div>
-                  <div style={SECTION_LABEL_STYLE}>PM IN</div>
-                  <input
-                    type="time"
-                    value={times.pmIn}
-                    onChange={(event) =>
-                      setTimes((current) => ({ ...current, pmIn: event.target.value }))
-                    }
-                    className="w-full"
-                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-                  />
-                </div>
-
-                <div>
-                  <div style={SECTION_LABEL_STYLE}>PM OUT</div>
-                  <input
-                    type="time"
-                    value={times.pmOut}
-                    onChange={(event) =>
-                      setTimes((current) => ({ ...current, pmOut: event.target.value }))
-                    }
-                    className="w-full"
-                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-                  />
-                </div>
-
-                <div>
-                  <div style={SECTION_LABEL_STYLE}>OT IN</div>
-                  <input
-                    type="time"
-                    value={times.otIn}
-                    onChange={(event) =>
-                      setTimes((current) => ({ ...current, otIn: event.target.value }))
-                    }
-                    className="w-full"
-                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-                  />
-                </div>
-
-                <div>
-                  <div style={SECTION_LABEL_STYLE}>OT OUT</div>
-                  <input
-                    type="time"
-                    value={times.otOut}
-                    onChange={(event) =>
-                      setTimes((current) => ({ ...current, otOut: event.target.value }))
-                    }
-                    className="w-full"
-                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        <div className="mt-3">
-          <div style={SECTION_LABEL_STYLE}>NOTE (OPTIONAL)</div>
-          <textarea
-            rows={2}
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            placeholder="Optional note for all selected dates"
-            className="w-full resize-none"
-            style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-          />
-        </div>
-
-        <div className="mt-3">
-          <div style={SECTION_LABEL_STYLE}>PREVIEW ({previewRows.length} ENTRIES)</div>
-          <div
-            className="rounded-xl border p-2"
-            style={{
-              borderColor: "var(--border-soft)",
-              background: "var(--surface-muted)",
-              maxHeight: "180px",
-              overflowY: "auto",
-            }}
-          >
-            {previewRows.length === 0 ? (
-              <p
+            <div className="flex flex-col gap-1">
+              <label
+                className="inline-flex items-center gap-2"
                 style={{
-                  margin: 0,
-                  color: "var(--text-muted)",
+                  color: "var(--text-secondary)",
                   fontSize: "12px",
                   fontFamily: "'Inter',sans-serif",
                 }}
               >
-                Select dates to preview bulk entries.
+                <input
+                  type="checkbox"
+                  checked={weekdaysOnly}
+                  onChange={(event) => setWeekdaysOnly(event.target.checked)}
+                />
+                Weekdays only
+              </label>
+              <p
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: "10px",
+                  marginLeft: "22px",
+                  marginTop: "-2px",
+                }}
+              >
+                Only applies entries from Monday to Sunday
               </p>
-            ) : (
-              <ul className="space-y-1">
-                {previewRows.map((row) => (
-                  <li
-                    key={row}
+            </div>
+
+            {(shouldShowFullTimes || shouldShowHalfDayTimes) && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div>
+                  <div style={SECTION_LABEL_STYLE}>AM IN</div>
+                  <input
+                    type="time"
+                    value={times.amIn}
+                    onChange={(event) =>
+                      setTimes((current) => ({
+                        ...current,
+                        amIn: event.target.value,
+                      }))
+                    }
+                    className="w-full"
+                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                  />
+                </div>
+
+                <div>
+                  <div style={SECTION_LABEL_STYLE}>AM OUT</div>
+                  <input
+                    type="time"
+                    value={times.amOut}
+                    onChange={(event) =>
+                      setTimes((current) => ({
+                        ...current,
+                        amOut: event.target.value,
+                      }))
+                    }
+                    className="w-full"
+                    style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                  />
+                </div>
+
+                {shouldShowFullTimes && (
+                  <>
+                    <div>
+                      <div style={SECTION_LABEL_STYLE}>PM IN</div>
+                      <input
+                        type="time"
+                        value={times.pmIn}
+                        onChange={(event) =>
+                          setTimes((current) => ({
+                            ...current,
+                            pmIn: event.target.value,
+                          }))
+                        }
+                        className="w-full"
+                        style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                      />
+                    </div>
+
+                    <div>
+                      <div style={SECTION_LABEL_STYLE}>PM OUT</div>
+                      <input
+                        type="time"
+                        value={times.pmOut}
+                        onChange={(event) =>
+                          setTimes((current) => ({
+                            ...current,
+                            pmOut: event.target.value,
+                          }))
+                        }
+                        className="w-full"
+                        style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                      />
+                    </div>
+
+                    <div>
+                      <div style={SECTION_LABEL_STYLE}>
+                        OT IN{" "}
+                        <span className="text-[9px] opacity-60 font-normal">
+                          (OPTIONAL)
+                        </span>
+                      </div>
+                      <input
+                        type="time"
+                        value={times.otIn}
+                        onChange={(event) =>
+                          setTimes((current) => ({
+                            ...current,
+                            otIn: event.target.value,
+                          }))
+                        }
+                        className="w-full"
+                        style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                      />
+                    </div>
+
+                    <div>
+                      <div style={SECTION_LABEL_STYLE}>
+                        OT OUT{" "}
+                        <span className="text-[9px] opacity-60 font-normal">
+                          (OPTIONAL)
+                        </span>
+                      </div>
+                      <input
+                        type="time"
+                        value={times.otOut}
+                        onChange={(event) =>
+                          setTimes((current) => ({
+                            ...current,
+                            otOut: event.target.value,
+                          }))
+                        }
+                        className="w-full"
+                        style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            <div>
+              <div style={SECTION_LABEL_STYLE}>NOTE (OPTIONAL)</div>
+              <textarea
+                rows={2}
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Optional note for all selected dates"
+                className="w-full resize-none"
+                style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
+              />
+            </div>
+          </div>
+
+          {/* Right Column: Preview */}
+          <div
+            style={{
+              background: "rgba(0,0,0,0.1)",
+              borderRadius: "20px",
+              padding: "16px",
+              border: "1px solid var(--border-soft)",
+            }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div style={SECTION_LABEL_STYLE} className="mb-0">
+                PREVIEW
+              </div>
+              <div
+                style={{
+                  background: "rgba(30, 64, 175, 0.2)",
+                  color: "var(--accent-strong)",
+                  fontSize: "10px",
+                  fontWeight: 800,
+                  padding: "2px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(30, 64, 175, 0.3)",
+                }}
+              >
+                {previewRows.length} ENTRIES
+              </div>
+            </div>
+
+            <div
+              className="rounded-2xl border"
+              style={{
+                borderColor: "var(--border-soft)",
+                background: "var(--surface-muted)",
+                padding: "16px",
+                minHeight: "120px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+              }}
+            >
+              {previewRows.length === 0 ? (
+                <>
+                  <div
                     style={{
-                      color: "var(--text-secondary)",
-                      fontSize: "12px",
-                      fontFamily: "'Inter',sans-serif",
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "10px",
+                      background: "rgba(30, 64, 175, 0.1)",
+                      display: "grid",
+                      placeItems: "center",
+                      color: "var(--accent-strong)",
+                      marginBottom: "10px",
                     }}
                   >
-                    {row}
-                  </li>
-                ))}
-              </ul>
-            )}
+                    <Calendar size={20} />
+                  </div>
+                  <h4
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      margin: "0 0 4px 0",
+                    }}
+                  >
+                    No dates selected yet
+                  </h4>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "var(--text-muted)",
+                      fontSize: "11px",
+                      maxWidth: "180px",
+                    }}
+                  >
+                    Select dates to preview the entries.
+                  </p>
+                </>
+              ) : (
+                <div className="w-full text-left">
+                  <div
+                    className="mb-2"
+                    style={{
+                      color: "var(--text-secondary)",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    DATES TO BE CREATED
+                  </div>
+                  <div
+                    style={{
+                      maxHeight: "100px",
+                      overflowY: "auto",
+                      paddingRight: "8px",
+                    }}
+                    className="custom-scrollbar"
+                  >
+                    <ul className="space-y-1">
+                      {previewRows.map((row) => (
+                        <li
+                          key={row}
+                          style={{
+                            color: "var(--text-secondary)",
+                            fontSize: "12px",
+                          }}
+                        >
+                          {row}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6">
+              <div
+                className="mb-4"
+                style={{
+                  color: "var(--text-primary)",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  letterSpacing: "0.05em",
+                }}
+              >
+                WHAT WILL BE APPLIED
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "6px",
+                        background: "rgba(59, 130, 246, 0.1)",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#3b82f6",
+                      }}
+                    >
+                      <FileText size={14} />
+                    </div>
+                    <span
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Entry Type
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {
+                      {
+                        regular: "Regular Duty Day",
+                        absent: "Absent",
+                        leave: "Leave",
+                        half_day: "Half Day",
+                      }[entryType]
+                    }
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "6px",
+                        background: "rgba(99, 102, 241, 0.1)",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#6366f1",
+                      }}
+                    >
+                      <ShieldCheck size={14} />
+                    </div>
+                    <span
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Duplicate Handling
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {
+                      {
+                        skip: "Skip existing",
+                        replace: "Replace existing",
+                      }[onDuplicate]
+                    }
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "6px",
+                        background: "rgba(16, 185, 129, 0.1)",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#10b981",
+                      }}
+                    >
+                      <CalendarDays size={14} />
+                    </div>
+                    <span
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Weekdays Only
+                    </span>
+                  </div>
+                  {weekdaysOnly && (
+                    <CheckCircle2 size={16} className="text-emerald-500" />
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "6px",
+                        background: "rgba(139, 92, 246, 0.1)",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#8b5cf6",
+                      }}
+                    >
+                      <Clock size={14} />
+                    </div>
+                    <span
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Time Schedule
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {entryType === "regular"
+                      ? `${formatTimePreview(times.amIn)} - ${formatTimePreview(times.pmOut)}`
+                      : entryType === "half_day"
+                        ? `${formatTimePreview(times.amIn)} - ${formatTimePreview(times.amOut)}`
+                        : "Not applicable"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "6px",
+                        background: "rgba(245, 158, 11, 0.1)",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#f59e0b",
+                      }}
+                    >
+                      <Globe size={14} />
+                    </div>
+                    <span
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      OT
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {entryType === "regular" && (times.otIn || times.otOut)
+                      ? `${formatTimePreview(times.otIn)} - ${formatTimePreview(times.otOut)}`
+                      : "Not set"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "6px",
+                        background: "rgba(236, 72, 153, 0.1)",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#ec4899",
+                      }}
+                    >
+                      <StickyNote size={14} />
+                    </div>
+                    <span
+                      style={{
+                        color: "var(--text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Note
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      maxWidth: "120px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {note || "No note added"}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {error && (
-          <p
-            className="mt-3"
-            style={{
-              color: "#DC2626",
-              fontSize: "12px",
-              fontFamily: "'Inter',sans-serif",
-              marginBottom: 0,
-            }}
-          >
-            {error}
-          </p>
-        )}
+        <div className="mt-6 flex flex-col gap-3">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end items-center">
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                border: "1px solid var(--border-soft)",
+                background: "var(--surface-muted)",
+                color: "var(--text-secondary)",
+                fontSize: "12px",
+                fontWeight: 700,
+                fontFamily: "'Inter',sans-serif",
+                borderRadius: "10px",
+                padding: "9px 16px",
+              }}
+            >
+              Close
+            </button>
 
-        {feedback && (
-          <p
-            className="mt-3"
-            style={{
-              color: "#059669",
-              fontSize: "12px",
-              fontFamily: "'Inter',sans-serif",
-              marginBottom: 0,
-            }}
-          >
-            {feedback}
-          </p>
-        )}
+            <button
+              type="button"
+              onClick={handleSaveBulk}
+              disabled={isSaving}
+              style={{
+                border: "none",
+                background: "var(--accent-strong)",
+                color: "#ffffff",
+                fontSize: "12px",
+                fontWeight: 700,
+                fontFamily: "'Inter',sans-serif",
+                borderRadius: "10px",
+                padding: "9px 20px",
+                opacity: isSaving ? 0.75 : 1,
+                cursor: isSaving ? "not-allowed" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                boxShadow: "0 10px 20px rgba(59, 130, 246, 0.15)",
+              }}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> SAVING...
+                </>
+              ) : (
+                <>
+                  <CalendarRange size={14} /> APPLY BULK ENTRIES
+                </>
+              )}
+            </button>
+          </div>
 
-        <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              border: "1px solid var(--border-soft)",
-              background: "var(--surface-muted)",
-              color: "var(--text-secondary)",
-              fontSize: "12px",
-              fontWeight: 700,
-              fontFamily: "'Inter',sans-serif",
-              borderRadius: "10px",
-              padding: "9px 12px",
-            }}
-          >
-            Close
-          </button>
-
-          <button
-            type="button"
-            onClick={handleSaveBulk}
-            disabled={isSaving}
-            style={{
-              border: "none",
-              background: "var(--accent-strong)",
-              color: "#ffffff",
-              fontSize: "12px",
-              fontWeight: 700,
-              fontFamily: "'Inter',sans-serif",
-              borderRadius: "10px",
-              padding: "9px 12px",
-              opacity: isSaving ? 0.75 : 1,
-              cursor: isSaving ? "not-allowed" : "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-            }}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 size={14} className="animate-spin" /> Saving
-              </>
-            ) : (
-              <>
-                <CalendarRange size={14} /> Apply Bulk Entries
-              </>
-            )}
-          </button>
+          {(error || feedback) && (
+            <div className="flex justify-end animate-in fade-in slide-in-from-top-1 duration-300">
+              {error && (
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                  style={{
+                    background: "rgba(220, 38, 38, 0.08)",
+                    border: "1px solid rgba(220, 38, 38, 0.15)",
+                    color: "#ef4444",
+                    fontSize: "10px",
+                    fontWeight: 800,
+                    letterSpacing: "0.02em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  {error}
+                </div>
+              )}
+              {feedback && (
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                  style={{
+                    background: "rgba(16, 185, 129, 0.08)",
+                    border: "1px solid rgba(16, 185, 129, 0.15)",
+                    color: "#10b981",
+                    fontSize: "10px",
+                    fontWeight: 800,
+                    letterSpacing: "0.02em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  <ShieldCheck size={12} />
+                  {feedback}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </GlassCard>
     </div>

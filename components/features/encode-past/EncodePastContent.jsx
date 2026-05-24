@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { CalendarRange, ClipboardList } from "lucide-react";
+import {
+  CalendarRange,
+  ClipboardList,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
@@ -226,6 +231,13 @@ export default function EncodePastContent() {
 
     setError("");
     setWarning("");
+
+    const today = getTodayInputDate();
+    if (form.date > today) {
+      setError("Attendance records cannot be added for future dates.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -373,7 +385,7 @@ export default function EncodePastContent() {
             background: "rgba(255, 255, 255, 0.03)",
             backdropFilter: "blur(40px)",
             WebkitBackdropFilter: "blur(40px)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            border: "1px solid var(--border-soft)",
             boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
           }}
         >
@@ -395,16 +407,52 @@ export default function EncodePastContent() {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8 flex flex-col gap-3">
         <SaveButton
           onSave={handleSave}
           isLoading={isLoading}
           disabled={disableSave}
           saved={saved}
         />
-      </div>
 
-      <ErrorMessage error={error} />
+        {(error || saved) && (
+          <div className="flex justify-center animate-in fade-in slide-in-from-top-1 duration-300">
+            {error ? (
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                style={{
+                  background: "rgba(220, 38, 38, 0.08)",
+                  border: "1px solid rgba(220, 38, 38, 0.15)",
+                  color: "#ef4444",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase",
+                }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                {error}
+              </div>
+            ) : (
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                style={{
+                  background: "rgba(16, 185, 129, 0.08)",
+                  border: "1px solid rgba(16, 185, 129, 0.15)",
+                  color: "#10b981",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase",
+                }}
+              >
+                <CheckCircle2 size={12} />
+                RECORD SAVED SUCCESSFULLY
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {warning && (
         <div
