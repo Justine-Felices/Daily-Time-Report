@@ -28,19 +28,14 @@
 }
 
 .dark {
-  --bg: 15 15 15;
+  --bg: 10 14 20;
   --text: 255 255 255;
-  --card: 30 30 30;
-  --border: 60 60 60;
+  --card: 17 24 34;
+  --border: 40 50 65;
 
   --background: rgb(var(--bg));
   --foreground: rgb(var(--text));
-  --page-bg: radial-gradient(
-    circle at 15% 10%,
-    #0f2530 0%,
-    #081520 45%,
-    #131822 100%
-  );
+  --page-bg: #0a0e14;
   --surface-card: rgb(var(--card) / 0.82);
   --surface-muted: rgba(15, 29, 39, 0.78);
   --text-primary: #e2edf4;

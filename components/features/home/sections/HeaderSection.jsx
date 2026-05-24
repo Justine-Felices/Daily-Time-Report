@@ -2,41 +2,45 @@ import { formatLongDate, formatTime } from "@/lib/dtr-formatters";
 import { memo, useMemo } from "react";
 
 const DATE_TEXT_STYLE = {
-  color: "rgba(255, 255, 255, 0.5)",
-  fontSize: "14px",
+  color: "rgba(255, 255, 255, 0.45)",
+  fontSize: "12px",
   fontWeight: 600,
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-  letterSpacing: "0.05em",
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
 };
 
 const TIME_TEXT_STYLE = {
-  fontSize: "clamp(64px, 12vw, 110px)",
-  fontWeight: 900,
+  fontSize: "clamp(44px, 6.5vw, 72px)",
+  fontWeight: 800,
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-  letterSpacing: "-0.05em",
-  lineHeight: "0.9",
-  backgroundImage: "linear-gradient(to right, #3b82f6, #f472b6)",
+  letterSpacing: "-0.04em",
+  lineHeight: "1",
+  backgroundImage: "linear-gradient(to right, #60a5fa, #d946ef)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",
-  marginBottom: "12px",
 };
 
 const STATUS_TEXT_STYLE = {
-  color: "rgba(255, 255, 255, 0.6)",
-  fontSize: "13px",
-  fontWeight: 500,
+  color: "rgba(255, 255, 255, 0.45)",
+  fontSize: "11px",
+  fontWeight: 600,
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
 };
 
-export default memo(function HeaderSection({ 
-  now, 
-  isClockIn, 
-  statusLabel, 
+export default memo(function HeaderSection({
+  now,
+  isClockIn,
+  statusLabel,
   userName,
   currentSessionTimeIn,
-  currentSessionHours
+  currentSessionHours,
+  isDayComplete,
+  dashboardView,
+  onToggleClock,
 }) {
   const firstName = useMemo(() => {
     if (!userName) return "User";
@@ -55,217 +59,94 @@ export default memo(function HeaderSection({
     return hour === 11;
   }, [now]);
 
-  const VideoElement = ({ flip = false }) => (
-    <div>
-      <video
-        src="/gojo.webm"
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{ 
-          height: '200px', 
-          width: '200px', 
-          objectFit: 'contain',
-          transform: flip ? 'scaleX(-1)' : 'none'
+  const canToggleClock =
+    dashboardView !== "manual" && !isDayComplete && onToggleClock;
+
+  const StatusRow = () => (
+    <button
+      type="button"
+      onClick={canToggleClock ? onToggleClock : undefined}
+      disabled={!canToggleClock}
+      className={`mt-3 flex items-center gap-2 ${canToggleClock ? "cursor-pointer transition-opacity hover:opacity-80" : "cursor-default"}`}
+    >
+      <span
+        className={`inline-block h-1.5 w-1.5 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
+        style={{
+          background: isClockIn ? "#3b82f6" : "rgba(255,255,255,0.25)",
+          boxShadow: isClockIn ? "0 0 8px #3b82f6" : "none",
         }}
       />
-    </div>
+      <span style={STATUS_TEXT_STYLE}>{statusLabel}</span>
+    </button>
   );
 
-  // ─── Decorative accent line with dot ───
-  const AccentLine = ({ flip = false }) => (
-    <div className="flex items-center gap-0" style={{ direction: flip ? "rtl" : "ltr" }}>
-      <div
-        style={{
-          width: "6px",
-          height: "6px",
-          borderRadius: "50%",
-          background: "#3b82f6",
-          boxShadow: "0 0 8px rgba(59, 130, 246, 0.6)",
-          flexShrink: 0,
-        }}
-      />
-      <div
-        style={{
-          width: "clamp(40px, 8vw, 100px)",
-          height: "1px",
-          background: "linear-gradient(to right, rgba(59, 130, 246, 0.6), transparent)",
-          flexShrink: 0,
-        }}
-      />
-    </div>
-  );
-
-  // ─── BREAK TIME: Full-width cinematic layout ───
   if (isBreakTime) {
     return (
-      <div
-        className="relative flex items-center justify-center pt-16 pb-8 px-6"
-        style={{
-          width: "100vw",
-          marginLeft: "calc(-50vw + 50%)",
-          overflow: "hidden",
-        }}
-      >
-        {/* Left Video */}
-        <div className="absolute left-[20%] hidden lg:flex items-center">
-          <VideoElement />
+      <div className="flex flex-col items-start pt-2 pb-2">
+        <span style={DATE_TEXT_STYLE}>{formatLongDate(now).toUpperCase()}</span>
+        <p
+          className="mt-3 text-white/90"
+          style={{
+            fontFamily: "var(--font-dancing-script), cursive",
+            fontSize: "clamp(36px, 5vw, 52px)",
+            lineHeight: 1.1,
+          }}
+        >
+          {firstName} is on break
+        </p>
+        <div className="mt-4" style={TIME_TEXT_STYLE}>
+          {formatTime(now)}
         </div>
-
-        {/* Center Content */}
-        <div className="flex flex-col items-center justify-center text-center z-10">
-
-          {/* ── Date with decorative accents ── */}
-          <div className="flex items-center gap-3">
-            <AccentLine />
-            <span
-              style={{
-                ...DATE_TEXT_STYLE,
-                fontSize: "13px",
-                color: "rgba(255, 255, 255, 0.55)",
-                letterSpacing: "0.18em",
-              }}
-            >
-              {formatLongDate(now)}
+        {isClockIn && (
+          <div className="mt-3 flex items-center gap-4 text-[12px] font-medium tracking-wide text-white/45">
+            <span>
+              <span className="text-blue-400">TIME IN:</span> {currentSessionTimeIn}
             </span>
-            <AccentLine flip />
-          </div>
-
-          {/* ── "JUSTINE IS" with decorative accents ── */}
-          <div className="flex items-center gap-3 mt-4">
-            {/* <AccentLine /> */}
-            <span
-              style={{
-                fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-                fontSize: "clamp(13px, 2vw, 16px)",
-                fontWeight: 600,
-                color: "rgba(255, 255, 255, 0.55)",
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-              }}
-            >
-              {firstName} is
+            <span className="h-3 w-px bg-white/10" />
+            <span>
+              <span className="text-blue-400">WORKED:</span>{" "}
+              {currentSessionHours.toFixed(1)} hrs
             </span>
-            {/* <AccentLine flip /> */}
           </div>
-
-          {/* ── "ON BREAK" — massive ultra-bold ── */}
-          <h2
-            className="mt-2"
-            style={{
-              fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-              fontSize: "clamp(64px, 14vw, 120px)",
-              fontWeight: 900,
-              lineHeight: 1,
-              letterSpacing: "-0.03em",
-              backgroundImage: "linear-gradient(135deg, #3b82f6 0%, #f472b6 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-          >
-            ON BREAK
-          </h2>
-
-          {/* ── Time — small, subtle ── */}
-          <div
-            style={{
-              fontFamily: "var(--font-geist-sans), Inter, sans-serif",
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "rgba(255, 255, 255, 0.45)",
-              marginTop: "16px",
-              letterSpacing: "0.1em",
-            }}
-          >
-            {formatTime(now)}
-          </div>
-
-          {/* Session info */}
-          {isClockIn && (
-            <div className="flex items-center gap-4 text-white/50 text-[13px] font-medium tracking-wide mt-4">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[#3b82f6] opacity-80">TIME IN:</span>
-                <span className="text-white/80">{currentSessionTimeIn}</span>
-              </div>
-              <div className="h-3 w-[1px] bg-white/10" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-[#3b82f6] opacity-80">WORKED:</span>
-                <span className="text-white/80">{currentSessionHours.toFixed(1)} hrs</span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <div
-              className={`h-2 w-2 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
-              style={{
-                background: isClockIn ? "#3b82f6" : "rgba(255,255,255,0.2)",
-                boxShadow: isClockIn ? "0 0 10px #3b82f6" : "none",
-              }}
-            />
-            <span style={STATUS_TEXT_STYLE}>{statusLabel}</span>
-          </div>
-        </div>
-
-        {/* Right Video */}
-        <div className="absolute right-[20%] hidden lg:flex items-center">
-          <VideoElement flip />
-        </div>
+        )}
+        <StatusRow />
       </div>
     );
   }
 
-  // ─── NORMAL STATE ───
   return (
-    <div className="flex flex-col items-center justify-center gap-1 pt-12 pb-4 px-2 text-center">
-      <div style={DATE_TEXT_STYLE}>{formatLongDate(now)}</div>
-      
-      <div className="mt-4 mb-2">
-        <span 
-          className="text-white/80 font-medium text-5xl sm:text-7xl tracking-tight"
-          style={{ fontFamily: "var(--font-dancing-script), cursive" }}
-        >
-          {greeting},{" "}
-          <span className="text-white font-bold bg-gradient-to-r from-[#60a5fa] to-[#f472b6] bg-clip-text text-transparent">
-            {firstName}
+    <div className="flex flex-col items-start pt-2 pb-2">
+      <span style={DATE_TEXT_STYLE}>{formatLongDate(now).toUpperCase()}</span>
+
+      <p
+        className="mt-3 text-white"
+        style={{
+          fontFamily: "var(--font-dancing-script), cursive",
+          fontSize: "clamp(36px, 5vw, 52px)",
+          lineHeight: 1.15,
+        }}
+      >
+        {greeting}, {firstName}
+      </p>
+
+      <div className="mt-4" style={TIME_TEXT_STYLE}>
+        {formatTime(now)}
+      </div>
+
+      {isClockIn && (
+        <div className="mt-3 flex items-center gap-4 text-[12px] font-medium tracking-wide text-white/45">
+          <span>
+            <span className="text-blue-400">TIME IN:</span> {currentSessionTimeIn}
           </span>
-        </span>
-      </div>
-
-      <div style={TIME_TEXT_STYLE}>{formatTime(now)}</div>
-
-      <div className="flex flex-col items-center gap-3 mt-2">
-        {isClockIn && (
-          <div className="flex items-center gap-4 text-white/50 text-[13px] font-medium tracking-wide">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[#3b82f6] opacity-80">TIME IN:</span>
-              <span className="text-white/80">{currentSessionTimeIn}</span>
-            </div>
-            <div className="h-3 w-[1px] bg-white/10" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-[#3b82f6] opacity-80">WORKED:</span>
-              <span className="text-white/80">{currentSessionHours.toFixed(1)} hrs</span>
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center justify-center gap-2">
-          <div
-            className={`h-2 w-2 rounded-full ${isClockIn ? "animate-dot-blink" : ""}`}
-            style={{
-              background: isClockIn ? "#3b82f6" : "rgba(255,255,255,0.2)",
-              boxShadow: isClockIn
-                ? "0 0 10px #3b82f6"
-                : "none",
-            }}
-          />
-          <span style={STATUS_TEXT_STYLE}>{statusLabel}</span>
+          <span className="h-3 w-px bg-white/10" />
+          <span>
+            <span className="text-blue-400">WORKED:</span>{" "}
+            {currentSessionHours.toFixed(1)} hrs
+          </span>
         </div>
-      </div>
+      )}
+
+      <StatusRow />
     </div>
   );
 });
-

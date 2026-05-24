@@ -3,27 +3,22 @@ import { SkeletonBlock } from "@/components/ui/Skeleton";
 export default function StatCard({ label, value, sub, isLoading = false }) {
   return (
     <div
-      className="relative flex flex-col items-center justify-center gap-y-1 rounded-2xl sm:rounded-3xl p-2 sm:p-4 text-center"
+      className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-3 text-center sm:rounded-[18px] sm:px-3 sm:py-4"
       style={{
         background: "rgba(255, 255, 255, 0.03)",
-        backdropFilter: "blur(40px)",
-        WebkitBackdropFilter: "blur(40px)",
-        border: "1px solid var(--border-soft)",
-        boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
+        border: "1px solid rgba(255, 255, 255, 0.06)",
       }}
     >
-      {/* Label */}
-      <span className="text-[#3b82f6] font-bold tracking-tight uppercase text-[8px] sm:text-[12px]">
+      <span className="text-[9px] font-bold uppercase tracking-wide text-[#3b82f6] sm:text-[10px]">
         {label}
       </span>
 
-      {/* Main Stat */}
-      <div className="flex items-center justify-center py-0.5 sm:py-1">
+      <div className="flex items-center justify-center py-0.5">
         {isLoading ? (
-          <SkeletonBlock className="h-6 w-12 sm:h-10 sm:w-24 rounded-lg bg-white/5" />
+          <SkeletonBlock className="h-7 w-14 rounded-md bg-white/5 sm:h-9 sm:w-16" />
         ) : (
           <span
-            className="text-white text-lg sm:text-3xl font-semibold leading-none tracking-tight"
+            className="text-xl font-semibold leading-none tracking-tight text-white sm:text-[28px]"
             style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
           >
             {value}
@@ -31,10 +26,9 @@ export default function StatCard({ label, value, sub, isLoading = false }) {
         )}
       </div>
 
-      {/* Subtext */}
-      <div className="text-[#8E8E93] font-bold tracking-tight text-[7px] sm:text-[10px] text-center uppercase">
+      <span className="text-[8px] font-bold uppercase tracking-wide text-[#3b82f6]/80 sm:text-[9px]">
         {sub}
-      </div>
+      </span>
     </div>
   );
 }

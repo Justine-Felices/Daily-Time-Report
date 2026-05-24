@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { SkeletonCircle } from "@/components/ui/Skeleton";
 
 export default function CircularProgress({ pct, isLoading = false }) {
   const [displayPct, setDisplayPct] = useState(0);
+  const uid = useId().replace(/:/g, "");
 
-  // Animate the percentage number
   useEffect(() => {
     if (isLoading) return;
     const duration = 1500;
@@ -15,60 +15,54 @@ export default function CircularProgress({ pct, isLoading = false }) {
     const animate = (currentTime) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
-      // Easing function (easeOutExpo)
       const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      
-      const currentVal = Math.floor(start + (end - start) * ease);
-      setDisplayPct(currentVal);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+      setDisplayPct(Math.floor(start + (end - start) * ease));
+      if (progress < 1) requestAnimationFrame(animate);
     };
 
     requestAnimationFrame(animate);
   }, [pct, isLoading]);
 
-  // SVG coordinate system constants (relative to viewBox 0 0 100 100)
   const strokeWidth = 8;
-  const radius = 41; 
+  const radius = 41;
   const circumference = 2 * Math.PI * radius;
-  
   const offset = circumference - (pct / 100) * circumference;
 
+  const gradId = `progressGrad-${uid}`;
+  const shimmerGradId = `shimmerGrad-${uid}`;
+  const maskId = `progressMask-${uid}`;
+  const glowId = `ringGlow-${uid}`;
+
   return (
-    <div className="relative flex items-center justify-center w-40 h-40 md:w-52 md:h-52 transition-all duration-500">
-      <svg 
-        viewBox="0 0 100 100" 
-        className="w-full h-full"
+    <div className="relative flex h-36 w-36 items-center justify-center transition-all duration-500 sm:h-44 sm:w-44">
+      <svg
+        viewBox="0 0 100 100"
+        className="h-full w-full"
         style={{ transform: "rotate(-90deg)" }}
       >
         <defs>
-          <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#f472b6" />
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#60a5fa" />
+            <stop offset="55%" stopColor="#818cf8" />
+            <stop offset="100%" stopColor="#e879f9" />
           </linearGradient>
 
-          <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id={shimmerGradId} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="transparent" />
-            <stop offset="50%" stopColor="white" stopOpacity="0.8" />
+            <stop offset="20%" stopColor="#7dd3fc" stopOpacity="0" />
+            <stop offset="42%" stopColor="#a5b4fc" stopOpacity="0.35" />
+            <stop offset="50%" stopColor="#f0abfc" stopOpacity="0.7" />
+            <stop offset="58%" stopColor="#a5b4fc" stopOpacity="0.35" />
+            <stop offset="80%" stopColor="#7dd3fc" stopOpacity="0" />
             <stop offset="100%" stopColor="transparent" />
           </linearGradient>
-          
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-            <feComposite in="SourceGraphic" in2="coloredBlur" operator="over" />
+
+          <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          <filter id="waveGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feFlood floodColor="#3b82f6" floodOpacity="1" result="color" />
-            <feComposite in="color" in2="blur" operator="in" result="glow" />
-            <feComposite in="SourceGraphic" in2="glow" operator="over" />
-          </filter>
-
-          <mask id="progressMask">
+          <mask id={maskId}>
             <circle
               cx="50"
               cy="50"
@@ -86,100 +80,90 @@ export default function CircularProgress({ pct, isLoading = false }) {
 
         <style>
           {`
-            @keyframes wave-travel {
-              from { stroke-dashoffset: 0; }
-              to { stroke-dashoffset: -${circumference}; }
+            @keyframes ring-shimmer-${uid} {
+              0% { stroke-dashoffset: 0; }
+              100% { stroke-dashoffset: -${circumference}; }
             }
-            .wave-arc {
+            .ring-track-${uid} {
               stroke-dasharray: ${circumference};
               stroke-dashoffset: ${offset};
-              transition: stroke-dashoffset 1s ease-in-out;
+              transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
-            .wave-highlight {
-              stroke-dasharray: 120 ${circumference - 120};
-              animation: wave-travel 4s linear infinite;
-              filter: drop-shadow(0 0 5px #3b82f6);
-              opacity: 0.8;
+            .ring-shimmer-${uid} {
+              stroke-dasharray: 72 ${circumference - 72};
+              will-change: stroke-dashoffset;
+              animation: ring-shimmer-${uid} 6s linear infinite;
             }
           `}
         </style>
 
-        {/* Background Track (Thick) */}
         <circle
           cx="50"
           cy="50"
           r={radius}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.04)"
+          stroke="rgba(255, 255, 255, 0.06)"
           strokeWidth={strokeWidth}
         />
 
-        {/* Progress Path (Main Thick Arc) */}
         <circle
           cx="50"
           cy="50"
           r={radius}
           fill="none"
-          stroke="url(#progressGrad)"
+          stroke={`url(#${gradId})`}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
-          filter="url(#glow)"
-          className="wave-arc"
+          filter={`url(#${glowId})`}
+          className={`ring-track-${uid}`}
         />
 
-        {/* Traveling Wave Highlight */}
         {!isLoading && pct > 0 && (
           <circle
             cx="50"
             cy="50"
             r={radius}
             fill="none"
-            stroke="#3b82f6"
-            strokeWidth={strokeWidth}
+            stroke={`url(#${shimmerGradId})`}
+            strokeWidth={strokeWidth + 1}
             strokeLinecap="round"
-            mask="url(#progressMask)"
-            filter="url(#waveGlow)"
-            className="wave-highlight"
-            style={{ 
-              mixBlendMode: "plus-lighter"
+            mask={`url(#${maskId})`}
+            className={`ring-shimmer-${uid}`}
+            style={{
+              filter: "drop-shadow(0 0 8px rgba(167, 139, 250, 0.35))",
             }}
           />
         )}
       </svg>
 
-      {/* Inner Content Card */}
       <div
-        className="absolute flex flex-col items-center justify-center rounded-full w-[68%] h-[68%]"
+        className="absolute flex h-[68%] w-[68%] flex-col items-center justify-center rounded-full"
         style={{
-          background: "#111D29",
+          background: "#0d1219",
           border: "1px solid rgba(255, 255, 255, 0.05)",
         }}
       >
-        <div className="flex flex-col items-center">
-          <span
-            className="text-white font-bold leading-none tracking-tight text-4xl md:text-5xl"
-            style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
-          >
-            {isLoading ? (
-              <SkeletonCircle
-                size={48}
-                className="mx-auto"
-                style={{ background: "rgba(255, 255, 255, 0.1)" }}
-              />
-            ) : (
-              `${displayPct}%`
-            )}
-          </span>
-          <span
-            className="text-white font-bold tracking-[0.25em] mt-3 text-[9px] md:text-[10px] uppercase opacity-80"
-            style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
-          >
-            COMPLETE
-          </span>
-        </div>
+        <span
+          className="text-4xl font-bold leading-none tracking-tight text-white md:text-5xl"
+          style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+        >
+          {isLoading ? (
+            <SkeletonCircle
+              size={48}
+              className="mx-auto"
+              style={{ background: "rgba(255, 255, 255, 0.1)" }}
+            />
+          ) : (
+            `${displayPct}%`
+          )}
+        </span>
+        <span
+          className="mt-3 text-[9px] font-bold uppercase tracking-[0.25em] text-white/80 md:text-[10px]"
+          style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+        >
+          COMPLETE
+        </span>
       </div>
     </div>
   );
 }
-
-
