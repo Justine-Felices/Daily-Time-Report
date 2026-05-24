@@ -327,9 +327,8 @@ export default function EncodePastContent() {
       />
 
       <BulkAddDtrModal
-        isOpen={showBulkModal}
+        open={showBulkModal}
         onClose={() => setShowBulkModal(false)}
-        onSaved={triggerSaved}
       />
 
       {isModeLoading ? (

@@ -1,12 +1,5 @@
-import { Timer } from "lucide-react";
+import { PieChart } from "lucide-react";
 import StatCard from "@/components/features/home/components/StatCard";
-
-const TITLE_STYLE = {
-  color: "var(--text-primary)",
-  fontSize: "18px",
-  fontWeight: 700,
-  fontFamily: "'Inter',sans-serif",
-};
 
 export default function SummarySection({
   isLoading = false,
@@ -20,36 +13,37 @@ export default function SummarySection({
       label: "TODAY HOURS",
       value: `${todayHours.toFixed(1)}h`,
       sub: "logged today",
-      accent: true,
     },
     {
       label: "WEEK HOURS",
       value: `${weekHours.toFixed(1)}h`,
       sub: "this week",
-      accent: true,
     },
     {
       label: "MONTH HOURS",
       value: `${monthHours.toFixed(0)}h`,
       sub: "this month",
-      accent: true,
     },
     {
       label: "TOTAL HOURS",
       value: `${totalHours.toFixed(0)}h`,
       sub: "all-time",
-      accent: true,
     },
   ];
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2 px-1">
-        <Timer size={18} color="#3b82f6" />
-        <span style={TITLE_STYLE}>Summary</span>
+      <div className="mb-3 flex items-center gap-2 px-0.5">
+        <PieChart size={17} className="text-[#3b82f6]" strokeWidth={2.25} />
+        <span
+          className="text-[17px] font-bold text-white"
+          style={{ fontFamily: "var(--font-geist-sans), Inter, sans-serif" }}
+        >
+          Summary
+        </span>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 pb-4 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
         {summaryItems.map((item) => (
           <StatCard
             key={item.label}
@@ -57,7 +51,6 @@ export default function SummarySection({
             label={item.label}
             value={item.value}
             sub={item.sub}
-            accent={item.accent}
           />
         ))}
       </div>

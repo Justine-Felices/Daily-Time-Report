@@ -8,7 +8,11 @@ import {
   isUserProfileOnboarded,
 } from "@/lib/supabase-user-profiles";
 import { fetchDashboardInternHoursByUserId } from "@/lib/supabase-dashboard-hours";
-import { fetchAttendanceRecordByDate } from "@/lib/supabase-history";
+import {
+  fetchAttendanceRecordByDate,
+  fetchAttendanceRecordsByDateRange,
+  fetchAttendanceMonthsWithData,
+} from "@/lib/supabase-history";
 import { isResetStatus, isHalfDayStatus, calculateTotalHours } from "@/lib/dtr-time-validation";
 
 
@@ -88,6 +92,28 @@ function toLocalDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function getMonthBounds(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+  return {
+    startKey: toLocalDateKey(start),
+    endKey: toLocalDateKey(end),
+  };
+}
+
+function monthKeyFromDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function dateFromMonthKey(monthKey) {
+  const [year, month] = monthKey.split("-").map(Number);
+  return new Date(year, month - 1, 1);
+}
+
 function formatDashboardDate(dateText) {
   if (typeof dateText !== "string") return null;
 
@@ -152,6 +178,12 @@ export default function useHomeDashboardLogic() {
   const [note, setNote] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [warningMessage, setWarningMessage] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [calendarRecords, setCalendarRecords] = useState([]);
+  const [calendarMonthsWithData, setCalendarMonthsWithData] = useState([]);
+  const [isCalendarLoading, setIsCalendarLoading] = useState(false);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
 
   // Keep track of the last known DB state to allow reverting manual edits
   const [persistedAmSession, setPersistedAmSession] = useState(EMPTY_SESSION);
@@ -187,6 +219,72 @@ export default function useHomeDashboardLogic() {
 
   const now = useLiveClock(60000);
   const todayKey = useMemo(() => toLocalDateKey(now), [now]);
+
+  useEffect(() => {
+    if (!supabase || !currentUserId) return;
+
+    let mounted = true;
+
+    fetchAttendanceMonthsWithData({ supabase, userId: currentUserId })
+      .then((months) => {
+        if (mounted) setCalendarMonthsWithData(months);
+      })
+      .catch(() => {
+        if (mounted) setCalendarMonthsWithData([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase, currentUserId, calendarRefreshKey]);
+
+  useEffect(() => {
+    if (calendarMonthsWithData.length === 0) return;
+
+    const currentKey = monthKeyFromDate(calendarMonth);
+    if (calendarMonthsWithData.includes(currentKey)) return;
+
+    const todayMonthKey = monthKeyFromDate(new Date());
+    const fallbackKey = calendarMonthsWithData.includes(todayMonthKey)
+      ? todayMonthKey
+      : calendarMonthsWithData[calendarMonthsWithData.length - 1];
+
+    setCalendarMonth(dateFromMonthKey(fallbackKey));
+  }, [calendarMonthsWithData, calendarMonth]);
+
+  useEffect(() => {
+    if (!supabase || !currentUserId) return;
+
+    let mounted = true;
+    const { startKey, endKey } = getMonthBounds(calendarMonth);
+    setIsCalendarLoading(true);
+
+    fetchAttendanceRecordsByDateRange({
+      supabase,
+      userId: currentUserId,
+      startDate: startKey,
+      endDate: endKey,
+    })
+      .then((records) => {
+        if (mounted) {
+          setCalendarRecords(records);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setCalendarRecords([]);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setIsCalendarLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [supabase, currentUserId, calendarMonth, calendarRefreshKey]);
 
   // Revert manual edits when toggling back to Live Mode
   useEffect(() => {
@@ -354,6 +452,8 @@ export default function useHomeDashboardLogic() {
         setNote("");
         setHasTodayRecord(false);
       }
+
+      setCalendarRefreshKey((prev) => prev + 1);
     },
     [supabase, todayKey],
   );
@@ -501,6 +601,8 @@ export default function useHomeDashboardLogic() {
           }
           return;
         }
+
+        setCurrentUserId(user.id);
 
         const { data: profile, error: profileError } =
           await fetchUserProfileByUserId({
@@ -982,6 +1084,14 @@ export default function useHomeDashboardLogic() {
       weekHours,
       monthHours,
       totalHours: totalRenderedHours,
+    },
+    calendar: {
+      monthDate: calendarMonth,
+      setMonthDate: setCalendarMonth,
+      records: calendarRecords,
+      monthsWithData: calendarMonthsWithData,
+      isLoading: isCalendarLoading,
+      todayKey,
     },
   };
 }

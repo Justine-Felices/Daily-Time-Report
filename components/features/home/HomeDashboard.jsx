@@ -3,69 +3,87 @@
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/home/sections/HeaderSection";
 import ProgressSection from "@/components/features/home/sections/ProgressSection";
+import CalendarSection from "@/components/features/home/sections/CalendarSection";
 import SummarySection from "@/components/features/home/sections/SummarySection";
 import SessionsSection from "@/components/features/home/sections/SessionsSection";
 import useHomeDashboardLogic from "@/components/features/home/hooks/useHomeDashboardLogic";
-import { useState } from "react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+
 export default function HomeDashboard() {
-  const { loading, constants, header, progress, sessions, summary } =
+  const { loading, constants, header, progress, sessions, summary, calendar } =
     useHomeDashboardLogic();
 
   return (
-    <PageShell width="wide">
-      <HeaderSection
-        now={header.now}
-        isClockIn={header.isClockIn}
-        statusLabel={header.statusLabel}
-        userName={header.userName}
-        currentSessionTimeIn={header.currentSessionTimeIn}
-        currentSessionHours={header.currentSessionHours}
-        isDayComplete={header.isDayComplete}
-      />
+    <PageShell width="dashboard">
+      <div className="grid items-start gap-6 lg:grid-cols-[2fr_3fr] lg:items-stretch">
+        <div className="flex flex-col gap-6">
+          <HeaderSection
+            now={header.now}
+            isClockIn={header.isClockIn}
+            statusLabel={header.statusLabel}
+            userName={header.userName}
+            currentSessionTimeIn={header.currentSessionTimeIn}
+            currentSessionHours={header.currentSessionHours}
+            isDayComplete={header.isDayComplete}
+            dashboardView={sessions.dashboardView}
+            onToggleClock={sessions.onToggleClock}
+          />
 
-      <ProgressSection
-        isLoading={loading.isLoading}
-        pct={progress.pct}
-        remaining={progress.remaining}
-        targetHours={constants.TARGET_HOURS}
-        totalHours={summary.totalHours}
-        buttonConfig={sessions.buttonConfig}
-        isDayComplete={sessions.isDayComplete}
-        hasAnyLog={sessions.hasAnyLog}
-        estimatedFinishText={progress.estimatedFinishText}
-        onToggleClock={sessions.onToggleClock}
-        dashboardView={sessions.dashboardView}
-      />
+          <ProgressSection
+            isLoading={loading.isLoading}
+            pct={progress.pct}
+            remaining={progress.remaining}
+            targetHours={constants.TARGET_HOURS}
+            totalHours={summary.totalHours}
+            estimatedFinishText={progress.estimatedFinishText}
+          />
 
-      {sessions.dashboardView === "manual" && !sessions.isDayComplete && (
-        <SessionsSection
-          amSession={sessions.amSession}
-          pmSession={sessions.pmSession}
-          otSession={sessions.otSession}
-          persistedAmSession={sessions.persistedAmSession}
-          persistedPmSession={sessions.persistedPmSession}
-          persistedOtSession={sessions.persistedOtSession}
-          status={sessions.status}
-          attendanceMode={sessions.attendanceMode}
-          isLoading={loading.isLoading}
-          isSaving={sessions.isSaving}
-          showSuccess={sessions.showSuccess}
-          errorMessage={sessions.errorMessage}
-          onManualSave={sessions.handleManualTimeChange}
-          onStatusChange={sessions.handleStatusChange}
-          onGlobalSave={sessions.handleGlobalSave}
-          onToggleClock={sessions.onToggleClock}
-          note={sessions.note}
-          onNoteChange={sessions.setNote}
-          sessions={sessions}
+          {sessions.dashboardView === "manual" &&
+            sessions.hasTodayRecord &&
+            !sessions.isDayComplete && (
+            <SessionsSection
+              amSession={sessions.amSession}
+              pmSession={sessions.pmSession}
+              otSession={sessions.otSession}
+              persistedAmSession={sessions.persistedAmSession}
+              persistedPmSession={sessions.persistedPmSession}
+              persistedOtSession={sessions.persistedOtSession}
+              status={sessions.status}
+              attendanceMode={sessions.attendanceMode}
+              isLoading={loading.isLoading}
+              isSaving={sessions.isSaving}
+              showSuccess={sessions.showSuccess}
+              errorMessage={sessions.errorMessage}
+              onManualSave={sessions.handleManualTimeChange}
+              onStatusChange={sessions.handleStatusChange}
+              onGlobalSave={sessions.handleGlobalSave}
+              onToggleClock={sessions.onToggleClock}
+              note={sessions.note}
+              onNoteChange={sessions.setNote}
+              sessions={sessions}
+            />
+          )}
+
+          <SummarySection
+            isLoading={loading.isLoading}
+            todayHours={summary.todayHours}
+            weekHours={summary.weekHours}
+            monthHours={summary.monthHours}
+            totalHours={summary.totalHours}
+          />
+        </div>
+
+        <CalendarSection
+          monthDate={calendar.monthDate}
+          records={calendar.records}
+          monthsWithData={calendar.monthsWithData}
+          isLoading={calendar.isLoading}
+          onMonthChange={calendar.setMonthDate}
+          todayKey={calendar.todayKey}
         />
-      )}
+      </div>
 
-      {/* Clock Out Confirmation Modal */}
       {sessions.showClockOutModal &&
         (() => {
-          // Detect late clock-in for dual mode (am_in >= 11:00)
           const amInTime = sessions.amSession?.timeIn;
           const amInMinutes = amInTime
             ? (() => {
@@ -86,7 +104,7 @@ export default function HomeDashboard() {
             sessions.attendanceMode === "dual" &&
             sessions.currentStatus === "clock-out-am" &&
             amInMinutes !== null &&
-            amInMinutes >= 660; // 11:00 = 660 minutes
+            amInMinutes >= 660;
 
           return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl">
@@ -142,7 +160,6 @@ export default function HomeDashboard() {
                   </div>
                   <div className="h-px bg-white/5" />
                   <div className="space-y-3">
-                    {/* Dual mode + late start: show PM-only rows */}
                     {sessions.attendanceMode === "dual" && isLateStart && (
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-400">PM Time In</span>
@@ -157,7 +174,6 @@ export default function HomeDashboard() {
                       </div>
                     )}
 
-                    {/* Dual mode + normal start: show all 4 rows */}
                     {sessions.attendanceMode === "dual" && !isLateStart && (
                       <>
                         <div className="flex justify-between items-center text-sm">
@@ -196,7 +212,6 @@ export default function HomeDashboard() {
                       </>
                     )}
 
-                    {/* Single mode rows */}
                     {sessions.attendanceMode === "single" && (
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-400">Time In</span>
@@ -265,14 +280,6 @@ export default function HomeDashboard() {
             </div>
           );
         })()}
-
-      <SummarySection
-        isLoading={loading.isLoading}
-        todayHours={summary.todayHours}
-        weekHours={summary.weekHours}
-        monthHours={summary.monthHours}
-        totalHours={summary.totalHours}
-      />
     </PageShell>
   );
 }
