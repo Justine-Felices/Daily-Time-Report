@@ -161,9 +161,9 @@ export default function TimeSessionsSection({
               type="button"
               onClick={handleToggleOt}
               disabled={isLoading || isSaving}
-              className="rounded-xl px-2.5 py-2 sm:px-4 text-[10px] sm:text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap"
+              className="rounded-xl px-2.5 py-[9px] sm:px-4 sm:py-[11px] text-[10px] sm:text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap"
               style={{
-                border: "1px solid rgba(59, 130, 246, 0.35)",
+                border: "1.5px solid rgba(59, 130, 246, 0.35)",
                 background: showOt
                   ? "rgba(59, 130, 246, 0.18)"
                   : "rgba(15, 23, 42, 0.6)",
@@ -171,7 +171,7 @@ export default function TimeSessionsSection({
                 opacity: isLoading || isSaving ? 0.6 : 1,
               }}
             >
-              {showOt ? "Remove OT" : "+ OT"}
+              <span className="text-[14px] leading-none mr-0.5">{showOt ? "−" : "+"}</span> {showOt ? "Remove OT" : "OT"}
             </button>
           )}
 
@@ -180,7 +180,8 @@ export default function TimeSessionsSection({
               value={status}
               onChange={(e) => onStatusChange?.(e.target.value)}
               disabled={isLoading || isSaving}
-              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2.5 py-2 pr-7 sm:px-4 sm:pr-10 text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 truncate"
+              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2.5 py-[9px] pr-7 sm:px-4 sm:py-[11px] sm:pr-10 text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 truncate"
+              style={{ border: "1.5px solid rgba(255,255,255,0.05)" }}
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -212,7 +213,8 @@ export default function TimeSessionsSection({
               onChange={(e) => onDateChange?.(e.target.value)}
               max={maxDate}
               disabled={isLoading || isSaving}
-              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2 py-2 text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 [color-scheme:dark]"
+              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2 py-[9px] sm:px-4 sm:py-[11px] text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 [color-scheme:dark]"
+              style={{ border: "1.5px solid rgba(255,255,255,0.05)" }}
             />
           </div>
         </div>

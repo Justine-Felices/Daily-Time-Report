@@ -1,4 +1,4 @@
-import { formatDayName, formatPrintDate } from "@/lib/dtr-formatters";
+﻿import { formatDayName, formatPrintDate } from "@/lib/dtr-formatters";
 
 export default function PrintableDTR({ records, totalHours }) {
   const today = new Date();
@@ -12,370 +12,109 @@ export default function PrintableDTR({ records, totalHours }) {
       style={{
         background: "#fff",
         color: "#000",
-        fontFamily: "'Times New Roman', Times, serif",
-        maxWidth: "900px",
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        maxWidth: "1000px",
         margin: "0 auto",
+        padding: "40px",
       }}
     >
       <div
         style={{
-          textAlign: "center",
-          borderBottom: "2px solid #000",
-          paddingBottom: "12px",
-          marginBottom: "14px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          borderBottom: "3px solid #000",
+          paddingBottom: "20px",
+          marginBottom: "30px",
         }}
       >
-        <div style={{ fontSize: "11pt", color: "#444", marginBottom: "2px" }}>
-          Republic of the Philippines
+        <div style={{ textAlign: "left" }}>
+          <div style={{ fontSize: "10pt", color: "#666", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            Official Attendance Report
+          </div>
+          <div
+            style={{
+              fontSize: "26pt",
+              fontWeight: 900,
+              letterSpacing: "-0.02em",
+              margin: "4px 0",
+              lineHeight: 1,
+            }}
+          >
+            DAILY TIME RECORD
+          </div>
+          <div style={{ fontSize: "9pt", color: "#888", fontWeight: 500 }}>
+            Civil Service Form No. 48 • OJT Performance Tracking
+          </div>
         </div>
-        <div
-          style={{
-            fontSize: "20pt",
-            fontWeight: "bold",
-            letterSpacing: "0.04em",
-            margin: "4px 0",
-          }}
-        >
-          DAILY TIME RECORD
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "10pt", fontWeight: 700, color: "#000" }}>PERIOD OF SERVICE</div>
+          <div style={{ fontSize: "14pt", fontWeight: 800, color: "#3b82f6", textTransform: "uppercase" }}>
+            {periodLabel}
+          </div>
         </div>
-        <div style={{ fontSize: "10pt", color: "#555" }}>
-          CS Form No. 48 - On-the-Job Training (OJT) Attendance
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px", marginBottom: "30px" }}>
+        <div style={{ background: "#f8fafc", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+          <div style={{ fontSize: "8pt", color: "#64748b", fontWeight: 700, textTransform: "uppercase", marginBottom: "8px" }}>Trainee Information</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <div style={{ fontSize: "11pt" }}><strong>Name:</strong> <span style={{ color: "#1e293b", fontWeight: 600 }}>Alex Rivera</span></div>
+            <div style={{ fontSize: "11pt" }}><strong>Position:</strong> <span style={{ color: "#1e293b", fontWeight: 600 }}>OJT Trainee</span></div>
+          </div>
+        </div>
+        <div style={{ background: "#f8fafc", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+          <div style={{ fontSize: "8pt", color: "#64748b", fontWeight: 700, textTransform: "uppercase", marginBottom: "8px" }}>Assignment Details</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <div style={{ fontSize: "11pt" }}><strong>Dept:</strong> <span style={{ color: "#1e293b", fontWeight: 600 }}>Information Technology</span></div>
+            <div style={{ fontSize: "11pt" }}><strong>Supervisor:</strong> <span style={{ color: "#1e293b", fontWeight: 600 }}>Ms. Maria Santos</span></div>
+          </div>
         </div>
       </div>
 
       <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginBottom: "14px",
-          fontSize: "10pt",
-        }}
-      >
-        <tbody>
-          <tr>
-            <td style={{ width: "50%", padding: "4px 0" }}>
-              <strong>Name:</strong>{" "}
-              <span
-                style={{
-                  borderBottom: "1px solid #000",
-                  display: "inline-block",
-                  minWidth: "200px",
-                }}
-              >
-                Alex Rivera
-              </span>
-            </td>
-            <td style={{ width: "50%", padding: "4px 0" }}>
-              <strong>Period:</strong>{" "}
-              <span
-                style={{
-                  borderBottom: "1px solid #000",
-                  display: "inline-block",
-                  minWidth: "160px",
-                }}
-              >
-                {periodLabel}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 0" }}>
-              <strong>Position:</strong>{" "}
-              <span
-                style={{
-                  borderBottom: "1px solid #000",
-                  display: "inline-block",
-                  minWidth: "180px",
-                }}
-              >
-                OJT Trainee
-              </span>
-            </td>
-            <td style={{ padding: "4px 0" }}>
-              <strong>Department:</strong>{" "}
-              <span
-                style={{
-                  borderBottom: "1px solid #000",
-                  display: "inline-block",
-                  minWidth: "160px",
-                }}
-              >
-                Information Technology
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td style={{ padding: "4px 0" }}>
-              <strong>Supervisor:</strong>{" "}
-              <span
-                style={{
-                  borderBottom: "1px solid #000",
-                  display: "inline-block",
-                  minWidth: "180px",
-                }}
-              >
-                Ms. Maria Santos
-              </span>
-            </td>
-            <td style={{ padding: "4px 0" }}>
-              <strong>Company:</strong>{" "}
-              <span
-                style={{
-                  borderBottom: "1px solid #000",
-                  display: "inline-block",
-                  minWidth: "160px",
-                }}
-              >
-                TechCorp Inc.
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table
-        style={{ width: "100%", borderCollapse: "collapse", fontSize: "9pt" }}
+        style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: "9pt" }}
       >
         <thead>
-          <tr style={{ background: "#f0f0f0" }}>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-                width: "80px",
-              }}
-            >
-              DATE
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-                width: "40px",
-              }}
-            >
-              DAY
-            </th>
-            <th
-              colSpan={2}
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-              }}
-            >
-              A.M.
-            </th>
-            <th
-              colSpan={2}
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-              }}
-            >
-              P.M.
-            </th>
-            <th
-              colSpan={2}
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-              }}
-            >
-              O.T.
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-                width: "55px",
-              }}
-            >
-              HOURS
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-                width: "120px",
-              }}
-            >
-              REMARKS
-            </th>
+          <tr>
+            <th style={{ border: "1px solid #000", borderRight: "none", padding: "10px 5px", textAlign: "center", width: "90px", background: "#000", color: "#fff" }}>DATE</th>
+            <th style={{ border: "1px solid #000", borderRight: "none", padding: "10px 5px", textAlign: "center", width: "45px", background: "#000", color: "#fff" }}>DAY</th>
+            <th colSpan={2} style={{ border: "1px solid #000", borderRight: "none", padding: "10px 5px", textAlign: "center", background: "#f1f5f9", fontWeight: 800 }}>MORNING PRE-NOON</th>
+            <th colSpan={2} style={{ border: "1px solid #000", borderRight: "none", padding: "10px 5px", textAlign: "center", background: "#f1f5f9", fontWeight: 800 }}>AFTERNOON POST-NOON</th>
+            <th colSpan={2} style={{ border: "1px solid #000", borderRight: "none", padding: "10px 5px", textAlign: "center", background: "#f1f5f9", fontWeight: 800 }}>OVERTIME ONLY</th>
+            <th style={{ border: "1px solid #000", borderRight: "none", padding: "10px 5px", textAlign: "center", width: "65px", background: "#3b82f6", color: "#fff" }}>HOURS</th>
+            <th style={{ border: "1px solid #000", padding: "10px 5px", textAlign: "center", width: "150px", background: "#f1f5f9", fontWeight: 800 }}>ACTIVITIES / REMARKS</th>
           </tr>
-          <tr style={{ background: "#f8f8f8" }}>
-            <th style={{ border: "1px solid #000", padding: "3px 4px" }}></th>
-            <th style={{ border: "1px solid #000", padding: "3px 4px" }}></th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "3px 4px",
-                textAlign: "center",
-                fontSize: "8pt",
-              }}
-            >
-              IN
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "3px 4px",
-                textAlign: "center",
-                fontSize: "8pt",
-              }}
-            >
-              OUT
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "3px 4px",
-                textAlign: "center",
-                fontSize: "8pt",
-              }}
-            >
-              IN
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "3px 4px",
-                textAlign: "center",
-                fontSize: "8pt",
-              }}
-            >
-              OUT
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "3px 4px",
-                textAlign: "center",
-                fontSize: "8pt",
-              }}
-            >
-              IN
-            </th>
-            <th
-              style={{
-                border: "1px solid #000",
-                padding: "3px 4px",
-                textAlign: "center",
-                fontSize: "8pt",
-              }}
-            >
-              OUT
-            </th>
-            <th style={{ border: "1px solid #000", padding: "3px 4px" }}></th>
-            <th style={{ border: "1px solid #000", padding: "3px 4px" }}></th>
+          <tr>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px" }}></th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px" }}></th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px", textAlign: "center", fontSize: "7pt", fontWeight: 800 }}>IN</th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px", textAlign: "center", fontSize: "7pt", fontWeight: 800 }}>OUT</th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px", textAlign: "center", fontSize: "7pt", fontWeight: 800 }}>IN</th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px", textAlign: "center", fontSize: "7pt", fontWeight: 800 }}>OUT</th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px", textAlign: "center", fontSize: "7pt", fontWeight: 800 }}>IN</th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px", textAlign: "center", fontSize: "7pt", fontWeight: 800 }}>OUT</th>
+            <th style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "4px" }}></th>
+            <th style={{ borderLeft: "1px solid #000", borderRight: "1px solid #000", borderBottom: "1px solid #000", padding: "4px" }}></th>
           </tr>
         </thead>
         <tbody>
           {records.map((record, index) => (
-            <tr
-              key={record.id}
-              style={{ background: index % 2 === 0 ? "#fff" : "#fafafa" }}
-            >
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {formatPrintDate(record.date)}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {formatDayName(record.date)}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {record.amIn || ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {record.amOut || ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {record.pmIn || ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {record.pmOut || ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {record.otIn || ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                }}
-              >
-                {record.otOut || ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "center",
-                  fontWeight: record.totalHours > 0 ? "bold" : "normal",
-                }}
-              >
-                {record.totalHours > 0 ? `${record.totalHours}h` : ""}
-              </td>
-              <td
-                style={{
-                  border: "1px solid #000",
-                  padding: "4px",
-                  textAlign: "left",
-                  fontSize: "8pt",
-                }}
-              >
+            <tr key={record.id}>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center", fontWeight: 600 }}>{formatPrintDate(record.date)}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center", color: "#64748b" }}>{formatDayName(record.date).substring(0,3)}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.amIn || "—"}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.amOut || "—"}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.pmIn || "—"}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.pmOut || "—"}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.otIn || "—"}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.otOut || "—"}</td>
+              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center", fontWeight: 800, color: "#3b82f6" }}>{record.totalHours > 0 ? `${record.totalHours.toFixed(1)}` : ""}</td>
+              <td style={{ borderLeft: "1px solid #000", borderRight: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 6px", textAlign: "left", fontSize: "8pt" }}>
                 {record.note
                   ? `${
                       record.status !== "Regular Duty Day"
-                        ? `${record.status} - `
+                        ? "[" + record.status.toUpperCase() + "] "
                         : ""
                     }${record.note}`
                   : record.status !== "Regular Duty Day"
@@ -385,94 +124,23 @@ export default function PrintableDTR({ records, totalHours }) {
             </tr>
           ))}
 
-          <tr style={{ background: "#f0f0f0", fontWeight: "bold" }}>
-            <td
-              colSpan={8}
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "right",
-                fontSize: "9pt",
-              }}
-            >
-              TOTAL HOURS RENDERED:
-            </td>
-            <td
-              style={{
-                border: "1px solid #000",
-                padding: "6px 4px",
-                textAlign: "center",
-                fontSize: "10pt",
-              }}
-            >
-              {totalHours.toFixed(1)}h
-            </td>
-            <td style={{ border: "1px solid #000", padding: "6px 4px" }}></td>
+          <tr style={{ background: "#000", color: "#fff", fontWeight: "black" }}>
+            <td colSpan={8} style={{ padding: "12px", textAlign: "right", fontSize: "10pt", letterSpacing: "0.05em" }}>TOTAL RENDERED HOURS:</td>
+            <td style={{ padding: "12px", textAlign: "center", fontSize: "12pt", fontWeight: 900 }}>{totalHours.toFixed(1)}</td>
+            <td style={{ borderLeft: "1px solid #fff", padding: "12px" }}></td>
           </tr>
         </tbody>
       </table>
 
-      <div style={{ marginTop: "20px", fontSize: "9pt", lineHeight: 1.5 }}>
-        <p style={{ fontStyle: "italic", marginBottom: "14px" }}>
-          I certify on my honor that the above is a true and correct report of
-          the hours of work performed, record of which was made daily at the
-          time of arrival at and departure from office.
-        </p>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: "40px",
-            marginTop: "24px",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                borderBottom: "1px solid #000",
-                minHeight: "28px",
-                marginBottom: "4px",
-              }}
-            />
-            <div style={{ textAlign: "center" }}>
-              <strong>Alex Rivera</strong>
-              <br />
-              Signature of Employee / Date
-            </div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                borderBottom: "1px solid #000",
-                minHeight: "28px",
-                marginBottom: "4px",
-              }}
-            />
-            <div style={{ textAlign: "center" }}>
-              <strong>Ms. Maria Santos</strong>
-              <br />
-              Verified by Supervisor / Date
-            </div>
-          </div>
+      <div style={{ marginTop: "50px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "100px" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ borderBottom: "2px solid #000", paddingBottom: "5px", fontWeight: 800, fontSize: "11pt" }}>ALEX RIVERA</div>
+          <div style={{ fontSize: "9pt", marginTop: "5px", color: "#666", textTransform: "uppercase", fontWeight: 600 }}>Trainee Signature</div>
         </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: "24px",
-          borderTop: "1px solid #ccc",
-          paddingTop: "8px",
-          textAlign: "center",
-          fontSize: "8pt",
-          color: "#666",
-        }}
-      >
-        Generated by JustIn Time Report -{" "}
-        {new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}
+        <div style={{ textAlign: "center" }}>
+          <div style={{ borderBottom: "2px solid #000", paddingBottom: "5px", fontWeight: 800, fontSize: "11pt" }}>MS. MARIA SANTOS</div>
+          <div style={{ fontSize: "9pt", marginTop: "5px", color: "#666", textTransform: "uppercase", fontWeight: 600 }}>Supervisor / In-Charge</div>
+        </div>
       </div>
     </div>
   );

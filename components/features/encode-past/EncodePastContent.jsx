@@ -323,26 +323,14 @@ export default function EncodePastContent() {
       <HeaderSection
         title="Encode Past Attendance"
         subtitle="Manually enter time records for a previous date"
+        onBulkAdd={() => setShowBulkModal(true)}
       />
 
-      <div className="flex flex-wrap items-start justify-between gap-2 mt-4">
-        <button
-          type="button"
-          onClick={() => setShowBulkModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 transition-all active:scale-95"
-          style={{
-            border: "1px solid var(--border-soft)",
-            background: "var(--surface-muted)",
-            color: "var(--text-secondary)",
-            fontSize: "12px",
-            fontWeight: 700,
-            fontFamily: "'Inter',sans-serif",
-          }}
-        >
-          <CalendarRange size={13} color="#3b82f6" />
-          Bulk Add
-        </button>
-      </div>
+      <BulkAddDtrModal
+        isOpen={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        onSaved={triggerSaved}
+      />
 
       {isModeLoading ? (
         <TimeSessionsSkeleton />
@@ -481,11 +469,6 @@ export default function EncodePastContent() {
           <span>{warning}</span>
         </div>
       )}
-
-      <BulkAddDtrModal
-        open={showBulkModal}
-        onClose={() => setShowBulkModal(false)}
-      />
     </PageShell>
   );
 }
