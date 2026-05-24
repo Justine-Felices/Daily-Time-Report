@@ -17,7 +17,7 @@ const SUBTITLE_STYLE = {
 
 export default function HeaderSection({ title, subtitle }) {
   return (
-    <div className="mb-6">
+    <div className="mb-6 pt-12">
       <div className="mb-1 flex items-center gap-3">
         <div
           className="flex h-10 w-10 items-center justify-center rounded-xl"

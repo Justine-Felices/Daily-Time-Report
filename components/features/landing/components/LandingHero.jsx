@@ -14,6 +14,7 @@ export default function LandingHero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="flex flex-col items-start"
         >
           <span
             className="mb-4 inline-block rounded-full px-3 py-1 text-xs font-bold tracking-wide"
@@ -40,7 +41,7 @@ export default function LandingHero() {
             {LANDING_COPY.heroSubheadline}
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-start justify-start gap-3">
             <Link
               href="/login?mode=signup"
               className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white no-underline transition-transform hover:scale-[1.02]"
@@ -71,10 +72,13 @@ export default function LandingHero() {
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
+          className="flex justify-start lg:block"
         >
           <GlassCard
             padding="28px"
             style={{
+              maxWidth: "500px",
+              width: "100%",
               background: "rgba(255, 255, 255, 0.03)",
               backdropFilter: "blur(40px)",
               WebkitBackdropFilter: "blur(40px)",

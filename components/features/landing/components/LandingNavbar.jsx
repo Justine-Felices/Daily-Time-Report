@@ -52,7 +52,7 @@ export default function LandingNavbar() {
 
           <Link
             href="/login?mode=signup"
-            className="rounded-xl px-4 py-2 text-sm font-bold text-white no-underline transition-transform hover:scale-[1.02]"
+            className="hidden sm:inline-block rounded-xl px-4 py-2 text-sm font-bold text-white no-underline transition-transform hover:scale-[1.02]"
             style={{
               background: "linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)",
               boxShadow: "0 4px 16px rgba(37,99,235,0.38)",

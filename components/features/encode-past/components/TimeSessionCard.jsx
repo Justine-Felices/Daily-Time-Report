@@ -109,13 +109,13 @@ export default function TimeSessionCard({
       style={{
         opacity: disabled ? 0.5 : 1,
         pointerEvents: disabled ? "none" : "auto",
-        background: "var(--surface-card)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        background: "rgba(255, 255, 255, 0.03)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
         border: done
-          ? "1.5px solid color-mix(in srgb, var(--accent-strong) 45%, transparent)"
-          : "1px solid var(--border-soft)",
-        boxShadow: "var(--shadow-soft)",
+          ? "1.5px solid rgba(34, 197, 94, 0.3)"
+          : "1px solid rgba(255, 255, 255, 0.08)",
+        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
       }}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -171,10 +171,10 @@ export default function TimeSessionCard({
               key={label}
               className="rounded-xl p-3"
               style={{
-                background: "var(--surface-muted)",
+                background: "rgba(0, 0, 0, 0.2)",
                 border: fieldErrors[field]
                   ? "1px solid rgba(244,63,94,0.45)"
-                  : "1px solid var(--border-soft)",
+                  : "1px solid rgba(255, 255, 255, 0.05)",
               }}
             >
               <div

@@ -30,6 +30,9 @@ export default function TimeSessionsSection({
   onStatusChange,
   onSave,
   status = "Regular Duty Day",
+  date,
+  onDateChange,
+  maxDate,
   isLoading = false,
   isSaving = false,
   sessionsLocked = false,
@@ -150,12 +153,28 @@ export default function TimeSessionsSection({
           >
             {isSimpleMode ? "Single" : "Dual"}
           </span>
-          <span className="rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            Total: {totalHours.toFixed(2)} hrs
-          </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-3">
+          {!isSimpleMode && (
+            <button
+              type="button"
+              onClick={handleToggleOt}
+              disabled={isLoading || isSaving}
+              className="rounded-xl px-4 py-2 text-[12px] font-bold uppercase tracking-widest transition-all"
+              style={{
+                border: "1px solid rgba(59, 130, 246, 0.35)",
+                background: showOt
+                  ? "rgba(59, 130, 246, 0.18)"
+                  : "rgba(15, 23, 42, 0.6)",
+                color: showOt ? "#60a5fa" : "#3b82f6",
+                opacity: isLoading || isSaving ? 0.6 : 1,
+              }}
+            >
+              {showOt ? "Remove OT" : "+ OT"}
+            </button>
+          )}
+
           <div className="relative group">
             <select
               value={status}
@@ -186,33 +205,16 @@ export default function TimeSessionsSection({
             </div>
           </div>
 
-          {!isSimpleMode && (
-            <button
-              type="button"
-              onClick={handleToggleOt}
+          <div className="relative group">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => onDateChange?.(e.target.value)}
+              max={maxDate}
               disabled={isLoading || isSaving}
-              className="rounded-xl px-4 py-2 text-[12px] font-bold uppercase tracking-widest transition-all"
-              style={{
-                border: "1px solid rgba(249, 115, 22, 0.35)",
-                background: showOt
-                  ? "rgba(249, 115, 22, 0.18)"
-                  : "rgba(15, 23, 42, 0.6)",
-                color: showOt ? "#FB923C" : "#F97316",
-                opacity: isLoading || isSaving ? 0.6 : 1,
-              }}
-            >
-              {showOt ? "Remove OT" : "Add OT"}
-            </button>
-          )}
-
-          <button
-            onClick={onSave}
-            disabled={isSaving || isLoading || hasValidationError}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95"
-          >
-            <Save size={14} />
-            {isSaving ? "SAVING..." : "SAVE ALL"}
-          </button>
+              className="appearance-none bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 [color-scheme:dark]"
+            />
+          </div>
         </div>
       </div>
 

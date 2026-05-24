@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { CalendarRange } from "lucide-react";
+import { CalendarRange, ClipboardList } from "lucide-react";
 import useTimedFlag from "@/hooks/useTimedFlag";
 import useLocalStorageDraft from "@/hooks/useLocalStorageDraft";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
@@ -21,11 +21,11 @@ import {
 } from "@/lib/supabase-user-profiles";
 import PageShell from "@/components/layout/PageShell";
 import HeaderSection from "@/components/features/encode-past/components/HeaderSection";
-import DateSection from "@/components/features/encode-past/components/DateSection";
 import BulkAddDtrModal from "@/components/features/encode-past/components/BulkAddDtrModal";
 import TimeSessionsSection from "@/components/features/encode-past/components/TimeSessionsSection";
 import TimeSessionsSkeleton from "@/components/features/encode-past/components/TimeSessionsSkeleton";
 import ErrorMessage from "@/components/features/encode-past/components/ErrorMessage";
+import SaveButton from "@/components/features/encode-past/components/SaveButton";
 
 const INITIAL_FORM = {
   date: "2026-03-02",
@@ -328,15 +328,9 @@ export default function EncodePastContent() {
           }}
         >
           <CalendarRange size={13} color="#3b82f6" />
-          Bulk Entry Mode
+          Bulk Add
         </button>
       </div>
-
-      <DateSection
-        date={form.date}
-        maxDate={getTodayInputDate()}
-        onDateChange={(value) => updateField("date", value)}
-      />
 
       {isModeLoading ? (
         <TimeSessionsSkeleton />
@@ -363,25 +357,50 @@ export default function EncodePastContent() {
           onStatusChange={handleStatusChange}
           onSave={handleSave}
           status={form.status}
+          date={form.date}
+          maxDate={getTodayInputDate()}
+          onDateChange={(value) => updateField("date", value)}
           isLoading={isModeLoading}
           isSaving={isLoading}
           sessionsLocked={sessionsLocked}
         />
       )}
 
-      <div className="mt-6">
-        <label
-          className="block mb-2 text-[11px] font-bold tracking-widest text-slate-500 uppercase px-1"
-          style={{ fontFamily: "'Inter', sans-serif" }}
+      <div className="mt-8 px-1">
+        <div
+          className="rounded-2xl p-5"
+          style={{
+            background: "rgba(255, 255, 255, 0.03)",
+            backdropFilter: "blur(40px)",
+            WebkitBackdropFilter: "blur(40px)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
+          }}
         >
-          Remarks / Note (Optional)
-        </label>
-        <textarea
-          rows={3}
-          value={form.note}
-          onChange={(e) => updateField("note", e.target.value)}
-          placeholder="Add any additional details about this record..."
-          className="w-full bg-slate-900/50 border border-white/5 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-[#06B6D4]/30 transition-all resize-none"
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10">
+              <ClipboardList size={14} className="text-blue-500" />
+            </div>
+            <span className="text-[13px] font-bold text-white uppercase tracking-wider">
+              Notes & Remarks
+            </span>
+          </div>
+
+          <textarea
+            value={form.note}
+            onChange={(e) => updateField("note", e.target.value)}
+            placeholder="Add any additional details about this record..."
+            className="w-full bg-slate-900/40 border border-white/5 rounded-xl p-4 text-[14px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500/30 transition-all min-h-[100px] resize-none"
+          />
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <SaveButton
+          onSave={handleSave}
+          isLoading={isLoading}
+          disabled={disableSave}
+          saved={saved}
         />
       </div>
 
@@ -412,13 +431,6 @@ export default function EncodePastContent() {
             />
           </svg>
           <span>{warning}</span>
-        </div>
-      )}
-
-      {saved && (
-        <div className="mt-4 flex items-center justify-center gap-2 text-emerald-500 font-bold text-sm animate-bounce">
-          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-          Attendance record saved successfully!
         </div>
       )}
 
