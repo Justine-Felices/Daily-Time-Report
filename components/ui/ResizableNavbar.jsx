@@ -13,14 +13,29 @@ import React, { useRef, useState, useEffect } from "react";
 export const Navbar = ({ children, className }) => {
   const { scrollY } = useScroll();
   const [scrollVisible, setScrollVisible] = useState(false);
+  const [direction, setDirection] = useState(0); // 1 = down, -1 = up
+  const [isHideScroll, setIsHideScroll] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const timeoutRef = useRef(null);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() || 0;
+    const diff = latest - previous;
+
+    // Detect direction
+    if (diff > 0 && latest > 50) {
+      setDirection(1); // Scrolling down
+      setIsHideScroll(true);
+    } else if (diff < -5) {
+      setDirection(-1); // Scrolling up
+      setIsHideScroll(false);
+    }
+
     if (latest > 100) {
       setScrollVisible(true);
     } else {
       setScrollVisible(false);
+      setIsHideScroll(false); // Always show when at the top
     }
   });
 
@@ -55,8 +70,8 @@ export const Navbar = ({ children, className }) => {
     <motion.div
       initial={{ y: 0, opacity: 1 }}
       animate={{
-        y: isIdle ? -100 : 0,
-        opacity: isIdle ? 0 : 1,
+        y: isIdle || isHideScroll ? -100 : 0,
+        opacity: isIdle || isHideScroll ? 0 : 1,
       }}
       transition={{
         duration: 0.4,

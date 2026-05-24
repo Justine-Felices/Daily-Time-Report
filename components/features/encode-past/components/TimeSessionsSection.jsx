@@ -155,13 +155,13 @@ export default function TimeSessionsSection({
           </span>
         </div>
 
-        <div className="flex items-center flex-wrap gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {!isSimpleMode && (
             <button
               type="button"
               onClick={handleToggleOt}
               disabled={isLoading || isSaving}
-              className="rounded-xl px-4 py-2 text-[12px] font-bold uppercase tracking-widest transition-all"
+              className="rounded-xl px-2.5 py-2 sm:px-4 text-[10px] sm:text-[12px] font-bold uppercase tracking-widest transition-all whitespace-nowrap"
               style={{
                 border: "1px solid rgba(59, 130, 246, 0.35)",
                 background: showOt
@@ -175,12 +175,12 @@ export default function TimeSessionsSection({
             </button>
           )}
 
-          <div className="relative group">
+          <div className="relative group flex-1 sm:flex-initial">
             <select
               value={status}
               onChange={(e) => onStatusChange?.(e.target.value)}
               disabled={isLoading || isSaving}
-              className="appearance-none bg-slate-900 border border-white/10 rounded-xl px-4 py-2 pr-10 text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50"
+              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2.5 py-2 pr-7 sm:px-4 sm:pr-10 text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 truncate"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -188,9 +188,9 @@ export default function TimeSessionsSection({
                 </option>
               ))}
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+            <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
               <svg
-                className="w-3 h-3"
+                className="w-2.5 h-2.5 sm:w-3 sm:h-3"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -205,14 +205,14 @@ export default function TimeSessionsSection({
             </div>
           </div>
 
-          <div className="relative group">
+          <div className="relative group flex-1 sm:flex-initial">
             <input
               type="date"
               value={date}
               onChange={(e) => onDateChange?.(e.target.value)}
               max={maxDate}
               disabled={isLoading || isSaving}
-              className="appearance-none bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 [color-scheme:dark]"
+              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2 py-2 text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 [color-scheme:dark]"
             />
           </div>
         </div>

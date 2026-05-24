@@ -90,7 +90,7 @@ export default function HistoryRow({
           <div className="flex items-center gap-3">
             {/* Date Indicator Group */}
             <div
-              className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-center border border-white/5"
+              className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl text-center border border-white/5"
               style={{
                 background: "#0891B2",
                 boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
@@ -99,7 +99,7 @@ export default function HistoryRow({
               <div
                 style={{
                   color: "#FFFFFF",
-                  fontSize: "20px",
+                  fontSize: "18px",
                   fontWeight: 800,
                   lineHeight: 1,
                   letterSpacing: "-0.02em",
@@ -110,7 +110,7 @@ export default function HistoryRow({
               <div
                 style={{
                   color: "rgba(255, 255, 255, 0.9)",
-                  fontSize: "9px",
+                  fontSize: "8px",
                   fontWeight: 800,
                   lineHeight: 1,
                   letterSpacing: "0.12em",
@@ -132,7 +132,7 @@ export default function HistoryRow({
               ) : (
                 <>
                   <div
-                    className="text-[18px] font-bold text-slate-100 tracking-tight leading-tight"
+                    className="text-[16px] font-bold text-slate-100 tracking-tight leading-tight"
                     style={{
                       fontFamily: "var(--font-geist-sans), Inter, sans-serif",
                     }}
@@ -142,7 +142,7 @@ export default function HistoryRow({
                     {dateDay}, {dateYear}
                   </div>
                   <div
-                    className="text-[14px] font-medium text-slate-500 mt-1"
+                    className="text-[12px] font-medium text-slate-500 mt-1"
                     style={{
                       fontFamily: "var(--font-geist-sans), Inter, sans-serif",
                     }}
@@ -162,7 +162,7 @@ export default function HistoryRow({
               <SkeletonBlock className="h-8 w-20 rounded-md opacity-40" />
             ) : (
               <div
-                className="text-[24px] font-semibold text-cyan-400 tracking-tighter leading-none"
+                className="text-[20px] font-semibold text-cyan-400 tracking-tighter leading-none"
                 style={{
                   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
                 }}
