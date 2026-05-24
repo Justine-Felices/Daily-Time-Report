@@ -6,7 +6,7 @@ export default function PasswordStrength({ password }) {
     (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
   const labels = ["Weak", "Fair", "Good", "Strong"];
-  const colors = ["#DC2626", "#D97706", "#069494", "#16A34A"];
+  const colors = ["#DC2626", "#D97706", "#3b82f6", "#16A34A"];
 
   return (
     <div style={{ marginTop: "8px" }}>

@@ -8,7 +8,7 @@ export default function ToggleSwitch({ checked, onToggle }) {
         height: "26px",
         padding: "3px",
         background: checked
-          ? "linear-gradient(135deg,#FF69B4,#069494)"
+          ? "linear-gradient(135deg,#FF69B4,#3b82f6)"
           : "rgba(148,163,184,0.2)",
         border: checked
           ? "1px solid rgba(255,105,180,0.35)"

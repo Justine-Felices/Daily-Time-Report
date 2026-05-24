@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Mail } from "lucide-react";
 import { GLASS } from "@/components/features/login/constants/styles";
 import useLocalAuth from "@/components/features/login/hooks/useLocalAuth";
@@ -16,9 +17,11 @@ import SignupAgreement from "@/components/features/login/components/SignupAgreem
 import AuthSubmitSection from "@/components/features/login/components/AuthSubmitSection";
 import AuthModeSwitch from "@/components/features/login/components/AuthModeSwitch";
 import validateAuthForm from "@/components/features/login/utils/validateAuthForm";
+import { PAGE_BACKGROUND_STYLE } from "@/lib/dtr-constants";
 
 export default function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, signup } = useLocalAuth();
 
   const [mode, setMode] = useState("login");
@@ -34,6 +37,12 @@ export default function LoginContent() {
   const [success, setSuccess] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
 
+  useEffect(() => {
+    if (searchParams.get("mode") === "signup") {
+      setMode("signup");
+    }
+  }, [searchParams]);
+
   const switchMode = (nextMode) => {
     setMode(nextMode);
     setErrors({});
@@ -48,14 +57,12 @@ export default function LoginContent() {
   };
 
   const redirectAfterAuth = () => {
-    // Route to home and let middleware enforce the final destination.
-    router.replace("/");
+    router.replace("/dashboard");
 
-    // Fallback for environments where client navigation may fail.
     if (typeof window !== "undefined") {
       window.setTimeout(() => {
-        if (window.location.pathname !== "/") {
-          window.location.assign("/");
+        if (window.location.pathname !== "/dashboard") {
+          window.location.assign("/dashboard");
         }
       }, 800);
     }
@@ -116,7 +123,7 @@ export default function LoginContent() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#fff",
+        ...PAGE_BACKGROUND_STYLE,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -170,7 +177,7 @@ export default function LoginContent() {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#069494",
+                    color: "#60a5fa",
                     fontSize: "12px",
                     fontWeight: 600,
                     cursor: "pointer",

@@ -16,7 +16,7 @@ export default function SaveButton({
           ? "rgba(148,163,184,0.22)"
           : saved
             ? "linear-gradient(135deg,#22C55E,#16A34A)"
-            : "linear-gradient(135deg,#069494,#0aacac)",
+            : "linear-gradient(135deg,#3b82f6,#2563eb)",
         color: disabled ? "#94A3B8" : "#fff",
         border: "none",
         cursor: disabled ? "not-allowed" : "pointer",

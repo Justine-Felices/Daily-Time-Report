@@ -4,29 +4,31 @@ import SessionCard from "../components/SessionCard";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
 import { isResetStatus, isHalfDayStatus } from "@/lib/dtr-time-validation";
 
-export default function SessionsSection({ 
-  amSession, 
-  pmSession, 
+export default function SessionsSection({
+  amSession,
+  pmSession,
   otSession,
   persistedAmSession,
   persistedPmSession,
   persistedOtSession,
   status,
   attendanceMode = "dual",
-  isLoading, 
+  isLoading,
   isSaving,
   onManualSave,
   onStatusChange,
   onGlobalSave,
   onToggleClock,
   note,
-  onNoteChange 
+  onNoteChange,
 }) {
   const [amError, setAmError] = useState(false);
   const [pmError, setPmError] = useState(false);
   const [otError, setOtError] = useState(false);
   const [singleError, setSingleError] = useState(false);
-  const [showOt, setShowOt] = useState(Boolean(otSession?.timeIn || otSession?.timeOut));
+  const [showOt, setShowOt] = useState(
+    Boolean(otSession?.timeIn || otSession?.timeOut),
+  );
 
   const isSingleMode = attendanceMode === "single";
 
@@ -34,23 +36,34 @@ export default function SessionsSection({
     ? singleError
     : amError || pmError || (showOt && otError);
   const pmEarliestTime = amSession?.timeOut || amSession?.timeIn;
-  const otEarliestTime = pmSession?.timeOut || pmSession?.timeIn || amSession?.timeOut || amSession?.timeIn;
-  
+  const otEarliestTime =
+    pmSession?.timeOut ||
+    pmSession?.timeIn ||
+    amSession?.timeOut ||
+    amSession?.timeIn;
+
   const amDisabled = isResetStatus(status);
   const pmDisabled = isResetStatus(status) || isHalfDayStatus(status);
   const otDisabled = isResetStatus(status);
   const singleDisabled = isResetStatus(status);
 
   // For single mode: combine am.timeIn + pm.timeOut into one virtual session
-  const singleSession = useMemo(() => ({
-    timeIn: amSession?.timeIn || null,
-    timeOut: pmSession?.timeOut || null,
-  }), [amSession?.timeIn, pmSession?.timeOut]);
+  const singleSession = useMemo(
+    () => ({
+      timeIn: amSession?.timeIn || null,
+      timeOut: pmSession?.timeOut || null,
+    }),
+    [amSession?.timeIn, pmSession?.timeOut],
+  );
 
-  const isSinglePersistedDone = persistedAmSession?.timeIn && persistedPmSession?.timeOut;
-  const isAmPersistedDone = persistedAmSession?.timeIn && persistedAmSession?.timeOut;
-  const isPmPersistedDone = persistedPmSession?.timeIn && persistedPmSession?.timeOut;
-  const isOtPersistedDone = persistedOtSession?.timeIn && persistedOtSession?.timeOut;
+  const isSinglePersistedDone =
+    persistedAmSession?.timeIn && persistedPmSession?.timeOut;
+  const isAmPersistedDone =
+    persistedAmSession?.timeIn && persistedAmSession?.timeOut;
+  const isPmPersistedDone =
+    persistedPmSession?.timeIn && persistedPmSession?.timeOut;
+  const isOtPersistedDone =
+    persistedOtSession?.timeIn && persistedOtSession?.timeOut;
 
   useEffect(() => {
     if (otSession?.timeIn || otSession?.timeOut) {
@@ -80,32 +93,44 @@ export default function SessionsSection({
             Daily Sessions
           </h3>
           {/* Mode indicator pill */}
-          <span 
+          <span
             className="rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-widest"
             style={{
-              background: isSingleMode ? "rgba(6,148,148,0.1)" : "rgba(6,182,212,0.1)",
-              color: isSingleMode ? "#069494" : "#06B6D4",
-              border: `1px solid ${isSingleMode ? "rgba(6,148,148,0.2)" : "rgba(6,182,212,0.2)"}`,
+              background: "rgba(59, 130, 246, 0.1)",
+              color: "#3b82f6",
+              border: `1px solid rgba(59, 130, 246, 0.22)`,
             }}
           >
             {isSingleMode ? "Single" : "Dual"}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="relative group">
             <select
               value={status}
               onChange={(e) => onStatusChange(e.target.value)}
-              className="appearance-none bg-slate-900 border border-white/10 rounded-xl px-4 py-2 pr-10 text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800"
+              className="appearance-none bg-slate-900 border border-white/10 rounded-xl px-4 py-2 pr-10 text-[12px] font-bold text-white focus:outline-none focus:border-blue-500/50 transition-all cursor-pointer hover:bg-slate-800"
             >
               {STATUS_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
               ))}
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="3"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </div>
           </div>
@@ -118,7 +143,9 @@ export default function SessionsSection({
               className="rounded-xl px-4 py-2 text-[12px] font-bold uppercase tracking-widest transition-all"
               style={{
                 border: "1px solid rgba(249, 115, 22, 0.35)",
-                background: showOt ? "rgba(249, 115, 22, 0.18)" : "rgba(15, 23, 42, 0.6)",
+                background: showOt
+                  ? "rgba(249, 115, 22, 0.18)"
+                  : "rgba(15, 23, 42, 0.6)",
                 color: showOt ? "#FB923C" : "#F97316",
                 opacity: isSaving || otDisabled ? 0.6 : 1,
               }}
@@ -130,21 +157,21 @@ export default function SessionsSection({
           <button
             onClick={onGlobalSave}
             disabled={isSaving || hasValidationError}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#069494] to-[#0aacac] hover:from-[#057a7a] hover:to-[#099b9b] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-teal-500/20 transition-all active:scale-95 border border-white/10"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-[12px] font-bold text-white shadow-lg shadow-blue-500/20 transition-all active:scale-95 border border-white/10"
           >
             <Save size={14} />
             {isSaving ? "SAVING..." : "SAVE ALL"}
           </button>
         </div>
       </div>
-      
+
       {isSingleMode ? (
         /* ─── Single Mode: One card with Time In (→ am_in) and Time Out (→ pm_out) ─── */
         <div className="grid grid-cols-1 gap-4">
           <SessionCard
             title="DAILY ENTRY"
             icon={Clock}
-            iconColor="#069494"
+            iconColor="#3b82f6"
             draftStorageKey="single-session-draft"
             session={singleSession}
             isPersistedDone={isSinglePersistedDone}
@@ -152,8 +179,8 @@ export default function SessionsSection({
             disabled={singleDisabled}
             inLabel="TIME IN"
             outLabel="TIME OUT"
-            inGrad="#069494"
-            inShadow="rgba(6, 148, 148, 0.2)"
+            inGrad="#3b82f6"
+            inShadow="rgba(59, 130, 246, 0.2)"
             onValidationChange={setSingleError}
             onTimeIn={() => onToggleClock()}
             onTimeOut={() => onToggleClock()}
@@ -169,7 +196,7 @@ export default function SessionsSection({
           <SessionCard
             title="MORNING SESSION"
             icon={Sun}
-            iconColor="#06B6D4"
+            iconColor="#3b82f6"
             draftStorageKey="am-session-draft"
             session={amSession}
             isPersistedDone={isAmPersistedDone}
@@ -177,8 +204,8 @@ export default function SessionsSection({
             disabled={amDisabled}
             inLabel="AM IN"
             outLabel="AM OUT"
-            inGrad="#06B6D4"
-            inShadow="rgba(6, 182, 212, 0.2)"
+            inGrad="#3b82f6"
+            inShadow="rgba(59, 130, 246, 0.2)"
             onValidationChange={setAmError}
             onTimeIn={() => onToggleClock()}
             onTimeOut={() => onToggleClock()}
@@ -187,11 +214,11 @@ export default function SessionsSection({
             onGlobalSave={onGlobalSave}
             isSaving={isSaving}
           />
-          
+
           <SessionCard
             title="AFTERNOON SESSION"
             icon={Coffee}
-            iconColor="#069494"
+            iconColor="#3b82f6"
             draftStorageKey="pm-session-draft"
             session={pmSession}
             isPersistedDone={isPmPersistedDone}
@@ -199,8 +226,8 @@ export default function SessionsSection({
             disabled={pmDisabled}
             inLabel="PM IN"
             outLabel="PM OUT"
-            inGrad="#069494"
-            inShadow="rgba(6, 148, 148, 0.2)"
+            inGrad="#3b82f6"
+            inShadow="rgba(59, 130, 246, 0.2)"
             onValidationChange={setPmError}
             earliestTime={pmEarliestTime}
             earliestLabel="Morning session"
@@ -239,30 +266,30 @@ export default function SessionsSection({
 
       {/* Note / Remarks Field */}
       <div className="px-1">
-        <div 
+        <div
           className="rounded-2xl p-5"
           style={{
-            background: "var(--surface-card)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1px solid var(--border-soft)",
-            boxShadow: "var(--shadow-soft)",
+            background: "rgba(255, 255, 255, 0.03)",
+            backdropFilter: "blur(40px)",
+            WebkitBackdropFilter: "blur(40px)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
           }}
         >
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-500/10">
-              <Save size={14} className="text-teal-500" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10">
+              <Save size={14} className="text-blue-500" />
             </div>
             <span className="text-[13px] font-bold text-white uppercase tracking-wider">
               Notes & Remarks
             </span>
           </div>
-          
+
           <textarea
             value={note}
             onChange={(e) => onNoteChange(e.target.value)}
             placeholder="Add any notes or remarks for today (optional)..."
-            className="w-full bg-slate-900/40 border border-white/5 rounded-xl p-4 text-[14px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/30 transition-all min-h-[100px] resize-none"
+            className="w-full bg-slate-900/40 border border-white/5 rounded-xl p-4 text-[14px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500/30 transition-all min-h-[100px] resize-none"
           />
         </div>
       </div>

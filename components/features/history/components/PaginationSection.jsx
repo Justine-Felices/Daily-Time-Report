@@ -46,14 +46,14 @@ export default function PaginationSection({
 
   const ButtonStyle = (isActive, isDisabled = false) => ({
     background: isActive
-      ? "linear-gradient(135deg,#069494,#0aacac)"
+      ? "linear-gradient(135deg,#3b82f6,#2563eb)"
       : "var(--surface-muted)",
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
     color: isActive ? "#fff" : isDisabled ? "rgba(255,255,255,0.1)" : "var(--text-muted)",
     border: isActive
-      ? "1px solid rgba(6,148,148,0.3)"
-      : "1px solid rgba(6,148,148,0.14)",
+      ? "1px solid rgba(59,130,246,0.3)"
+      : "1px solid rgba(59,130,246,0.14)",
     cursor: isDisabled ? "not-allowed" : "pointer",
     fontFamily: "'Inter',sans-serif",
     fontSize: "13px",

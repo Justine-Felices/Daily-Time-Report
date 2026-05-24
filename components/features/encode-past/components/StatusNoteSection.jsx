@@ -43,7 +43,7 @@ export default function StatusNoteSection({
 
         <ChevronDown
           size={15}
-          color="#069494"
+          color="#3b82f6"
           className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
         />
       </div>

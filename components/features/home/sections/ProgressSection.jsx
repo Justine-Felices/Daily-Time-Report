@@ -14,8 +14,8 @@ const TITLE_TEXT_STYLE = {
 
 const PILL_STYLE = {
   background: "transparent",
-  border: "1px solid rgba(6, 182, 212, 0.3)",
-  color: "#06B6D4",
+  border: "1px solid rgba(59, 130, 246, 0.3)",
+  color: "#3b82f6",
   fontSize: "12px",
   fontWeight: 500,
   fontFamily: "var(--font-geist-sans), Inter, sans-serif",
@@ -32,7 +32,7 @@ const STAT_VALUE_STYLE = {
 };
 
 const STAT_LABEL_STYLE = {
-  color: "#06B6D4",
+  color: "#3b82f6",
   fontSize: "11px",
   fontWeight: 700,
   letterSpacing: "-0.01em",
@@ -80,8 +80,8 @@ export default function ProgressSection({
         <div
           className="flex h-8 w-8 items-center justify-center rounded-lg"
           style={{
-            background: "#06B6D4",
-            boxShadow: "0 0 8px rgba(6, 182, 212, 0.15)",
+            background: "#3b82f6",
+            boxShadow: "0 0 8px rgba(59, 130, 246, 0.15)",
           }}
         >
           <TrendingUp size={18} color="white" strokeWidth={2.5} />
@@ -90,7 +90,7 @@ export default function ProgressSection({
 
         <div className="ml-auto flex items-center gap-3">
           <div 
-            className="rounded-full px-2.5 py-1 sm:px-4 sm:py-1.5 border border-[#06B6D4]/30 text-[#06B6D4]" 
+            className="rounded-full px-2.5 py-1 sm:px-4 sm:py-1.5 border border-[#3b82f6]/30 text-[#3b82f6]" 
             style={{
               background: "transparent",
               fontWeight: 500,
@@ -150,11 +150,11 @@ export default function ProgressSection({
               border: "1px solid rgba(255, 255, 255, 0.05)",
             }}
           >
-            <div className="text-[#06B6D4]">
+            <div className="text-blue-500">
               <Lightbulb size={20} />
             </div>
             <p className="text-[13px] text-white/70 font-medium">
-              You need <span className="text-[#06B6D4] font-bold">{hoursPerDayNeeded} hrs/day</span> to finish on time.
+              You need <span className="text-blue-500 font-bold">{hoursPerDayNeeded} hrs/day</span> to finish on time.
             </p>
           </div>
 

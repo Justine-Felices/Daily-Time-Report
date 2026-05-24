@@ -20,8 +20,8 @@ export default function HeaderSection({ title, subtitle }) {
         <div
           className="flex h-8 w-8 items-center justify-center rounded-xl"
           style={{
-            background: "linear-gradient(135deg,#069494,#FF69B4)",
-            boxShadow: "0 4px 12px rgba(6,148,148,0.35)",
+            background: "linear-gradient(135deg,#3b82f6,#2563eb)",
+            boxShadow: "0 4px 12px rgba(59,130,246,0.35)",
           }}
         >
           <HistoryIcon size={15} color="#fff" />

@@ -5,7 +5,7 @@ export default function AuthModeSwitch({ mode, switchMode }) {
         marginTop: "22px",
         textAlign: "center",
         fontSize: "13px",
-        color: "#64748B",
+        color: "rgba(255, 255, 255, 0.5)",
         fontFamily: "'Inter',sans-serif",
       }}
     >
@@ -17,7 +17,7 @@ export default function AuthModeSwitch({ mode, switchMode }) {
             style={{
               background: "none",
               border: "none",
-              color: "#069494",
+              color: "#3b82f6",
               fontWeight: 700,
               cursor: "pointer",
               fontFamily: "'Inter',sans-serif",
@@ -36,7 +36,7 @@ export default function AuthModeSwitch({ mode, switchMode }) {
             style={{
               background: "none",
               border: "none",
-              color: "#069494",
+              color: "#3b82f6",
               fontWeight: 700,
               cursor: "pointer",
               fontFamily: "'Inter',sans-serif",

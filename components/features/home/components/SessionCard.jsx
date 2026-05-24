@@ -104,7 +104,13 @@ export default function SessionCard({
     onChange?.(trimmed);
   };
 
-  const handleTimeChange = (field, nextValue, setDraft, relatedValue, onChange) => {
+  const handleTimeChange = (
+    field,
+    nextValue,
+    setDraft,
+    relatedValue,
+    onChange,
+  ) => {
     if (fieldErrors[field]) {
       setFieldErrors((current) => ({ ...current, [field]: "" }));
     }
@@ -138,13 +144,13 @@ export default function SessionCard({
       style={{
         opacity: disabled ? 0.5 : 1,
         pointerEvents: disabled ? "none" : "auto",
-        background: "var(--surface-card)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        background: "rgba(255, 255, 255, 0.03)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
         border: done
-          ? "1.5px solid color-mix(in srgb, var(--accent-strong) 45%, transparent)"
-          : "1px solid var(--border-soft)",
-        boxShadow: "var(--shadow-soft)",
+          ? "1.5px solid rgba(34, 197, 94, 0.3)"
+          : "1px solid rgba(255, 255, 255, 0.08)",
+        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
       }}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -173,9 +179,9 @@ export default function SessionCard({
             background: done
               ? "rgba(34,197,94,0.12)"
               : inProgress
-                ? "rgba(6,148,148,0.1)"
+                ? "rgba(59,130,246,0.1)"
                 : "rgba(148,163,184,0.12)",
-            color: done ? "#16A34A" : inProgress ? "#069494" : "#94A3B8",
+            color: done ? "#16A34A" : inProgress ? "#3b82f6" : "#94A3B8",
             fontSize: "10px",
             fontWeight: 700,
             fontFamily: "'Inter',sans-serif",
@@ -184,7 +190,7 @@ export default function SessionCard({
               done
                 ? "rgba(34,197,94,0.2)"
                 : inProgress
-                  ? "rgba(6,148,148,0.2)"
+                  ? "rgba(59,130,246,0.2)"
                   : "rgba(148,163,184,0.2)"
             }`,
           }}
@@ -200,15 +206,15 @@ export default function SessionCard({
               key={label}
               className="rounded-xl p-3"
               style={{
-                background: "var(--surface-muted)",
+                background: "rgba(0, 0, 0, 0.2)",
                 border: fieldErrors[field]
                   ? "1px solid rgba(244,63,94,0.45)"
-                  : "1px solid var(--border-soft)",
+                  : "1px solid rgba(255, 255, 255, 0.05)",
               }}
             >
               <div
                 style={{
-                  color: "#069494",
+                  color: "#3b82f6",
                   fontSize: "8px",
                   fontWeight: 700,
                   letterSpacing: "0.1em",
@@ -225,7 +231,13 @@ export default function SessionCard({
                 disabled={disabled || isLoading}
                 value={value}
                 onChange={(event) => {
-                  handleTimeChange(field, event.target.value, setValue, relatedValue, onChange);
+                  handleTimeChange(
+                    field,
+                    event.target.value,
+                    setValue,
+                    relatedValue,
+                    onChange,
+                  );
                 }}
                 onBlur={() =>
                   commitTimeInput(field, value, relatedValue, onChange)
@@ -250,9 +262,7 @@ export default function SessionCard({
                 }}
               />
 
-              {isLoading && (
-                <SkeletonBlock className="h-5 w-full rounded-md" />
-              )}
+              {isLoading && <SkeletonBlock className="h-5 w-full rounded-md" />}
 
               {fieldErrors[field] && (
                 <div
@@ -277,7 +287,9 @@ export default function SessionCard({
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={onTimeIn}
-            disabled={disabled || hasFieldError || Boolean(session.timeIn) || isLoading}
+            disabled={
+              disabled || hasFieldError || Boolean(session.timeIn) || isLoading
+            }
             style={{
               padding: "9px 0",
               borderRadius: "10px",
@@ -328,7 +340,7 @@ export default function SessionCard({
                 session.timeOut ||
                 isLoading
                   ? "rgba(148,163,184,0.15)"
-                  : "linear-gradient(135deg,#069494,#0aacac)",
+                  : "linear-gradient(135deg,#3b82f6,#2563eb)",
               color:
                 disabled ||
                 hasFieldError ||

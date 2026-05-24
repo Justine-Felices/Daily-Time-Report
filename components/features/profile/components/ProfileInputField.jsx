@@ -24,7 +24,7 @@ export default function ProfileInputField({
           marginBottom: "5px",
         }}
       >
-        <Icon size={10} color="#069494" /> {label}
+        <Icon size={10} color="#3b82f6" /> {label}
       </label>
 
       <input

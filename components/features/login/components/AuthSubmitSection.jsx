@@ -90,7 +90,7 @@ export default function AuthSubmitSection({
           style={{
             flex: 1,
             height: "1px",
-            background: "rgba(6,148,148,0.12)",
+            background: "rgba(59,130,246,0.12)",
           }}
         />
       </div>
@@ -100,7 +100,7 @@ export default function AuthSubmitSection({
       {infoMessage && (
         <div
           style={{
-            color: "#069494",
+            color: "#3b82f6",
             fontSize: "12px",
             fontWeight: 600,
             fontFamily: "'Inter',sans-serif",

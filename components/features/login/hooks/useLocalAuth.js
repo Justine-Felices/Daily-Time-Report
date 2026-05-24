@@ -24,16 +24,16 @@ function clearLocalAttendanceCache() {
 }
 
 async function resolvePostAuthRoute({ supabase, userId }) {
-  if (!supabase || !userId) return "/";
+  if (!supabase || !userId) return "/dashboard";
 
   const { data: profile, error } = await fetchUserProfileByUserId({
     supabase,
     userId,
   });
 
-  if (error) return "/";
+  if (error) return "/dashboard";
 
-  return isUserProfileOnboarded(profile) ? "/" : "/onboarding";
+  return isUserProfileOnboarded(profile) ? "/dashboard" : "/onboarding";
 }
 
 export default function useLocalAuth() {
@@ -133,7 +133,7 @@ export default function useLocalAuth() {
     }
 
     const needsEmailConfirmation = !data.session;
-    let redirectTo = "/";
+    let redirectTo = "/dashboard";
 
     if (!needsEmailConfirmation) {
       const userId = data?.user?.id || data?.session?.user?.id || null;

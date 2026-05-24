@@ -19,7 +19,7 @@ const dancingScript = Dancing_Script({
 });
 
 export const metadata = {
-  title: "Daily Time Record",
+  title: "JustIn Time Report",
   description: "Manage your internship hours with ease.",
 };
 
@@ -27,7 +27,9 @@ export default async function RootLayout({ children }) {
   const cookieStore = await cookies();
   const themeCookie = cookieStore.get("dtr-theme-mode")?.value;
   const initialTheme =
-    themeCookie === "light" || themeCookie === "dark" || themeCookie === "system"
+    themeCookie === "light" ||
+    themeCookie === "dark" ||
+    themeCookie === "system"
       ? themeCookie
       : "system";
   const htmlThemeClass = initialTheme === "dark" ? "dark" : "";

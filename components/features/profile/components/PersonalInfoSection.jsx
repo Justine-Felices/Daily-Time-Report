@@ -33,14 +33,14 @@ export default function PersonalInfoSection({ profile, onEditClick }) {
     <GlassCard padding="20px">
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Shield size={13} color="#069494" />
+          <Shield size={13} color="#3b82f6" />
           <span style={TITLE_STYLE}>PERSONAL INFORMATION</span>
         </div>
         <button
           onClick={onEditClick}
           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
           style={{
-            color: "#069494",
+            color: "#3b82f6",
             fontSize: "12px",
             fontWeight: 600,
             fontFamily: "'Inter',sans-serif",
@@ -69,7 +69,7 @@ export default function PersonalInfoSection({ profile, onEditClick }) {
                   marginBottom: "5px",
                 }}
               >
-                <Icon size={10} color="#069494" /> {field.label}
+                <Icon size={10} color="#3b82f6" /> {field.label}
               </label>
               <div
                 style={{

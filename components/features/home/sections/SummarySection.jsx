@@ -45,7 +45,7 @@ export default function SummarySection({
   return (
     <div>
       <div className="mb-3 flex items-center gap-2 px-1">
-        <Timer size={18} color="var(--accent-strong)" />
+        <Timer size={18} color="#3b82f6" />
         <span style={TITLE_STYLE}>Summary</span>
       </div>
 

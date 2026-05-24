@@ -19,10 +19,12 @@ export default function InputField({
     <div style={{ position: "relative" }}>
       <Icon
         size={16}
-        color={error ? "#CC2277" : focused ? "#069494" : "rgba(6,148,148,0.78)"}
+        color={
+          error ? "#FF69B4" : focused ? "#3b82f6" : "rgba(255, 255, 255, 0.4)"
+        }
         style={{
           position: "absolute",
-          left: "12px",
+          left: "14px",
           top: "50%",
           transform: "translateY(-50%)",
           pointerEvents: "none",
