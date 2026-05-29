@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
-import { Coffee, Sun, Clock, Save, ClipboardList } from "lucide-react";
+import { Coffee, Sun, Clock, Save, ClipboardList, Calendar } from "lucide-react";
 import TimeSessionCard from "./TimeSessionCard";
 import { STATUS_OPTIONS } from "@/lib/dtr-constants";
+import { formatReadableDate } from "@/lib/dtr-formatters";
 import {
   isResetStatus,
   isHalfDayStatus,
@@ -213,9 +214,15 @@ export default function TimeSessionsSection({
               onChange={(e) => onDateChange?.(e.target.value)}
               max={maxDate}
               disabled={isLoading || isSaving}
-              className="w-full appearance-none bg-slate-900 border border-white/10 rounded-xl px-2 py-[9px] sm:px-4 sm:py-[11px] text-[10px] sm:text-[12px] font-bold text-white focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer hover:bg-slate-800 disabled:opacity-50 [color-scheme:dark]"
-              style={{ border: "1.5px solid rgba(255,255,255,0.05)" }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             />
+            <div
+              className="w-full flex items-center justify-between gap-2 bg-slate-900 border border-white/10 rounded-xl px-2.5 py-[9px] sm:px-4 sm:py-[11px] text-[10px] sm:text-[12px] font-bold text-white transition-all hover:bg-slate-800"
+              style={{ border: "1.5px solid rgba(255,255,255,0.05)" }}
+            >
+              <span className="truncate">{formatReadableDate(date)}</span>
+              <Calendar size={12} className="text-slate-500 opacity-50 flex-shrink-0" />
+            </div>
           </div>
         </div>
       </div>

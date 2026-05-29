@@ -15,7 +15,7 @@ import {
 import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import { createBulkAttendanceRecords } from "@/lib/supabase-operations";
-import { calculateTotalHours } from "@/lib/dtr-time-validation";
+import { formatReadableDate } from "@/lib/dtr-formatters";
 
 function toDateKey(date) {
   const year = date.getFullYear();
@@ -29,14 +29,6 @@ function toMinutes(timeString) {
   const [hour, minute] = timeString.split(":").map(Number);
   if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
   return hour * 60 + minute;
-}
-
-function formatDatePreview(dateKey) {
-  const date = new Date(`${dateKey}T00:00:00`);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
 }
 
 function formatTimePreview(value) {
@@ -261,18 +253,18 @@ export default function BulkAddDtrModal({ open, onClose }) {
           times.otIn || times.otOut
             ? `, OT (${formatTimePreview(times.otIn)} - ${formatTimePreview(times.otOut)})`
             : "";
-        return `${formatDatePreview(date)} - Regular (${formatTimePreview(times.amIn)} - ${formatTimePreview(times.pmOut)}${otPreview})`;
+        return `${formatReadableDate(date)} - Regular (${formatTimePreview(times.amIn)} - ${formatTimePreview(times.pmOut)}${otPreview})`;
       }
 
       if (entryType === "half_day") {
-        return `${formatDatePreview(date)} - Half Day (${formatTimePreview(times.amIn)} - ${formatTimePreview(times.amOut)})`;
+        return `${formatReadableDate(date)} - Half Day (${formatTimePreview(times.amIn)} - ${formatTimePreview(times.amOut)})`;
       }
 
       if (entryType === "leave") {
-        return `${formatDatePreview(date)} - Leave`;
+        return `${formatReadableDate(date)} - Leave`;
       }
 
-      return `${formatDatePreview(date)} - Absent`;
+      return `${formatReadableDate(date)} - Absent`;
     });
   }, [selectedDates, entryType, times]);
 

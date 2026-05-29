@@ -1,18 +1,11 @@
+import { formatReadableDate } from "@/lib/dtr-formatters";
+
 function formatTimeLabel(timeValue) {
   const [hourText, minute] = timeValue.split(":");
   const hour = Number(hourText);
   const suffix = hour >= 12 ? "PM" : "AM";
   const twelveHour = hour % 12 || 12;
   return `${twelveHour}:${minute} ${suffix}`;
-}
-
-function formatDateLabel(dateValue) {
-  const date = new Date(`${dateValue}T00:00:00`);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export default function EncodePastRecordsTable({ records }) {
@@ -43,7 +36,7 @@ export default function EncodePastRecordsTable({ records }) {
               {records.map((record) => (
                 <tr key={record.id} className="transition hover:bg-gray-50">
                   <td className="whitespace-nowrap px-3 py-2 font-medium text-gray-900">
-                    {formatDateLabel(record.date)}
+                    {formatReadableDate(record.date)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">{formatTimeLabel(record.amIn)}</td>
                   <td className="whitespace-nowrap px-3 py-2">{formatTimeLabel(record.amOut)}</td>
