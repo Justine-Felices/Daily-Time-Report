@@ -33,12 +33,12 @@ import ErrorMessage from "@/components/features/encode-past/components/ErrorMess
 import SaveButton from "@/components/features/encode-past/components/SaveButton";
 
 const INITIAL_FORM = {
-  date: "2026-03-02",
+  date: getTodayInputDate(),
   mode: "session",
-  amIn: "09:30",
-  amOut: "12:00",
-  pmIn: "13:00",
-  pmOut: "18:30",
+  amIn: "08:00",
+  amOut: "11:00",
+  pmIn: "12:00",
+  pmOut: "17:00",
   otIn: "",
   otOut: "",
   simpleIn: "",

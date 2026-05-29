@@ -1,6 +1,7 @@
 import { Calendar } from "lucide-react";
 import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
+import { formatReadableDate } from "@/lib/dtr-formatters";
 
 const LABEL_STYLE = {
   color: "var(--text-primary)",
@@ -21,18 +22,30 @@ export default function DateSection({ date, maxDate, onDateChange }) {
         <Calendar size={13} color="#3b82f6" /> SELECT DATE
       </label>
 
-      <input
-        type="date"
-        value={date}
-        onChange={(event) => onDateChange(event.target.value)}
-        max={maxDate}
-        className="w-full"
-        style={{
-          ...GLASS_INPUT_STYLE,
-          padding: "10px 14px",
-          colorScheme: "dark",
-        }}
-      />
+      <div className="relative">
+        <input
+          type="date"
+          value={date}
+          onChange={(event) => onDateChange(event.target.value)}
+          max={maxDate}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+        />
+        <div
+          style={{
+            ...GLASS_INPUT_STYLE,
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: "14px",
+            fontWeight: 600,
+            color: "var(--text-primary)",
+          }}
+        >
+          <span>{formatReadableDate(date)}</span>
+          <Calendar size={14} className="text-muted-foreground opacity-50" />
+        </div>
+      </div>
     </GlassCard>
   );
 }
