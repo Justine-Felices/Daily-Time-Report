@@ -55,60 +55,39 @@ async function buildDtrPdf(records, totalHours, profile) {
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 40;
 
-  const dateOptions = { year: "numeric", month: "long", day: "numeric" };
+  const colors = {
+    primary: [0, 0, 0], // Black
+    secondary: [245, 245, 245], // Very Light Gray for totals
+    text: [20, 20, 20],
+    white: [255, 255, 255],
+    border: [200, 200, 200], // Gray border
+  };
+
+  const dateOptions = { year: "numeric", month: "short", day: "numeric" };
   const monthLabelOptions = { year: "numeric", month: "long" };
-  const formattedGeneratedDate = new Date().toLocaleDateString(
-    "en-US",
-    dateOptions,
-  );
-
-  // --- Inspired Header Layout ---
-  const headerY = 55;
-  const iconSize = 38;
-
-  // Simple Clipboard Icon Drawing
-  pdf.setDrawColor(2, 30, 60);
-  pdf.setLineWidth(2);
-  pdf.roundedRect(margin, headerY - 18, iconSize, iconSize + 2, 4, 4);
-  pdf.line(margin + 12, headerY - 18, margin + 26, headerY - 18); // clip
-  
-  // Icon Internal Details
-  pdf.setLineWidth(1);
-  pdf.line(margin + 8, headerY - 5, margin + 30, headerY - 5);
-  pdf.line(margin + 8, headerY + 1, margin + 30, headerY + 1);
-  pdf.line(margin + 8, headerY + 7, margin + 20, headerY + 7);
-
-  // Title Section
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(22);
-  pdf.setTextColor(2, 30, 60);
-  pdf.text("DAILY TIME RECORD", margin + 50, headerY + 2);
-
-  pdf.setFont("helvetica", "normal");
-  pdf.setFontSize(12);
-  pdf.setTextColor(80, 80, 80);
-  pdf.text("On-the-Job Training (OJT)", margin + 50, headerY + 18);
-
-  // Metadata Right Aligned
-  const metaX = pageWidth - margin - 170;
-  pdf.setFontSize(9);
-  pdf.setTextColor(0, 0, 0);
-  
-  const labels = ["Student Name:", "Target Hours:", "Generated On:"];
-  const values = [profile?.full_name || "N/A", profile?.target_hours || "0", formattedGeneratedDate];
-  
-  labels.forEach((label, i) => {
-    const y = headerY - 8 + (i * 14);
-    pdf.setFont("helvetica", "bold");
-    pdf.text(label, metaX, y);
-    pdf.setFont("helvetica", "normal");
-    pdf.text(values[i].toString(), metaX + 75, y);
+  const formattedGeneratedDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
-  // Thick Divider Line
-  pdf.setDrawColor(2, 30, 60);
-  pdf.setLineWidth(1.5);
-  pdf.line(margin, headerY + 36, pageWidth - margin, headerY + 36);
+  // --- Header Layout ---
+  const headerY = 55;
+
+  // Title Section (Bigger and more prominent)
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(14); // Increased from 10
+  pdf.setTextColor(colors.primary[0], colors.primary[1], colors.primary[2]);
+  pdf.text("STUDENT DAILY TIME RECORD", margin, headerY - 18);
+
+  pdf.setFontSize(10); // Increased from 8
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(80, 80, 80);
+  pdf.text(
+    `Student: ${profile?.full_name || "N/A"} | Generated: ${formattedGeneratedDate}`,
+    margin,
+    headerY - 3,
+  );
 
   const formatRecordDate = (record) => {
     if (!record?.date) return "N/A";
@@ -128,36 +107,28 @@ async function buildDtrPdf(records, totalHours, profile) {
 
   const monthGroups = [];
   const monthMap = new Map();
-  const unknownGroup = { label: "Unknown Month", records: [] };
 
   sortedRecords.forEach((record) => {
-    if (!record?.date) {
-      unknownGroup.records.push(record);
-      return;
-    }
+    if (!record?.date) return;
 
     const parts = record.date.split("-");
-    if (parts.length !== 3) {
-      unknownGroup.records.push(record);
-      return;
-    }
+    if (parts.length !== 3) return;
 
     const [year, month] = parts;
     const monthKey = `${year}-${month}`;
     let group = monthMap.get(monthKey);
     if (!group) {
       const labelDate = new Date(Number(year), Number(month) - 1, 1);
-      const label = labelDate.toLocaleDateString("en-US", monthLabelOptions);
-      group = { label, records: [] };
+      const label = labelDate
+        .toLocaleDateString("en-US", monthLabelOptions)
+        .toUpperCase();
+      group = { label, records: [], monthTotal: 0 };
       monthMap.set(monthKey, group);
       monthGroups.push(group);
     }
     group.records.push(record);
+    group.monthTotal += Number(record.totalHours || 0);
   });
-
-  if (unknownGroup.records.length) {
-    monthGroups.push(unknownGroup);
-  }
 
   const tableHead = [
     [
@@ -177,44 +148,67 @@ async function buildDtrPdf(records, totalHours, profile) {
     theme: "grid",
     styles: {
       font: "helvetica",
-      fontSize: 8,
-      cellPadding: 4,
-      lineColor: [0, 0, 0],
-      lineWidth: 0.3,
-      textColor: [0, 0, 0],
+      fontSize: 8.5,
+      cellPadding: 7,
+      lineColor: colors.border,
+      lineWidth: 0.5,
+      textColor: [30, 30, 30],
+      valign: "middle",
     },
     headStyles: {
-      fillColor: [245, 247, 250],
-      textColor: [0, 0, 0],
+      fillColor: colors.primary,
+      textColor: colors.white,
       fontStyle: "bold",
+      halign: "center",
+      lineWidth: 0,
+      fontSize: 9,
     },
     columnStyles: {
-      0: { cellWidth: 80 },
-      1: { cellWidth: 45 },
-      2: { cellWidth: 45 },
-      3: { cellWidth: 45 },
-      4: { cellWidth: 45 },
-      5: { cellWidth: 45 },
-      6: { cellWidth: 45 },
-      7: { cellWidth: 120 },
-      8: { cellWidth: 45, halign: "right" },
+      0: { cellWidth: 85 },
+      1: { cellWidth: 48, halign: "center" },
+      2: { cellWidth: 48, halign: "center" },
+      3: { cellWidth: 48, halign: "center" },
+      4: { cellWidth: 48, halign: "center" },
+      5: { cellWidth: 42, halign: "center" },
+      6: { cellWidth: 42, halign: "center" },
+      7: { cellWidth: 100, halign: "center" },
+      8: { cellWidth: 45, halign: "center", fontStyle: "bold" },
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255],
     },
   };
 
-  let cursorY = 110;
+  let cursorY = 75;
   const ensureSpace = (needed) => {
     if (cursorY + needed > pageHeight - margin) {
       pdf.addPage();
-      cursorY = margin;
+      cursorY = margin + 20;
     }
   };
 
-  monthGroups.forEach((group) => {
-    ensureSpace(24);
+  monthGroups.forEach((group, index) => {
+    const headerHeight = 30;
+
+    ensureSpace(headerHeight + 50);
+
+    // --- Month Header Section (Minimalist) ---
+    const textX = margin;
+    const textY = cursorY;
+
+    // Month Year Text (Black)
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(11);
-    pdf.text(group.label, margin, cursorY);
-    cursorY += 10;
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(group.label, textX, textY + 15);
+
+    // Monthly Total
+    const totalText = `Monthly Total: ${group.monthTotal.toFixed(1)} Hours`;
+    pdf.setFontSize(10);
+    const totalWidth = pdf.getTextWidth(totalText);
+    pdf.text(totalText, pageWidth - margin - totalWidth, textY + 13);
+
+    cursorY += 25;
 
     autoTable(pdf, {
       startY: cursorY,
@@ -222,70 +216,78 @@ async function buildDtrPdf(records, totalHours, profile) {
       head: tableHead,
       body: group.records.map((record) => [
         formatRecordDate(record),
-        record.amIn || "",
-        record.amOut || "",
-        record.pmIn || "",
-        record.pmOut || "",
-        record.otIn || "",
-        record.otOut || "",
-        record.status || "",
+        record.amIn || "-",
+        record.amOut || "-",
+        record.pmIn || "-",
+        record.pmOut || "-",
+        record.otIn || "-",
+        record.otOut || "-",
+        record.status || "Regular Duty Day",
         Number(record.totalHours || 0).toFixed(1),
       ]),
       ...tableStyles,
     });
 
-    cursorY = (pdf.lastAutoTable?.finalY || cursorY) + 18;
+    cursorY = (pdf.lastAutoTable?.finalY || cursorY) + 40;
   });
 
-  ensureSpace(24);
+  // Final Total Hours
+  ensureSpace(40);
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(10);
-  pdf.text(`Total Hours: ${totalHours.toFixed(1)}`, pageWidth - margin, cursorY, {
-    align: "right",
-  });
-  cursorY += 28;
+  pdf.setFontSize(12);
+  pdf.setTextColor(0, 0, 0);
+  pdf.text(
+    `OVERALL TOTAL HOURS: ${totalHours.toFixed(1)}`,
+    pageWidth - margin,
+    cursorY,
+    {
+      align: "right",
+    },
+  );
 
-  // --- Signature Section Inspired by Layout ---
-  const signatureBlockHeight = 90;
-  ensureSpace(signatureBlockHeight);
-  
-  cursorY += 35;
-  const totalWidth = pageWidth - (margin * 2);
+  cursorY += 45;
+  const totalWidth = pageWidth - margin * 2;
   const blockWidth = totalWidth / 2;
   const lineMargin = 30;
 
   const signatures = [
-    { 
-      title: "Approved By (OJT Supervisor)", 
+    {
+      title: "Approved By (OJT Supervisor)",
       name: "Signature over Printed Name",
-      sub: "" 
+      sub: "",
     },
-    { 
-      title: "Verified By (HR Department)", 
+    {
+      title: "Verified By (HR Department)",
       name: "Signature over Printed Name",
-      sub: "" 
-    }
+      sub: "",
+    },
   ];
 
+  ensureSpace(100);
   signatures.forEach((sig, i) => {
-    const startX = margin + (i * blockWidth);
-    const centerX = startX + (blockWidth / 2);
-    
+    const startX = margin + i * blockWidth;
+    const centerX = startX + blockWidth / 2;
+
     // Top Title
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
-    pdf.setTextColor(2, 30, 60);
+    pdf.setTextColor(0, 0, 0);
     pdf.text(sig.title, centerX, cursorY, { align: "center" });
 
     // Signature Line
     pdf.setDrawColor(180, 180, 180);
     pdf.setLineWidth(0.8);
-    pdf.line(startX + lineMargin, cursorY + 22, startX + blockWidth - lineMargin, cursorY + 22);
+    pdf.line(
+      startX + lineMargin,
+      cursorY + 22,
+      startX + blockWidth - lineMargin,
+      cursorY + 22,
+    );
 
     // Bottom Name/Label
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8);
-    pdf.setTextColor(60, 60, 60);
+    pdf.setTextColor(100, 100, 100);
     pdf.text(sig.name, centerX, cursorY + 34, { align: "center" });
   });
 
@@ -395,8 +397,41 @@ export default function HistoryContent() {
     0,
   );
 
-  const handlePrint = async () => {
-    const pdf = await buildDtrPdf(allSorted, totalAllHours, userProfile);
+  const availableMonths = useMemo(() => {
+    const months = new Map();
+    allSorted.forEach((record) => {
+      if (!record?.date) return;
+      const [year, month] = record.date.split("-");
+      const key = `${year}-${month}`;
+      if (!months.has(key)) {
+        const date = new Date(Number(year), Number(month) - 1, 1);
+        months.set(key, {
+          key,
+          label: date.toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          }),
+        });
+      }
+    });
+    return Array.from(months.values()).sort((a, b) =>
+      b.key.localeCompare(a.key),
+    );
+  }, [allSorted]);
+
+  const handlePrint = async (monthKey) => {
+    let recordsToPrint = allSorted;
+    let hoursToPrint = totalAllHours;
+
+    if (monthKey && monthKey !== "all") {
+      recordsToPrint = allSorted.filter((r) => r.date.startsWith(monthKey));
+      hoursToPrint = recordsToPrint.reduce(
+        (sum, r) => sum + (Number(r.totalHours) || 0),
+        0,
+      );
+    }
+
+    const pdf = await buildDtrPdf(recordsToPrint, hoursToPrint, userProfile);
     const blob = pdf.output("blob");
     const blobUrl = URL.createObjectURL(blob);
     window.open(blobUrl, "_blank", "noopener,noreferrer");
@@ -460,7 +495,10 @@ export default function HistoryContent() {
             title="Activity Logs"
             subtitle="View and review all your attendance records"
           />
-          <ActionsSection onPrint={handlePrint} />
+          <ActionsSection
+            onPrint={handlePrint}
+            availableMonths={availableMonths}
+          />
         </div>
 
         <StatsSection
