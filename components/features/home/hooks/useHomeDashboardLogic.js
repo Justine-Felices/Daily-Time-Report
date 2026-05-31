@@ -13,9 +13,12 @@ import {
   fetchAttendanceRecordsByDateRange,
   fetchAttendanceMonthsWithData,
 } from "@/lib/supabase-history";
-import { isResetStatus, isHalfDayStatus, calculateTotalHours } from "@/lib/dtr-time-validation";
-
-
+import {
+  isResetStatus,
+  isHalfDayStatus,
+  calculateTotalHours,
+} from "@/lib/dtr-time-validation";
+import { PHILIPPINE_HOLIDAYS_2026 } from "@/lib/dtr-constants";
 
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 
@@ -23,14 +26,12 @@ const STATUS_TO_ENUM = {
   "Regular Duty Day": "REGULAR_DUTY_DAY",
   "Sick Leave": "SICK_LEAVE",
   "Vacation Leave": "VACATION_LEAVE",
-  "Absent": "ABSENT",
-  "Holiday": "HOLIDAY",
+  Absent: "ABSENT",
+  Holiday: "HOLIDAY",
   "Half Day": "HALF_DAY",
   "Work From Home": "WORK_FROM_HOME",
   "On Field": "ON_FIELD",
 };
-
-
 
 function formatNowClock(date) {
   const hours = date.getHours().toString().padStart(2, "0");
@@ -124,7 +125,11 @@ function formatDashboardDate(dateText) {
   const month = Number(match[2]);
   const day = Number(match[3]);
 
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day)
+  ) {
     return null;
   }
 
@@ -293,7 +298,12 @@ export default function useHomeDashboardLogic() {
       setPmSession(persistedPmSession);
       setOtSession(persistedOtSession);
     }
-  }, [dashboardView, persistedAmSession, persistedPmSession, persistedOtSession]);
+  }, [
+    dashboardView,
+    persistedAmSession,
+    persistedPmSession,
+    persistedOtSession,
+  ]);
 
   // ─── 4-STATE ATTENDANCE LOGIC ───
   const currentStatus = useMemo(() => {
@@ -305,7 +315,8 @@ export default function useHomeDashboardLogic() {
     }
 
     // Dual Mode Flow
-    if (!amSession.timeIn && pmSession.timeIn && pmSession.timeOut) return "done";
+    if (!amSession.timeIn && pmSession.timeIn && pmSession.timeOut)
+      return "done";
     if (!amSession.timeIn) return "clock-in";
     if (!amSession.timeOut) return "clock-out-am";
     if (!pmSession.timeIn) return "start-pm";
@@ -320,7 +331,12 @@ export default function useHomeDashboardLogic() {
       if (!persistedPmSession.timeOut) return "clock-out-pm";
       return "done";
     }
-    if (!persistedAmSession.timeIn && persistedPmSession.timeIn && persistedPmSession.timeOut) return "done";
+    if (
+      !persistedAmSession.timeIn &&
+      persistedPmSession.timeIn &&
+      persistedPmSession.timeOut
+    )
+      return "done";
     if (!persistedAmSession.timeIn) return "clock-in";
     if (!persistedAmSession.timeOut) return "clock-out-am";
     if (!persistedPmSession.timeIn) return "start-pm";
@@ -371,7 +387,14 @@ export default function useHomeDashboardLogic() {
         setModalPmOut(timeNow);
       }
     }
-  }, [showClockOutModal, amSession, pmSession, currentStatus, attendanceMode, now]);
+  }, [
+    showClockOutModal,
+    amSession,
+    pmSession,
+    currentStatus,
+    attendanceMode,
+    now,
+  ]);
 
   const refreshPersistedSummary = useCallback(
     async (userId) => {
@@ -468,7 +491,6 @@ export default function useHomeDashboardLogic() {
     }
   }, []);
 
-
   const handleStatusChange = (newStatus) => {
     if (isResetStatus(newStatus)) {
       setAmSession(EMPTY_SESSION);
@@ -486,7 +508,10 @@ export default function useHomeDashboardLogic() {
     setErrorMessage(null);
 
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
       if (authError || !user) {
         setErrorMessage("Session expired. Please log in again.");
         setIsSaving(false);
@@ -561,13 +586,14 @@ export default function useHomeDashboardLogic() {
       const otSent = Boolean(finalRecord.ot_in || finalRecord.ot_out);
       const otSaved = Boolean(savedData?.ot_in || savedData?.ot_out);
       if (otSent && !otSaved) {
-        setWarningMessage("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
+        setWarningMessage(
+          "Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.",
+        );
       }
 
       // Success -> Refresh
       await refreshPersistedSummary(user.id);
       setShowSuccess(true);
-
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
         console.error("Dashboard Save Exception:", err);
@@ -653,7 +679,6 @@ export default function useHomeDashboardLogic() {
     };
   }, [refreshPersistedSummary, router, supabase]);
 
-
   const draftTodayHours =
     (amSession.timeIn && amSession.timeOut ? 4 : amSession.timeIn ? 2 : 0) +
     (pmSession.timeIn && pmSession.timeOut ? 4 : pmSession.timeIn ? 2 : 0);
@@ -673,7 +698,42 @@ export default function useHomeDashboardLogic() {
   const remaining = hasValidTargetHours
     ? Math.max(0, Number(targetHours) - totalRenderedHours)
     : 0;
-  const formattedEstimatedFinish = formatDashboardDate(persistedEstimatedFinishDate);
+
+  // client-side holiday-aware finish date calc
+  const clientEstimatedFinishDate = useMemo(() => {
+    if (!hasValidTargetHours || remaining <= 0) return null;
+
+    // assume 8 hours per day
+    const hoursPerDay = 8;
+    const daysNeeded = Math.ceil(remaining / hoursPerDay);
+
+    let currentDate = new Date();
+    // if it's already past 5pm today, start counting from tomorrow
+    if (currentDate.getHours() >= 17) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    let workDaysCount = 0;
+    while (workDaysCount < daysNeeded) {
+      const dayOfWeek = currentDate.getDay(); // 0=Sun, 6=Sat
+      const dateString = currentDate.toISOString().split("T")[0];
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const isHoliday = PHILIPPINE_HOLIDAYS_2026.includes(dateString);
+
+      if (!isWeekend && !isHoliday) {
+        workDaysCount++;
+      }
+
+      if (workDaysCount < daysNeeded) {
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+    return currentDate.toISOString().split("T")[0];
+  }, [hasValidTargetHours, remaining]);
+
+  const formattedEstimatedFinish = formatDashboardDate(
+    clientEstimatedFinishDate || persistedEstimatedFinishDate,
+  );
   const estimatedFinishText = !hasValidTargetHours
     ? "Set target hours"
     : formattedEstimatedFinish || "Not available";
@@ -736,17 +796,17 @@ export default function useHomeDashboardLogic() {
     }
     return Boolean(
       (amSession.timeIn && !amSession.timeOut) ||
-      (pmSession.timeIn && !pmSession.timeOut)
+      (pmSession.timeIn && !pmSession.timeOut),
     );
   }, [amSession, pmSession, attendanceMode]);
 
   const activeSessionTimeIn = useMemo(() => {
     if (attendanceMode === "single") {
-      return (amSession.timeIn && !pmSession.timeOut) ? amSession.timeIn : null;
+      return amSession.timeIn && !pmSession.timeOut ? amSession.timeIn : null;
     }
-    return (amSession.timeIn && !amSession.timeOut)
+    return amSession.timeIn && !amSession.timeOut
       ? amSession.timeIn
-      : (pmSession.timeIn && !pmSession.timeOut)
+      : pmSession.timeIn && !pmSession.timeOut
         ? pmSession.timeIn
         : null;
   }, [amSession, pmSession, attendanceMode]);
@@ -785,7 +845,15 @@ export default function useHomeDashboardLogic() {
     const base = calculateDuration(modalAmIn, modalPmOut);
     const ot = calculateDuration(otSession.timeIn, otSession.timeOut);
     return Math.min(8, base) + ot;
-  }, [showClockOutModal, modalAmIn, modalAmOut, modalPmIn, modalPmOut, attendanceMode, otSession]);
+  }, [
+    showClockOutModal,
+    modalAmIn,
+    modalAmOut,
+    modalPmIn,
+    modalPmOut,
+    attendanceMode,
+    otSession,
+  ]);
 
   const statusLabel = isClockIn ? "CLOCKED IN" : "CLOCK OUT";
 
@@ -800,7 +868,9 @@ export default function useHomeDashboardLogic() {
         error: authError,
       } = await supabase.auth.getUser();
       if (authError || !user) {
-        setErrorMessage("Your session has expired. Please log in again to record your attendance.");
+        setErrorMessage(
+          "Your session has expired. Please log in again to record your attendance.",
+        );
         return;
       }
       const timeNow = formatNowClock(new Date());
@@ -818,12 +888,16 @@ export default function useHomeDashboardLogic() {
           { onConflict: "user_id,work_date" },
         );
       if (insertError) {
-        setErrorMessage("We couldn't reach the server. Please check your connection and try clocking in again.");
+        setErrorMessage(
+          "We couldn't reach the server. Please check your connection and try clocking in again.",
+        );
         return;
       }
       await refreshPersistedSummary(user.id);
     } catch (err) {
-      setErrorMessage("Something went wrong on our end. Please refresh the page and try again.");
+      setErrorMessage(
+        "Something went wrong on our end. Please refresh the page and try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -840,7 +914,9 @@ export default function useHomeDashboardLogic() {
         error: authError,
       } = await supabase.auth.getUser();
       if (authError || !user) {
-        setErrorMessage("Session expired. Please log in again to start your PM session.");
+        setErrorMessage(
+          "Session expired. Please log in again to start your PM session.",
+        );
         return;
       }
       const timeNow = formatNowClock(new Date());
@@ -850,12 +926,16 @@ export default function useHomeDashboardLogic() {
         .eq("user_id", user.id)
         .eq("work_date", todayKey);
       if (updateError) {
-        setErrorMessage("Failed to start PM session. Please check your internet connection.");
+        setErrorMessage(
+          "Failed to start PM session. Please check your internet connection.",
+        );
         return;
       }
       await refreshPersistedSummary(user.id);
     } catch (err) {
-      setErrorMessage("We encountered an error starting your session. Please try again in a moment.");
+      setErrorMessage(
+        "We encountered an error starting your session. Please try again in a moment.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -872,7 +952,9 @@ export default function useHomeDashboardLogic() {
         error: authError,
       } = await supabase.auth.getUser();
       if (authError || !user) {
-        setErrorMessage("Session expired. Please log in again to save your clock out.");
+        setErrorMessage(
+          "Session expired. Please log in again to save your clock out.",
+        );
         return;
       }
 
@@ -883,10 +965,26 @@ export default function useHomeDashboardLogic() {
       const pmOutMin = toMinutes(modalPmOut);
 
       // 1. Basic Format Checks
-      if (modalAmIn && amInMin === null) { setErrorMessage("Invalid format for AM Time In"); setIsSaving(false); return; }
-      if (modalAmOut && amOutMin === null) { setErrorMessage("Invalid format for AM Time Out"); setIsSaving(false); return; }
-      if (modalPmIn && pmInMin === null) { setErrorMessage("Invalid format for PM Time In"); setIsSaving(false); return; }
-      if (modalPmOut && pmOutMin === null) { setErrorMessage("Invalid format for Current Time"); setIsSaving(false); return; }
+      if (modalAmIn && amInMin === null) {
+        setErrorMessage("Invalid format for AM Time In");
+        setIsSaving(false);
+        return;
+      }
+      if (modalAmOut && amOutMin === null) {
+        setErrorMessage("Invalid format for AM Time Out");
+        setIsSaving(false);
+        return;
+      }
+      if (modalPmIn && pmInMin === null) {
+        setErrorMessage("Invalid format for PM Time In");
+        setIsSaving(false);
+        return;
+      }
+      if (modalPmOut && pmOutMin === null) {
+        setErrorMessage("Invalid format for Current Time");
+        setIsSaving(false);
+        return;
+      }
 
       // 2. Logical Sequence Checks
       if (attendanceMode === "dual") {
@@ -895,21 +993,61 @@ export default function useHomeDashboardLogic() {
 
         if (isLateStart) {
           // Validate PM-only flow
-          if (pmInMin === null) { setErrorMessage("PM Time In is required"); setIsSaving(false); return; }
-          if (pmOutMin <= pmInMin) { setErrorMessage("Current Time must be after PM Time In"); setIsSaving(false); return; }
+          if (pmInMin === null) {
+            setErrorMessage("PM Time In is required");
+            setIsSaving(false);
+            return;
+          }
+          if (pmOutMin <= pmInMin) {
+            setErrorMessage("Current Time must be after PM Time In");
+            setIsSaving(false);
+            return;
+          }
         } else {
           // Validate normal Dual flow
-          if (amInMin === null) { setErrorMessage("AM Time In is required"); setIsSaving(false); return; }
-          if (amOutMin === null) { setErrorMessage("AM Time Out is required"); setIsSaving(false); return; }
-          if (pmInMin === null) { setErrorMessage("PM Time In is required"); setIsSaving(false); return; }
-          if (amOutMin <= amInMin) { setErrorMessage("AM Time Out must be after AM Time In"); setIsSaving(false); return; }
-          if (pmInMin < amOutMin) { setErrorMessage("PM Time In cannot be before AM Time Out"); setIsSaving(false); return; }
-          if (pmOutMin <= pmInMin) { setErrorMessage("Current Time must be after PM Time In"); setIsSaving(false); return; }
+          if (amInMin === null) {
+            setErrorMessage("AM Time In is required");
+            setIsSaving(false);
+            return;
+          }
+          if (amOutMin === null) {
+            setErrorMessage("AM Time Out is required");
+            setIsSaving(false);
+            return;
+          }
+          if (pmInMin === null) {
+            setErrorMessage("PM Time In is required");
+            setIsSaving(false);
+            return;
+          }
+          if (amOutMin <= amInMin) {
+            setErrorMessage("AM Time Out must be after AM Time In");
+            setIsSaving(false);
+            return;
+          }
+          if (pmInMin < amOutMin) {
+            setErrorMessage("PM Time In cannot be before AM Time Out");
+            setIsSaving(false);
+            return;
+          }
+          if (pmOutMin <= pmInMin) {
+            setErrorMessage("Current Time must be after PM Time In");
+            setIsSaving(false);
+            return;
+          }
         }
       } else {
         // Single Mode Validation
-        if (amInMin === null) { setErrorMessage("Time In is required"); setIsSaving(false); return; }
-        if (pmOutMin <= amInMin) { setErrorMessage("Current Time must be after Time In"); setIsSaving(false); return; }
+        if (amInMin === null) {
+          setErrorMessage("Time In is required");
+          setIsSaving(false);
+          return;
+        }
+        if (pmOutMin <= amInMin) {
+          setErrorMessage("Current Time must be after Time In");
+          setIsSaving(false);
+          return;
+        }
       }
 
       const timeNow = formatNowClock(new Date());
@@ -952,7 +1090,7 @@ export default function useHomeDashboardLogic() {
             pm_out: modalPmOut,
             ot_in: otInValue || null,
             ot_out: otOutValue || null,
-            total_hours: modalHours
+            total_hours: modalHours,
           };
         }
       } else if (currentStatus === "clock-out-pm") {
@@ -976,21 +1114,27 @@ export default function useHomeDashboardLogic() {
         .select()
         .single();
       if (updateError) {
-        setErrorMessage("Unable to save your clock out. Please check your connection.");
+        setErrorMessage(
+          "Unable to save your clock out. Please check your connection.",
+        );
         return;
       }
 
       const otSent = Boolean(updates.ot_in || updates.ot_out);
       const otSaved = Boolean(savedData?.ot_in || savedData?.ot_out);
       if (otSent && !otSaved) {
-        setWarningMessage("Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.");
+        setWarningMessage(
+          "Note: Overtime (OT) times were not saved because your database does not currently support OT or has constraints preventing it.",
+        );
       }
 
       await refreshPersistedSummary(user.id);
       setShowSuccess(true);
       setShowClockOutModal(false);
     } catch (err) {
-      setErrorMessage("Something went wrong while clocking out. Please try again.");
+      setErrorMessage(
+        "Something went wrong while clocking out. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }

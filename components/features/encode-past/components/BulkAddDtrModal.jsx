@@ -3,7 +3,8 @@ import {
   Calendar,
   CalendarDays,
   CalendarRange,
-  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   FileText,
   Globe,
@@ -16,6 +17,7 @@ import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import { createBulkAttendanceRecords } from "@/lib/supabase-operations";
 import { formatReadableDate } from "@/lib/dtr-formatters";
+import { calculateTotalHours } from "@/lib/dtr-time-validation";
 
 function toDateKey(date) {
   const year = date.getFullYear();
@@ -45,35 +47,37 @@ function formatTimePreview(value) {
   return `${normalizedHour}:${String(minute).padStart(2, "0")} ${suffix}`;
 }
 
-function buildDateRange(startDate, endDate, weekdaysOnly) {
-  if (!startDate || !endDate) return [];
+const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
-  const start = new Date(`${startDate}T00:00:00`);
-  const end = new Date(`${endDate}T00:00:00`);
+function buildMonthCells(monthDate) {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startWeekday = firstDay.getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
 
-  if (
-    Number.isNaN(start.getTime()) ||
-    Number.isNaN(end.getTime()) ||
-    start > end
-  ) {
-    return [];
+  const cells = [];
+  for (let i = 0; i < startWeekday; i += 1) {
+    cells.push(null);
   }
 
-  const dates = [];
-  const cursor = new Date(start);
+  for (let day = 1; day <= totalDays; day += 1) {
+    const date = new Date(year, month, day);
+    cells.push({
+      date,
+      dateKey: toDateKey(date),
+      day,
+    });
+  }
 
-  while (cursor <= end) {
-    const day = cursor.getDay();
-    const isWeekday = day !== 0 && day !== 6;
-
-    if (!weekdaysOnly || isWeekday) {
-      dates.push(toDateKey(cursor));
+  const remainder = cells.length % 7;
+  if (remainder !== 0) {
+    for (let i = 0; i < 7 - remainder; i += 1) {
+      cells.push(null);
     }
-
-    cursor.setDate(cursor.getDate() + 1);
   }
 
-  return dates;
+  return cells;
 }
 
 function buildEntryPayload({ entryType, mode, times, note, dates }) {
@@ -222,16 +226,15 @@ const SECTION_LABEL_STYLE = {
 
 export default function BulkAddDtrModal({ open, onClose }) {
   const [entryType, setEntryType] = useState("regular");
-  const [weekdaysOnly, setWeekdaysOnly] = useState(true);
   const [onDuplicate, setOnDuplicate] = useState("skip");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [selectedDates, setSelectedDates] = useState([]);
   const [note, setNote] = useState("");
   const [times, setTimes] = useState({
-    amIn: "09:30",
-    amOut: "12:00",
-    pmIn: "13:00",
-    pmOut: "18:30",
+    amIn: "08:00",
+    amOut: "11:00",
+    pmIn: "12:00",
+    pmOut: "17:00",
     otIn: "",
     otOut: "",
   });
@@ -240,14 +243,83 @@ export default function BulkAddDtrModal({ open, onClose }) {
   const [error, setError] = useState("");
 
   const todayKey = useMemo(() => toDateKey(new Date()), []);
-
-  const selectedDates = useMemo(
-    () => buildDateRange(startDate, endDate, weekdaysOnly),
-    [startDate, endDate, weekdaysOnly],
+  const selectedDateKeys = useMemo(
+    () => [...selectedDates].sort(),
+    [selectedDates],
+  );
+  const selectedDateSet = useMemo(
+    () => new Set(selectedDateKeys),
+    [selectedDateKeys],
   );
 
+  const monthLabel = useMemo(
+    () =>
+      calendarMonth.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      }),
+    [calendarMonth],
+  );
+
+  const calendarCells = useMemo(
+    () => buildMonthCells(calendarMonth),
+    [calendarMonth],
+  );
+
+  const monthCells = useMemo(
+    () => calendarCells.filter(Boolean),
+    [calendarCells],
+  );
+
+  const toggleDateSelection = (dateKey) => {
+    if (!dateKey || dateKey > todayKey) return;
+    setSelectedDates((prev) => {
+      const set = new Set(prev);
+      if (set.has(dateKey)) {
+        set.delete(dateKey);
+      } else {
+        set.add(dateKey);
+      }
+      return Array.from(set).sort();
+    });
+  };
+
+  const addMonthDates = (predicate) => {
+    setSelectedDates((prev) => {
+      const set = new Set(prev);
+      monthCells.forEach((cell) => {
+        if (!cell?.dateKey || cell.dateKey > todayKey) return;
+        if (!predicate || predicate(cell.date)) {
+          set.add(cell.dateKey);
+        }
+      });
+      return Array.from(set).sort();
+    });
+  };
+
+  const clearMonthDates = () => {
+    const monthKeys = new Set(monthCells.map((cell) => cell.dateKey));
+    setSelectedDates((prev) => prev.filter((dateKey) => !monthKeys.has(dateKey)));
+  };
+
+  const clearAllDates = () => {
+    setSelectedDates([]);
+  };
+
+  const goToPrevMonth = () => {
+    setCalendarMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
+    );
+  };
+
+  const goToNextMonth = () => {
+    setCalendarMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
+    );
+  };
+
   const previewRows = useMemo(() => {
-    return selectedDates.map((date) => {
+    return selectedDateKeys.map((date) => {
       if (entryType === "regular") {
         const otPreview =
           times.otIn || times.otOut
@@ -266,7 +338,7 @@ export default function BulkAddDtrModal({ open, onClose }) {
 
       return `${formatReadableDate(date)} - Absent`;
     });
-  }, [selectedDates, entryType, times]);
+  }, [selectedDateKeys, entryType, times]);
 
   const shouldShowFullTimes = entryType === "regular";
   const shouldShowHalfDayTimes = entryType === "half_day";
@@ -275,17 +347,12 @@ export default function BulkAddDtrModal({ open, onClose }) {
     setError("");
     setFeedback("");
 
-    if (selectedDates.length === 0) {
-      setError("Select a valid date range first.");
+    if (selectedDateKeys.length === 0) {
+      setError("Select at least one date to continue.");
       return;
     }
 
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const startObj = new Date(`${startDate}T00:00:00`);
-    const endObj = new Date(`${endDate}T00:00:00`);
-
-    if (startObj > today || endObj > today) {
+    if (selectedDateKeys.some((dateKey) => dateKey > todayKey)) {
       setError("Bulk entries cannot be added for future dates.");
       return;
     }
@@ -341,7 +408,7 @@ export default function BulkAddDtrModal({ open, onClose }) {
       mode,
       times,
       note,
-      dates: selectedDates,
+      dates: selectedDateKeys,
     });
 
     setIsSaving(true);
@@ -483,57 +550,176 @@ export default function BulkAddDtrModal({ open, onClose }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <div style={SECTION_LABEL_STYLE}>START DATE</div>
-                <input
-                  type="date"
-                  value={startDate}
-                  max={todayKey}
-                  onChange={(event) => setStartDate(event.target.value)}
-                  className="w-full"
-                  style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-                />
-              </div>
-
-              <div>
-                <div style={SECTION_LABEL_STYLE}>END DATE</div>
-                <input
-                  type="date"
-                  value={endDate}
-                  max={todayKey}
-                  onChange={(event) => setEndDate(event.target.value)}
-                  className="w-full"
-                  style={{ ...GLASS_INPUT_STYLE, padding: "10px 12px" }}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label
-                className="inline-flex items-center gap-2"
+            <div>
+              <div style={SECTION_LABEL_STYLE}>SELECT DATES</div>
+              <div
+                className="rounded-2xl border p-4"
                 style={{
-                  color: "var(--text-secondary)",
-                  fontSize: "12px",
-                  fontFamily: "'Inter',sans-serif",
+                  borderColor: "var(--border-soft)",
+                  background: "var(--surface-muted)",
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={weekdaysOnly}
-                  onChange={(event) => setWeekdaysOnly(event.target.checked)}
-                />
-                Weekdays only
-              </label>
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    type="button"
+                    onClick={goToPrevMonth}
+                    className="rounded-lg px-2 py-1"
+                    style={{
+                      border: "1px solid var(--border-soft)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+
+                  <div
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {monthLabel}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={goToNextMonth}
+                    className="rounded-lg px-2 py-1"
+                    style={{
+                      border: "1px solid var(--border-soft)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {WEEKDAYS.map((label) => (
+                    <div
+                      key={label}
+                      className="text-center"
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarCells.map((cell, index) => {
+                    if (!cell) {
+                      return <div key={`empty-${index}`} className="h-9" />;
+                    }
+
+                    const isSelected = selectedDateSet.has(cell.dateKey);
+                    const isFuture = cell.dateKey > todayKey;
+                    const isToday = cell.dateKey === todayKey;
+                    const isWeekend =
+                      cell.date.getDay() === 0 || cell.date.getDay() === 6;
+
+                    return (
+                      <button
+                        key={cell.dateKey}
+                        type="button"
+                        disabled={isFuture}
+                        onClick={() => toggleDateSelection(cell.dateKey)}
+                        className="h-9 rounded-lg text-xs font-semibold"
+                        style={{
+                          border: `1px solid ${
+                            isSelected
+                              ? "var(--accent-strong)"
+                              : isToday
+                                ? "rgba(59, 130, 246, 0.7)"
+                                : "var(--border-soft)"
+                          }`,
+                          background: isSelected
+                            ? "var(--accent-strong)"
+                            : "var(--surface-card)",
+                          color: isSelected
+                            ? "#ffffff"
+                            : isFuture
+                              ? "rgba(148, 163, 184, 0.45)"
+                              : isWeekend
+                                ? "var(--text-muted)"
+                                : "var(--text-primary)",
+                          cursor: isFuture ? "not-allowed" : "pointer",
+                          opacity: isFuture ? 0.6 : 1,
+                        }}
+                      >
+                        {cell.day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    addMonthDates((date) => {
+                      const day = date.getDay();
+                      return day !== 0 && day !== 6;
+                    })
+                  }
+                  style={{
+                    ...OPTION_BUTTON_STYLE,
+                    background: "var(--surface-muted)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Select Weekdays
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addMonthDates()}
+                  style={{
+                    ...OPTION_BUTTON_STYLE,
+                    background: "var(--surface-muted)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  onClick={clearMonthDates}
+                  style={{
+                    ...OPTION_BUTTON_STYLE,
+                    background: "var(--surface-muted)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Clear Month
+                </button>
+                <button
+                  type="button"
+                  onClick={clearAllDates}
+                  style={{
+                    ...OPTION_BUTTON_STYLE,
+                    background: "var(--surface-muted)",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Clear All
+                </button>
+              </div>
+
               <p
                 style={{
                   color: "var(--text-muted)",
                   fontSize: "10px",
-                  marginLeft: "22px",
-                  marginTop: "-2px",
+                  marginTop: "8px",
                 }}
               >
-                Only applies entries from Monday to Sunday
+                Pick any dates you want to log. Future dates are disabled.
               </p>
             </div>
 
@@ -899,12 +1085,18 @@ export default function BulkAddDtrModal({ open, onClose }) {
                         fontSize: "12px",
                       }}
                     >
-                      Weekdays Only
+                      Selected Dates
                     </span>
                   </div>
-                  {weekdaysOnly && (
-                    <CheckCircle2 size={16} className="text-emerald-500" />
-                  )}
+                  <span
+                    style={{
+                      color: "var(--text-primary)",
+                      fontSize: "12px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {pluralize(selectedDateKeys.length, "date")}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
