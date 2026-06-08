@@ -33,6 +33,26 @@ const STAT_LABEL_STYLE = {
   textAlign: "center",
 };
 
+function getDailyHoursTip({ remaining, hoursPerDayNeeded, ojtEndDate }) {
+  if (remaining <= 0) return null;
+
+  if (!ojtEndDate) {
+    return "Set your OJT end date to see how many hours per day you need.";
+  }
+
+  if (hoursPerDayNeeded === null) {
+    return `You're past your OJT end date with ${remaining.toFixed(0)} hours remaining.`;
+  }
+
+  return (
+    <>
+      You need{" "}
+      <span className="font-bold text-[#3b82f6]">{hoursPerDayNeeded} hrs/day</span>{" "}
+      to finish on time.
+    </>
+  );
+}
+
 export default function ProgressSection({
   isLoading = false,
   pct,
@@ -40,8 +60,14 @@ export default function ProgressSection({
   targetHours,
   totalHours,
   estimatedFinishText,
+  hoursPerDayNeeded = null,
+  ojtEndDate = null,
 }) {
-  const hoursPerDayNeeded = remaining > 0 ? (remaining / 20).toFixed(1) : 0;
+  const dailyHoursTip = getDailyHoursTip({
+    remaining,
+    hoursPerDayNeeded,
+    ojtEndDate,
+  });
 
   const statItems = [
     { label: "REMAINING", value: `${remaining.toFixed(0)}h` },
@@ -101,20 +127,18 @@ export default function ProgressSection({
         </div>
       </div>
 
-      <div
-        className="mt-6 flex items-center gap-3 rounded-xl px-4 py-3"
-        style={{
-          background: "rgba(0, 0, 0, 0.25)",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
-        }}
-      >
-        <Lightbulb size={18} className="shrink-0 text-[#3b82f6]" />
-        <p className="text-[13px] font-medium text-white/65">
-          You need{" "}
-          <span className="font-bold text-[#3b82f6]">{hoursPerDayNeeded} hrs/day</span>{" "}
-          to finish on time.
-        </p>
-      </div>
+      {dailyHoursTip && (
+        <div
+          className="mt-6 flex items-center gap-3 rounded-xl px-4 py-3"
+          style={{
+            background: "rgba(0, 0, 0, 0.25)",
+            border: "1px solid rgba(255, 255, 255, 0.05)",
+          }}
+        >
+          <Lightbulb size={18} className="shrink-0 text-[#3b82f6]" />
+          <p className="text-[13px] font-medium text-white/65">{dailyHoursTip}</p>
+        </div>
+      )}
     </GlassCard>
   );
 }

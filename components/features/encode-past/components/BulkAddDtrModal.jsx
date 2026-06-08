@@ -16,14 +16,12 @@ import {
 import GlassCard from "@/components/ui/cards/GlassCard";
 import { GLASS_INPUT_STYLE } from "@/lib/dtr-constants";
 import { createBulkAttendanceRecords } from "@/lib/supabase-operations";
-import { formatReadableDate } from "@/lib/dtr-formatters";
+import { formatReadableDate, getPhilippineParts, getPhilippineToday } from "@/lib/dtr-formatters";
 import { calculateTotalHours } from "@/lib/dtr-time-validation";
 
 function toDateKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const { year, month, day } = getPhilippineParts(date);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function toMinutes(timeString) {
@@ -227,7 +225,7 @@ const SECTION_LABEL_STYLE = {
 export default function BulkAddDtrModal({ open, onClose }) {
   const [entryType, setEntryType] = useState("regular");
   const [onDuplicate, setOnDuplicate] = useState("skip");
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [calendarMonth, setCalendarMonth] = useState(() => getPhilippineToday());
   const [selectedDates, setSelectedDates] = useState([]);
   const [note, setNote] = useState("");
   const [times, setTimes] = useState({

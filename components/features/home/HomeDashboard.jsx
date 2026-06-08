@@ -35,6 +35,8 @@ export default function HomeDashboard() {
             targetHours={constants.TARGET_HOURS}
             totalHours={summary.totalHours}
             estimatedFinishText={progress.estimatedFinishText}
+            hoursPerDayNeeded={progress.hoursPerDayNeeded}
+            ojtEndDate={progress.ojtEndDate}
           />
 
           {sessions.dashboardView === "manual" &&

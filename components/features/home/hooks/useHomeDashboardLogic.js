@@ -18,7 +18,18 @@ import {
   isHalfDayStatus,
   calculateTotalHours,
 } from "@/lib/dtr-time-validation";
-import { PHILIPPINE_HOLIDAYS_2026 } from "@/lib/dtr-constants";
+import {
+  getPhilippineDateString,
+  getPhilippineParts,
+  getPhilippineTimeString,
+  getPhilippineToday,
+} from "@/lib/dtr-formatters";
+import {
+  addWorkingDays,
+  calculateHoursPerDayNeeded,
+  getNextWorkingDayStartDate,
+} from "@/lib/working-days";
+
 
 const EMPTY_SESSION = { timeIn: null, timeOut: null };
 
@@ -34,9 +45,7 @@ const STATUS_TO_ENUM = {
 };
 
 function formatNowClock(date) {
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
+  return getPhilippineTimeString(date);
 }
 
 function toMinutes(clock) {
@@ -87,17 +96,13 @@ function calculateDuration(startTime, endTime) {
 }
 
 function toLocalDateKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return getPhilippineDateString(date);
 }
 
 function getMonthBounds(date) {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const start = new Date(year, month, 1);
-  const end = new Date(year, month + 1, 0);
+  const { year, month } = getPhilippineParts(date);
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0);
   return {
     startKey: toLocalDateKey(start),
     endKey: toLocalDateKey(end),
@@ -105,9 +110,8 @@ function getMonthBounds(date) {
 }
 
 function monthKeyFromDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
+  const { year, month } = getPhilippineParts(date);
+  return `${year}-${String(month).padStart(2, "0")}`;
 }
 
 function dateFromMonthKey(monthKey) {
@@ -165,6 +169,7 @@ export default function useHomeDashboardLogic() {
   const [pmSession, setPmSession] = useState(EMPTY_SESSION);
   const [otSession, setOtSession] = useState(EMPTY_SESSION);
   const [fullName, setFullName] = useState("");
+  const [ojtEndDate, setOjtEndDate] = useState(null);
   const [targetHours, setTargetHours] = useState(null);
   const [persistedTotalHours, setPersistedTotalHours] = useState(0);
   const [persistedWeekHours, setPersistedWeekHours] = useState(0);
@@ -184,7 +189,7 @@ export default function useHomeDashboardLogic() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [warningMessage, setWarningMessage] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [calendarMonth, setCalendarMonth] = useState(() => getPhilippineToday());
   const [calendarRecords, setCalendarRecords] = useState([]);
   const [calendarMonthsWithData, setCalendarMonthsWithData] = useState([]);
   const [isCalendarLoading, setIsCalendarLoading] = useState(false);
@@ -645,6 +650,7 @@ export default function useHomeDashboardLogic() {
         }
 
         setFullName(profile?.full_name || "");
+        setOjtEndDate(profile?.ojt_end_date || null);
         const parsedTargetHours = Number(profile?.target_hours);
         setTargetHours(
           Number.isFinite(parsedTargetHours) && parsedTargetHours > 0
@@ -699,37 +705,25 @@ export default function useHomeDashboardLogic() {
     ? Math.max(0, Number(targetHours) - totalRenderedHours)
     : 0;
 
-  // client-side holiday-aware finish date calc
   const clientEstimatedFinishDate = useMemo(() => {
     if (!hasValidTargetHours || remaining <= 0) return null;
 
-    // assume 8 hours per day
     const hoursPerDay = 8;
     const daysNeeded = Math.ceil(remaining / hoursPerDay);
+    const startDate = getNextWorkingDayStartDate(now);
 
-    let currentDate = new Date();
-    // if it's already past 5pm today, start counting from tomorrow
-    if (currentDate.getHours() >= 17) {
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
+    return addWorkingDays(startDate, daysNeeded);
+  }, [hasValidTargetHours, remaining, now]);
 
-    let workDaysCount = 0;
-    while (workDaysCount < daysNeeded) {
-      const dayOfWeek = currentDate.getDay(); // 0=Sun, 6=Sat
-      const dateString = currentDate.toISOString().split("T")[0];
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const isHoliday = PHILIPPINE_HOLIDAYS_2026.includes(dateString);
+  const hoursPerDayNeeded = useMemo(() => {
+    const value = calculateHoursPerDayNeeded({
+      remaining,
+      ojtEndDate,
+      now,
+    });
 
-      if (!isWeekend && !isHoliday) {
-        workDaysCount++;
-      }
-
-      if (workDaysCount < daysNeeded) {
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    }
-    return currentDate.toISOString().split("T")[0];
-  }, [hasValidTargetHours, remaining]);
+    return value === null ? null : Number(value.toFixed(1));
+  }, [remaining, ojtEndDate, now]);
 
   const formattedEstimatedFinish = formatDashboardDate(
     clientEstimatedFinishDate || persistedEstimatedFinishDate,
@@ -1180,6 +1174,8 @@ export default function useHomeDashboardLogic() {
       pct,
       remaining,
       estimatedFinishText,
+      hoursPerDayNeeded,
+      ojtEndDate,
     },
     sessions: {
       now,
