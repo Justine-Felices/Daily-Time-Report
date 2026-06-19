@@ -201,9 +201,9 @@ async function buildDtrPdf(records, totalHours, profile) {
 
     // Month Year Text (Black)
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(16);
+    pdf.setFontSize(10);
     pdf.setTextColor(0, 0, 0);
-    pdf.text(group.label, textX, textY + 15);
+    pdf.text(group.label, textX, textY + 13);
 
     // Monthly Total
     const totalText = `Monthly Total: ${group.monthTotal.toFixed(1)} Hours`;
@@ -237,7 +237,7 @@ async function buildDtrPdf(records, totalHours, profile) {
   // Final Total Hours
   ensureSpace(40);
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(12);
+  pdf.setFontSize(10);
   pdf.setTextColor(0, 0, 0);
   pdf.text(
     `OVERALL TOTAL HOURS: ${totalHours.toFixed(1)}`,
