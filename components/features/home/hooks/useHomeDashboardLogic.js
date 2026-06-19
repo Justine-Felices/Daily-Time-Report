@@ -25,9 +25,8 @@ import {
   getPhilippineToday,
 } from "@/lib/dtr-formatters";
 import {
-  addWorkingDays,
+  calculateEstimatedFinishDate,
   calculateHoursPerDayNeeded,
-  getNextWorkingDayStartDate,
 } from "@/lib/working-days";
 
 
@@ -175,8 +174,6 @@ export default function useHomeDashboardLogic() {
   const [persistedWeekHours, setPersistedWeekHours] = useState(0);
   const [persistedTodayHours, setPersistedTodayHours] = useState(0);
   const [persistedMonthHours, setPersistedMonthHours] = useState(0);
-  const [persistedEstimatedFinishDate, setPersistedEstimatedFinishDate] =
-    useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [attendanceMode, setAttendanceMode] = useState("dual");
@@ -438,7 +435,6 @@ export default function useHomeDashboardLogic() {
         setPersistedWeekHours(dashboardHours.weekHours);
         setPersistedMonthHours(dashboardHours.monthHours);
         setPersistedTotalHours(dashboardHours.totalHours);
-        setPersistedEstimatedFinishDate(dashboardHours.estimatedFinishDate);
       }
 
       if (todayRecord) {
@@ -705,32 +701,29 @@ export default function useHomeDashboardLogic() {
     ? Math.max(0, Number(targetHours) - totalRenderedHours)
     : 0;
 
-  const clientEstimatedFinishDate = useMemo(() => {
-    if (!hasValidTargetHours || remaining <= 0) return null;
+  const estimatedFinishDate = useMemo(() => {
+    if (!hasValidTargetHours) return null;
+    if (remaining <= 0) return getPhilippineDateString(now);
 
-    const hoursPerDay = 8;
-    const daysNeeded = Math.ceil(remaining / hoursPerDay);
-    const startDate = getNextWorkingDayStartDate(now);
-
-    return addWorkingDays(startDate, daysNeeded);
-  }, [hasValidTargetHours, remaining, now]);
+    return calculateEstimatedFinishDate({ remaining, todayHours, now });
+  }, [hasValidTargetHours, remaining, todayHours, now]);
 
   const hoursPerDayNeeded = useMemo(() => {
     const value = calculateHoursPerDayNeeded({
       remaining,
       ojtEndDate,
+      todayHours,
       now,
     });
 
     return value === null ? null : Number(value.toFixed(1));
-  }, [remaining, ojtEndDate, now]);
+  }, [remaining, ojtEndDate, todayHours, now]);
 
-  const formattedEstimatedFinish = formatDashboardDate(
-    clientEstimatedFinishDate || persistedEstimatedFinishDate,
-  );
   const estimatedFinishText = !hasValidTargetHours
     ? "Set target hours"
-    : formattedEstimatedFinish || "Not available";
+    : remaining <= 0
+      ? "Complete"
+      : formatDashboardDate(estimatedFinishDate) || "Not available";
 
   // ─── 4-STATE ATTENDANCE LOGIC (derived from Supabase data only) ───
 

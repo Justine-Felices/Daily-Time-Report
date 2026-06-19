@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PRINT_CSS } from "@/lib/dtr-constants";
+import { formatPdfTimeCell } from "@/lib/dtr-formatters";
 import {
   deleteAttendanceHistoryRecord,
   fetchAttendanceHistoryRecords,
@@ -144,6 +145,8 @@ async function buildDtrPdf(records, totalHours, profile) {
     ],
   ];
 
+  const timeCellPadding = { top: 7, right: 3, bottom: 7, left: 3 };
+
   const tableStyles = {
     theme: "grid",
     styles: {
@@ -165,13 +168,13 @@ async function buildDtrPdf(records, totalHours, profile) {
     },
     columnStyles: {
       0: { cellWidth: 85 },
-      1: { cellWidth: 48, halign: "center" },
-      2: { cellWidth: 48, halign: "center" },
-      3: { cellWidth: 48, halign: "center" },
-      4: { cellWidth: 48, halign: "center" },
-      5: { cellWidth: 42, halign: "center" },
-      6: { cellWidth: 42, halign: "center" },
-      7: { cellWidth: 100, halign: "center" },
+      1: { cellWidth: 50, halign: "center", cellPadding: timeCellPadding },
+      2: { cellWidth: 50, halign: "center", cellPadding: timeCellPadding },
+      3: { cellWidth: 50, halign: "center", cellPadding: timeCellPadding },
+      4: { cellWidth: 50, halign: "center", cellPadding: timeCellPadding },
+      5: { cellWidth: 44, halign: "center", cellPadding: timeCellPadding },
+      6: { cellWidth: 44, halign: "center", cellPadding: timeCellPadding },
+      7: { cellWidth: 92, halign: "center" },
       8: { cellWidth: 45, halign: "center", fontStyle: "bold" },
     },
     alternateRowStyles: {
@@ -216,12 +219,12 @@ async function buildDtrPdf(records, totalHours, profile) {
       head: tableHead,
       body: group.records.map((record) => [
         formatRecordDate(record),
-        record.amIn || "-",
-        record.amOut || "-",
-        record.pmIn || "-",
-        record.pmOut || "-",
-        record.otIn || "-",
-        record.otOut || "-",
+        formatPdfTimeCell(record.amIn),
+        formatPdfTimeCell(record.amOut),
+        formatPdfTimeCell(record.pmIn),
+        formatPdfTimeCell(record.pmOut),
+        formatPdfTimeCell(record.otIn),
+        formatPdfTimeCell(record.otOut),
         record.status || "Regular Duty Day",
         Number(record.totalHours || 0).toFixed(1),
       ]),

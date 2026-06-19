@@ -1,5 +1,13 @@
 ﻿import { formatDayName, formatPrintDate } from "@/lib/dtr-formatters";
 
+const TIME_CELL_STYLE = {
+  borderLeft: "1px solid #000",
+  borderBottom: "1px solid #000",
+  padding: "8px 4px",
+  textAlign: "center",
+  whiteSpace: "nowrap",
+};
+
 export default function PrintableDTR({ records, totalHours }) {
   const today = new Date();
   const periodLabel = today.toLocaleDateString("en-US", {
@@ -103,12 +111,12 @@ export default function PrintableDTR({ records, totalHours }) {
             <tr key={record.id}>
               <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center", fontWeight: 600 }}>{formatPrintDate(record.date)}</td>
               <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center", color: "#64748b" }}>{formatDayName(record.date).substring(0,3)}</td>
-              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.amIn || "—"}</td>
-              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.amOut || "—"}</td>
-              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.pmIn || "—"}</td>
-              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.pmOut || "—"}</td>
-              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.otIn || "—"}</td>
-              <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center" }}>{record.otOut || "—"}</td>
+              <td style={TIME_CELL_STYLE}>{record.amIn || "—"}</td>
+              <td style={TIME_CELL_STYLE}>{record.amOut || "—"}</td>
+              <td style={TIME_CELL_STYLE}>{record.pmIn || "—"}</td>
+              <td style={TIME_CELL_STYLE}>{record.pmOut || "—"}</td>
+              <td style={TIME_CELL_STYLE}>{record.otIn || "—"}</td>
+              <td style={TIME_CELL_STYLE}>{record.otOut || "—"}</td>
               <td style={{ borderLeft: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 4px", textAlign: "center", fontWeight: 800, color: "#3b82f6" }}>{record.totalHours > 0 ? `${record.totalHours.toFixed(1)}` : ""}</td>
               <td style={{ borderLeft: "1px solid #000", borderRight: "1px solid #000", borderBottom: "1px solid #000", padding: "8px 6px", textAlign: "left", fontSize: "8pt" }}>
                 {record.note
